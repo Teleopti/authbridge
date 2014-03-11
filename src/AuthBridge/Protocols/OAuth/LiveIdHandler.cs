@@ -1,19 +1,16 @@
-﻿namespace AuthBridge.Protocols.LiveId
+﻿using System;
+using System.Collections.Generic;
+using System.Web;
+using Microsoft.IdentityModel.Claims;
+using AuthBridge.Model;
+using DotNetOpenAuth.AspNet.Clients;
+using System.Net;
+using System.IO;
+using DotNetOpenAuth.AspNet;
+
+namespace AuthBridge.Protocols.OAuth
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Web;
-
-    using Microsoft.IdentityModel.Claims;
-
-    using AuthBridge.Model;
-
-    using DotNetOpenAuth.AspNet.Clients;
-    using System.Net;
-    using System.IO;
-    using DotNetOpenAuth.AspNet;
-
-    public class LiveIdHandler : ProtocolHandlerBase
+	public class LiveIdHandler : ProtocolHandlerBase
     {
         private readonly ClaimProvider issuer;
         private readonly string appId;

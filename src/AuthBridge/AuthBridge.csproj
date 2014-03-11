@@ -109,9 +109,8 @@
     <Reference Include="Microsoft.Contracts">
       <HintPath>..\packages\CodeContracts.Unofficial.1.0.0.2\lib\net35-client\Microsoft.Contracts.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.IdentityModel, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <Private>True</Private>
-      <HintPath>..\packages\Microsoft.IdentityModel.3.5.0\lib\Microsoft.IdentityModel.dll</HintPath>
+    <Reference Include="Microsoft.IdentityModel">
+      <HintPath>..\packages\Microsoft.IdentityModel.6.1.7600.16394\lib\net35\Microsoft.IdentityModel.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Practices.ServiceLocation">
       <HintPath>..\packages\CommonServiceLocator.1.0\lib\NET35\Microsoft.Practices.ServiceLocation.dll</HintPath>
@@ -166,6 +165,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Clients\MyOpenIdClient.cs" />
+    <Compile Include="Clients\SalesforceClientUserData.cs" />
+    <Compile Include="Clients\SalesForceOAuth2AccessTokenData.cs" />
+    <Compile Include="Clients\TeleoptiClient.cs" />
     <Compile Include="Configuration\AllowedClaimProviderCollection.cs" />
     <Compile Include="Configuration\AllowedClaimProviderElement.cs" />
     <Compile Include="Configuration\ClaimRequirementCollection.cs" />
@@ -184,9 +187,16 @@
     <Compile Include="Model\ClaimTypeRequirement.cs" />
     <Compile Include="Model\ClaimDemandLevel.cs" />
     <Compile Include="Model\ClaimProvider.cs" />
+    <Compile Include="Clients\Util\DictionaryExtensions.cs" />
+    <Compile Include="Clients\Util\JsonHelper.cs" />
+    <Compile Include="Clients\Util\MessagingUtilities.cs" />
     <Compile Include="Model\MultiProtocolIssuer.cs" />
+    <Compile Include="Clients\SalesforceClient.cs" />
     <Compile Include="Model\Scope.cs" />
     <Compile Include="Protocols\OAuth\LiveIdHandler.cs" />
+    <Compile Include="Protocols\OAuth\SalesForceHandler.cs" />
+    <Compile Include="Protocols\OpenId\MyOpenIdHandler.cs" />
+    <Compile Include="Protocols\OpenId\TeleoptiHandler.cs" />
     <Compile Include="Protocols\OAuth\TwitterHandler.cs" />
     <Compile Include="Protocols\OAuth\FacebookHandler.cs" />
     <Compile Include="Protocols\OpenId\GoogleHandler.cs" />

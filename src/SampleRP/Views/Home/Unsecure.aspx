@@ -105,7 +105,7 @@ Here is an example for this same application:
             <cookieHandler requireSsl="false" />
         </federatedAuthentication>
         <certificateValidation certificateValidationMode="None" />
-        <issuerNameRegistry type="Microsoft.IdentityModel.Tokens.ConfigurationBasedIssuerNameRegistry, Microsoft.IdentityModel, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
+        <issuerNameRegistry type="Microsoft.IdentityModel.Tokens.ConfigurationBasedIssuerNameRegistry, Microsoft.IdentityModel">
         <trustedIssuers>
             <add thumbprint="964ff0fb99cb81............a4b0466713483aada" name="AuthBridge" />
         </trustedIssuers>

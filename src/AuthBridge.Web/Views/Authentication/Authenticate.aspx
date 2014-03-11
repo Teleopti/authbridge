@@ -25,6 +25,12 @@
                             href="authenticate?whr=urn:IdentityServer" title="IdentityServer">Identity Server (WS-Fed + SAML)</a>    
                         <a class="button"
                             href="authenticate?whr=urn:office365:auth10preview" title="WindowsAzure AD">Windows Azure Active Directory (Office 365)</a>    
+						<a class="salesforce button"
+                            href="authenticate?whr=urn:SalesForce" title="SalesForce">SalesForce</a>
+						<a class="teleopti button"
+                            href="authenticate?whr=urn:Teleopti" title="Teleopti">Teleopti</a>
+						<a class="myopenid button"
+                            href="authenticate?whr=urn:MyOpenId" title="MyOpenId">MyOpenId</a>
                                                 
                                                         
                 </div>
