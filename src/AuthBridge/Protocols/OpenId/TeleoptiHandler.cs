@@ -39,7 +39,7 @@ namespace AuthBridge.Protocols.OpenID
 
 			var claims = new List<Claim>
 				{
-					//new Claim(System.IdentityModel.Claims.ClaimTypes.NameIdentifier, result.ExtraData["username"])
+					new Claim(System.IdentityModel.Claims.ClaimTypes.NameIdentifier, result.ProviderUserId)
 				};
 
 			foreach (var claim in result.ExtraData)
@@ -47,7 +47,13 @@ namespace AuthBridge.Protocols.OpenID
 				claims.Add(new Claim("http://schemas.teleopti.com/" + claim.Key, claim.Value));
 			}
 
-			return new ClaimsIdentity(claims, "Teleopti");
+			claims.Add(new Claim("http://schemas.teleopti.com/DataSource", "Teleopti CCC"));
+
+			var identity = new ClaimsIdentity(claims, "Teleopti");
+
+			identity.Claims.Add(new Claim("IdP/Claim1", "Hello from the Idp"));
+
+			return identity;
 		}
 	}
 }

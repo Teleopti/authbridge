@@ -41,6 +41,7 @@
       <issuer uri="urn:Twitter" thumbprint="" displayName="Twitter"/>
       <issuer uri="urn:Google" thumbprint="" displayName="Google"/>
       <issuer uri="urn:IdentityServer" thumbprint="" displayName="IdentityServer"/>
+	  <issuer uri="urn:Teleopti" thumbprint="" displayName="Teleopti"/>
     </issuers>
     <rules>
       <rule assertionsMatch="any">
@@ -62,6 +63,13 @@
         <output type="email" copyFrom="INPUT_VALUE"/>
       </rule>
 
+		<rule assertionsMatch="any">
+			<input>
+				<claim type="nameidentifier" issuer="Teleopti" value="*"/>
+			</input>
+			<output type="nameidentifier" copyFrom="INPUT_VALUE"/>
+		</rule>
+		
       <rule assertionsMatch="any">
         <input>
           <claim type="nameidentifier" issuer="LiveId" value="*"/>
