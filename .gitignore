@@ -7,3 +7,4 @@ TestResults
 packages
 *.suo
 src/AuthBridge.Web/AuthBridge.Web.1.0.0.0.nupkg
+*.nupkg
