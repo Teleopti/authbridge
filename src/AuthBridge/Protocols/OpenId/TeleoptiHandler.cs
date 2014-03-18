@@ -6,12 +6,14 @@ using System.Web;
 using AuthBridge.Clients;
 using AuthBridge.Model;
 using DotNetOpenAuth.AspNet;
+using log4net;
 using Microsoft.IdentityModel.Claims;
 
 namespace AuthBridge.Protocols.OpenID
 {
 	public class TeleoptiHandler : ProtocolHandlerBase
 	{
+		private static readonly ILog Logger = LogManager.GetLogger(typeof (TeleoptiHandler));
 		public TeleoptiHandler(ClaimProvider issuer)
 			: base(issuer)
 		{
@@ -19,6 +21,7 @@ namespace AuthBridge.Protocols.OpenID
 
 		public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
 		{
+			Logger.Debug(string.Format("ProcessSignInRequest, Issuer.Url {0}, ReplyUrl {1}", Issuer.Url, MultiProtocolIssuer.ReplyUrl));
 			var client = new TeleoptiClient(Issuer.Url);
 			client.RequestAuthentication(httpContext, MultiProtocolIssuer.ReplyUrl);
 		}
@@ -26,11 +29,14 @@ namespace AuthBridge.Protocols.OpenID
 		public override IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
 		{
 			var client = new TeleoptiClient(Issuer.Url);
+			Logger.Debug(string.Format("ProcessSignInResponse"));
+			Logger.Debug(string.Format("Issuer.Url {0}, originalUrl {1}", Issuer.Url, originalUrl));
 
 			AuthenticationResult result;
 			try
 			{
 				result = client.VerifyAuthentication(httpContext);
+				Logger.Debug(string.Format("ProviderUserId {0}", result.ProviderUserId));
 			}
 			catch (WebException wex)
 			{
@@ -42,17 +48,7 @@ namespace AuthBridge.Protocols.OpenID
 					new Claim(System.IdentityModel.Claims.ClaimTypes.NameIdentifier, result.ProviderUserId)
 				};
 
-			foreach (var claim in result.ExtraData)
-			{
-				claims.Add(new Claim("http://schemas.teleopti.com/" + claim.Key, claim.Value));
-			}
-
-			claims.Add(new Claim("http://schemas.teleopti.com/DataSource", "Teleopti CCC"));
-
 			var identity = new ClaimsIdentity(claims, "Teleopti");
-
-			identity.Claims.Add(new Claim("IdP/Claim1", "Hello from the Idp"));
-
 			return identity;
 		}
 	}
