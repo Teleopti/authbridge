@@ -11,10 +11,10 @@ using Microsoft.IdentityModel.Claims;
 
 namespace AuthBridge.Protocols.OpenID
 {
-	public class TeleoptiHandler : ProtocolHandlerBase
+	public class OpenIdHandler : ProtocolHandlerBase
 	{
-		private static readonly ILog Logger = LogManager.GetLogger(typeof (TeleoptiHandler));
-		public TeleoptiHandler(ClaimProvider issuer)
+		private static readonly ILog Logger = LogManager.GetLogger(typeof (OpenIdHandler));
+		public OpenIdHandler(ClaimProvider issuer)
 			: base(issuer)
 		{
 		}
@@ -22,13 +22,13 @@ namespace AuthBridge.Protocols.OpenID
 		public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
 		{
 			Logger.Debug(string.Format("ProcessSignInRequest, Issuer.Url {0}, ReplyUrl {1}", Issuer.Url, MultiProtocolIssuer.ReplyUrl));
-			var client = new TeleoptiClient(Issuer.Url);
+			var client = new WindowsClient(Issuer.Url);
 			client.RequestAuthentication(httpContext, MultiProtocolIssuer.ReplyUrl);
 		}
 
 		public override IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
 		{
-			var client = new TeleoptiClient(Issuer.Url);
+			var client = new WindowsClient(Issuer.Url);
 			Logger.Debug(string.Format("ProcessSignInResponse"));
 			Logger.Debug(string.Format("Issuer.Url {0}, originalUrl {1}", Issuer.Url, originalUrl));
 
@@ -48,7 +48,7 @@ namespace AuthBridge.Protocols.OpenID
 					new Claim(System.IdentityModel.Claims.ClaimTypes.NameIdentifier, result.ProviderUserId)
 				};
 
-			var identity = new ClaimsIdentity(claims, "Teleopti");
+			var identity = new ClaimsIdentity(claims, Issuer.Identifier.ToString());
 			return identity;
 		}
 	}

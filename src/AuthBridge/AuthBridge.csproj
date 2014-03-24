@@ -171,7 +171,7 @@
     <Compile Include="Clients\MyOpenIdClient.cs" />
     <Compile Include="Clients\SalesforceClientUserData.cs" />
     <Compile Include="Clients\SalesForceOAuth2AccessTokenData.cs" />
-    <Compile Include="Clients\TeleoptiClient.cs" />
+    <Compile Include="Clients\WindowsClient.cs" />
     <Compile Include="Configuration\AllowedClaimProviderCollection.cs" />
     <Compile Include="Configuration\AllowedClaimProviderElement.cs" />
     <Compile Include="Configuration\ClaimRequirementCollection.cs" />
@@ -199,7 +199,7 @@
     <Compile Include="Protocols\OAuth\LiveIdHandler.cs" />
     <Compile Include="Protocols\OAuth\SalesForceHandler.cs" />
     <Compile Include="Protocols\OpenId\MyOpenIdHandler.cs" />
-    <Compile Include="Protocols\OpenId\TeleoptiHandler.cs" />
+    <Compile Include="Protocols\OpenId\OpenIdHandler.cs" />
     <Compile Include="Protocols\OAuth\TwitterHandler.cs" />
     <Compile Include="Protocols\OAuth\FacebookHandler.cs" />
     <Compile Include="Protocols\OpenId\GoogleHandler.cs" />
