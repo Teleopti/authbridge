@@ -168,10 +168,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Clients\MyOpenIdClient.cs" />
     <Compile Include="Clients\SalesforceClientUserData.cs" />
     <Compile Include="Clients\SalesForceOAuth2AccessTokenData.cs" />
-    <Compile Include="Clients\WindowsClient.cs" />
+    <Compile Include="Clients\OpenIdClient.cs" />
     <Compile Include="Configuration\AllowedClaimProviderCollection.cs" />
     <Compile Include="Configuration\AllowedClaimProviderElement.cs" />
     <Compile Include="Configuration\ClaimRequirementCollection.cs" />

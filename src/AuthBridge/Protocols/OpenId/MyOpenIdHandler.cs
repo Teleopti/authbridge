@@ -19,13 +19,13 @@ namespace AuthBridge.Protocols.OpenID
 
 		public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
 		{
-			var client = new MyOpenIdClient();
+			var client = new OpenIdClient(Issuer.Url);
 			client.RequestAuthentication(httpContext, MultiProtocolIssuer.ReplyUrl);
 		}
 
 		public override IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
 		{
-			var client = new MyOpenIdClient();
+			var client = new OpenIdClient(Issuer.Url);
 
 			AuthenticationResult result;
 			try

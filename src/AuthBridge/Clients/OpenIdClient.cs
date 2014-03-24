@@ -3,9 +3,9 @@ using DotNetOpenAuth.AspNet.Clients;
 
 namespace AuthBridge.Clients
 {
-	public class WindowsClient : OpenIdClient
+	public class OpenIdClient : DotNetOpenAuth.AspNet.Clients.OpenIdClient
 	{
-		public WindowsClient(Uri url)
+		public OpenIdClient(Uri url)
 			: base("Windows", url)
 		{
 		}
