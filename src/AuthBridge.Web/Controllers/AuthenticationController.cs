@@ -1,4 +1,7 @@
-﻿namespace AuthBridge.Web.Controllers
+﻿using System.Configuration;
+using System.Linq;
+
+namespace AuthBridge.Web.Controllers
 {
     using System;
     using System.Globalization;
@@ -42,6 +45,15 @@
 
         public ActionResult HomeRealmDiscovery()
         {
+			if (ConfigurationManager.AppSettings["IdentityProvidersAvailable"] != null)
+	        {
+				var identityProviders = ConfigurationManager.AppSettings["IdentityProvidersAvailable"].Split('|');
+				foreach (var identityProvider in identityProviders)
+				{
+					ViewData[identityProvider] = true;
+				}
+	        }
+	        
             return View("Authenticate");
         }
         
