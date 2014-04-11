@@ -47,7 +47,7 @@ namespace AuthBridge.Web.Controllers
         {
 			if (ConfigurationManager.AppSettings["IdentityProvidersAvailable"] != null)
 	        {
-				var identityProviders = ConfigurationManager.AppSettings["IdentityProvidersAvailable"].Split('|');
+				var identityProviders = ConfigurationManager.AppSettings["IdentityProvidersAvailable"].Split(',');
 				foreach (var identityProvider in identityProviders)
 				{
 					ViewData[identityProvider] = true;
