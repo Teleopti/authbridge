@@ -3,7 +3,7 @@ using System.Runtime.Serialization.Json;
 
 namespace AuthBridge.Clients.Util
 {
-	internal static class JsonHelper
+	public static class JsonHelper
 	{
 		#region Public Methods and Operators
 

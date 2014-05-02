@@ -1,6 +1,6 @@
 using DotNetOpenAuth.AspNet.Clients;
 
-namespace AuthBridge.Clients
+namespace SalesForceSignIn
 {
 	public class SalesForceOAuth2AccessTokenData : OAuth2AccessTokenData
 	{

@@ -2,14 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Net.Http;
-using System.Web;
 using AuthBridge.Clients.Util;
-using DotNetOpenAuth.AspNet;
 using DotNetOpenAuth.AspNet.Clients;
-using DotNetOpenAuth.OpenId;
 
-namespace AuthBridge.Clients
+namespace SalesForceSignIn
 {
 	/// <summary>
 	/// The Microsoft account client.
@@ -129,14 +125,14 @@ namespace AuthBridge.Clients
 		/// A dictionary contains key-value pairs of user data 
 		/// </returns>
 		protected override IDictionary<string, string> GetUserData(string accessToken) {
-			SalesforceClientUserData graph;
+			SalesForceSignIn.SalesforceClientUserData graph;
 			var request = WebRequest.Create(idUrl);
 			request.Headers.Add("Authorization", "Bearer " + accessToken);
 			using (var response = request.GetResponse())
 			{
 				using (var responseStream = response.GetResponseStream())
 				{
-					graph = JsonHelper.Deserialize<SalesforceClientUserData>(responseStream);
+					graph = JsonHelper.Deserialize<SalesForceSignIn.SalesforceClientUserData>(responseStream);
 				}
 			}
 
@@ -185,7 +181,7 @@ namespace AuthBridge.Clients
 			var tokenResponse = (HttpWebResponse)tokenRequest.GetResponse();
 			if (tokenResponse.StatusCode == HttpStatusCode.OK) {
 				using (Stream responseStream = tokenResponse.GetResponseStream()) {
-					var tokenData = JsonHelper.Deserialize<SalesForceOAuth2AccessTokenData>(responseStream);
+					var tokenData = JsonHelper.Deserialize<SalesForceSignIn.SalesForceOAuth2AccessTokenData>(responseStream);
 					if (tokenData != null)
 					{
 						idUrl = tokenData.id;

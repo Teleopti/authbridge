@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.Serialization;
 
-namespace AuthBridge.Clients
+namespace SalesForceSignIn
 {
 	[DataContract]
 	[EditorBrowsable(EditorBrowsableState.Never)]

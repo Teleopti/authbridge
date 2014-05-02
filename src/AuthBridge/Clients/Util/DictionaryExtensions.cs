@@ -4,7 +4,7 @@ using System.Xml.Linq;
 
 namespace AuthBridge.Clients.Util
 {
-	internal static class DictionaryExtensions
+	public static class DictionaryExtensions
 	{
 		/// <summary>
 		/// Adds the value from an XDocument with the specified element name if it's not empty.

@@ -9,10 +9,10 @@ namespace AuthBridge.Clients.Util
 	{
 		private static readonly string[] UriRfc3986CharsToEscape = new[] { "!", "*", "'", "(", ")" };
 
-		internal static void AppendQueryArgs(this UriBuilder builder, IEnumerable<KeyValuePair<string, string>> args)
+		public static void AppendQueryArgs(this UriBuilder builder, IEnumerable<KeyValuePair<string, string>> args)
 		{
 
-			if (args != null && args.Count() > 0)
+			if (args != null && args.Any())
 			{
 				StringBuilder sb = new StringBuilder(50 + (args.Count() * 10));
 				if (!string.IsNullOrEmpty(builder.Query))
@@ -26,7 +26,7 @@ namespace AuthBridge.Clients.Util
 			}
 		}
 
-		internal static string CreateQueryString(IEnumerable<KeyValuePair<string, string>> args)
+		public static string CreateQueryString(IEnumerable<KeyValuePair<string, string>> args)
 		{
 			if (!args.Any())
 			{
@@ -46,7 +46,7 @@ namespace AuthBridge.Clients.Util
 			return sb.ToString();
 		}
 
-		internal static string EscapeUriDataStringRfc3986(string value)
+		public static string EscapeUriDataStringRfc3986(string value)
 		{
 			// Start with RFC 2396 escaping by calling the .NET method to do the work.
 			// This MAY sometimes exhibit RFC 3986 behavior (according to the documentation).

@@ -4,12 +4,12 @@ using System.IO;
 using System.Net;
 using System.Web;
 using AuthBridge.Clients;
-using AuthBridge.Configuration;
 using AuthBridge.Model;
+using AuthBridge.Protocols;
 using DotNetOpenAuth.AspNet;
 using Microsoft.IdentityModel.Claims;
 
-namespace AuthBridge.Protocols.OAuth
+namespace SalesForceSignIn
 {
 	public class SalesForceHandler : ProtocolHandlerBase
 	{
