@@ -7,6 +7,8 @@
     {
         public Uri Identifier { get; set; }
 
+		public string DisplayName { get; set; }
+
         public Uri Url { get; set; }
 
         public string Protocol { get; set; }

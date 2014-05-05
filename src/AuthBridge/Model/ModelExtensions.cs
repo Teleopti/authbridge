@@ -33,6 +33,7 @@
             return new ClaimProvider
             {
                 Identifier = new Uri(claimProvider.Name),
+				DisplayName = claimProvider.DisplayName,
                 Url = new Uri(claimProvider.Uri),
                 Protocol = claimProvider.ProtocolHandler,
                 Parameters = claimProvider.Params.ToModel()

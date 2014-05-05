@@ -1,4 +1,6 @@
-﻿namespace AuthBridge.Configuration
+﻿using System.Linq;
+
+namespace AuthBridge.Configuration
 {
     using System;
     using System.Configuration;
@@ -17,6 +19,13 @@
             var issuer = claimProvider.ToModel();
             return issuer;
         }
+
+	    public ClaimProvider[] RetrieveIssuers()
+	    {
+			var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
+			var claimProviders = configuration.ClaimProviders.OfType<ClaimProviderElement>().Select(x=>x.ToModel());
+		    return claimProviders.ToArray();
+	    }
 
         public MultiProtocolIssuer RetrieveMultiProtocolIssuer()
         {

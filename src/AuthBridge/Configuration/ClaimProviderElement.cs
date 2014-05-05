@@ -11,6 +11,12 @@
             get { return (string)this["identifier"]; }
         }
 
+		[ConfigurationProperty("displayName", IsRequired = true)]
+		public string DisplayName
+		{
+			get { return (string)this["displayName"]; }
+		}
+
         [ConfigurationProperty("url", IsRequired = true)]
         public string Uri
         {

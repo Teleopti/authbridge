@@ -45,16 +45,12 @@ namespace AuthBridge.Web.Controllers
 
         public ActionResult HomeRealmDiscovery()
         {
-			if (ConfigurationManager.AppSettings["IdentityProvidersAvailable"] != null)
+	        var vms=configuration.RetrieveIssuers().Select(x => new ProviderViewModel
 	        {
-				var identityProviders = ConfigurationManager.AppSettings["IdentityProvidersAvailable"].Split(',');
-				foreach (var identityProvider in identityProviders)
-				{
-					ViewData[identityProvider] = true;
-				}
-	        }
-	        
-            return View("Authenticate");
+		        Identifier = x.Identifier.ToString(),
+		        DisplayName = x.DisplayName
+	        });
+            return View("Authenticate", vms.ToArray());
         }
         
         public ActionResult Authenticate()

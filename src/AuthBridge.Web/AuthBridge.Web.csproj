@@ -84,6 +84,7 @@
   <ItemGroup>
     <Compile Include="Controllers\AuthenticationController.cs" />
     <Compile Include="Controllers\FederationMetadataController.cs" />
+    <Compile Include="Controllers\ProviderViewModel.cs" />
     <Compile Include="Controllers\RequestUtilities.cs" />
     <Compile Include="Default.aspx.cs">
       <DependentUpon>Default.aspx</DependentUpon>
