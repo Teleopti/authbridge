@@ -161,14 +161,8 @@ namespace AuthBridge.Web.Controllers
 
                         break;
                     default:
-                        throw new InvalidOperationException(
-                            String.Format(
-                                CultureInfo.InvariantCulture,
-                                "The action '{0}' (Request.QueryString['{1}']) is unexpected. Expected actions are: '{2}' or '{3}'.",
-                                String.IsNullOrEmpty(action) ? "<EMPTY>" : action,
-                                WSFederationConstants.Parameters.Action,
-                                WSFederationConstants.Actions.SignIn,
-                                WSFederationConstants.Actions.SignOut));
+                        Response.AddHeader("X-XRDS-Location",new Uri(Request.Url,Response.ApplyAppPathModifier("~/xrds.aspx")).AbsoluteUri);
+                        return new EmptyResult();
                 }
             }
             catch (Exception exception)
