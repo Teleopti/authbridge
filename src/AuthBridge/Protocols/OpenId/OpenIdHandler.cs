@@ -22,13 +22,13 @@ namespace AuthBridge.Protocols.OpenID
 		public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
 		{
 			Logger.Debug(string.Format("ProcessSignInRequest, Issuer.Url {0}, ReplyUrl {1}", Issuer.Url, MultiProtocolIssuer.ReplyUrl));
-			var client = new OpenIdClient(Issuer.Url);
+			var client = new OpenIdClient(Issuer.Url,MultiProtocolIssuer.Identifier);
 			client.RequestAuthentication(httpContext, MultiProtocolIssuer.ReplyUrl);
 		}
 
 		public override IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
 		{
-			var client = new OpenIdClient(Issuer.Url);
+            var client = new OpenIdClient(Issuer.Url, MultiProtocolIssuer.Identifier);
 			Logger.Debug(string.Format("ProcessSignInResponse"));
 			Logger.Debug(string.Format("Issuer.Url {0}, originalUrl {1}", Issuer.Url, originalUrl));
 

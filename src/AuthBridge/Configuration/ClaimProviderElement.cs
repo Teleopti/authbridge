@@ -23,6 +23,12 @@
             get { return (string)this["url"]; }
         }
 
+        [ConfigurationProperty("realm", IsRequired = false)]
+        public string Realm
+        {
+            get { return (string)this["realm"]; }
+        }
+
         [ConfigurationProperty("protocolHandler", IsRequired = true)]
         public string ProtocolHandler
         {

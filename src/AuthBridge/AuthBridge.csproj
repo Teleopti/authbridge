@@ -232,7 +232,6 @@
     <Compile Include="Model\MultiProtocolIssuer.cs" />
     <Compile Include="Model\Scope.cs" />
     <Compile Include="Protocols\OAuth\LiveIdHandler.cs" />
-    <Compile Include="Protocols\OpenId\MyOpenIdHandler.cs" />
     <Compile Include="Protocols\OpenId\OpenIdHandler.cs" />
     <Compile Include="Protocols\OAuth\TwitterHandler.cs" />
     <Compile Include="Protocols\OAuth\FacebookHandler.cs" />
