@@ -70,6 +70,10 @@ namespace AuthBridge.Web.Controllers
             }
 
             this.federationContext.IssuerName = issuer.Identifier.ToString();
+	        if (string.IsNullOrEmpty(this.federationContext.Realm))
+	        {
+				throw new InvalidOperationException("The context cookie was not found. Try to sign in again.");
+	        }
             var scope = this.configuration.RetrieveScope(new Uri(this.federationContext.Realm));
             if (scope == null)
             {
@@ -86,7 +90,7 @@ namespace AuthBridge.Web.Controllers
         {
             if (string.IsNullOrEmpty(this.federationContext.IssuerName))
             {
-                throw new InvalidOperationException("The context cookie was not found. Try to re-login");
+				throw new InvalidOperationException("The context cookie was not found. Try to sign in again.");
             }
 
             var issuer = this.configuration.RetrieveIssuer(new Uri(this.federationContext.IssuerName));
