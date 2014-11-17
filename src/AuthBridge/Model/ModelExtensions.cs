@@ -34,7 +34,7 @@
             {
                 Identifier = new Uri(claimProvider.Name),
 				DisplayName = claimProvider.DisplayName,
-                Url = new Uri(claimProvider.Uri),
+                Url = new Uri(claimProvider.Uri,UriKind.RelativeOrAbsolute),
                 Protocol = claimProvider.ProtocolHandler,
                 Parameters = claimProvider.Params.ToModel()
             };
@@ -62,7 +62,7 @@
             var scope = new Scope
             {
                 Identifier = new Uri(scopeElement.Identifier),
-                Url = new Uri(scopeElement.Uri),
+                Url = new Uri(scopeElement.Uri,UriKind.RelativeOrAbsolute),
                 UseClaimsPolicyEngine = scopeElement.UseClaimsPolicyEngine
             };
 

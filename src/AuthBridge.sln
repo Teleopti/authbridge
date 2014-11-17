@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthBridge.Web", "AuthBridge.Web\AuthBridge.Web.csproj", "{D22621C7-529C-4B59-A3ED-9CDD02D84BBF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthBridge", "AuthBridge\AuthBridge.csproj", "{97A8192D-5E2D-4D6B-A450-1166B65CF564}"

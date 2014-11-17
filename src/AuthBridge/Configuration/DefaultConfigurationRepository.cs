@@ -50,8 +50,8 @@ namespace AuthBridge.Configuration
             
             return new MultiProtocolIssuer
             {
-                Identifier = new Uri(configuration.Identifier),
-                ReplyUrl = new Uri(configuration.ResponseEndpoint),
+                Identifier = new Uri(configuration.Identifier, UriKind.RelativeOrAbsolute),
+                ReplyUrl = new Uri(configuration.ResponseEndpoint, UriKind.RelativeOrAbsolute),
                 SigningCertificate = cert
             };
         }
