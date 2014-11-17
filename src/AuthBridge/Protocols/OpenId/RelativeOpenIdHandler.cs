@@ -41,16 +41,12 @@ namespace AuthBridge.Protocols.OpenID
 		{
 			var site = new Uri(httpContext.Request.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped));
 			var issuerUrl = Issuer.Url;
-			var replyUrl = MultiProtocolIssuer.ReplyUrl;
 			if (!issuerUrl.IsAbsoluteUri)
 			{
 				issuerUrl = new Uri(site, issuerUrl);
 			}
-			if (!replyUrl.IsAbsoluteUri)
-			{
-				replyUrl = new Uri(site, replyUrl);
-			}
-			var client = new Clients.OpenIdClient(issuerUrl, replyUrl);
+
+			var client = new Clients.OpenIdClient(Issuer.Url, MultiProtocolIssuer.Identifier);
 			Logger.Debug(string.Format("ProcessSignInResponse"));
 			Logger.Debug(string.Format("Issuer.Url {0}, originalUrl {1}", issuerUrl, originalUrl));
 
