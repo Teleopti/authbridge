@@ -21,34 +21,36 @@ namespace AuthBridge.Protocols.OpenID
 		public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
 		{
 			var site = new Uri(httpContext.Request.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped));
-			var issuerUrl = Issuer.Url;
-			var replyUrl = MultiProtocolIssuer.ReplyUrl;
-			if (!issuerUrl.IsAbsoluteUri)
-			{
-				issuerUrl = new Uri(site,issuerUrl);
-			}
-			if (!replyUrl.IsAbsoluteUri)
-			{
-				replyUrl = new Uri(site,replyUrl);
-			}
+			var issuerUrl = new Uri(site,
+				Issuer.Url.MakeRelativeUri(new Uri(Issuer.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped))));
 
-			Logger.Debug(string.Format("ProcessSignInRequest, Issuer.Url {0}, ReplyUrl {1}", issuerUrl, replyUrl));
-			var client = new Clients.OpenIdClient(issuerUrl, MultiProtocolIssuer.Identifier);
+			var replyUrl = new Uri(site,
+				MultiProtocolIssuer.ReplyUrl.MakeRelativeUri(
+					new Uri(MultiProtocolIssuer.ReplyUrl.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped))));
+
+			var identifierUrl = new Uri(site,
+				MultiProtocolIssuer.Identifier.MakeRelativeUri(
+					new Uri(MultiProtocolIssuer.Identifier.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped))));
+
+			Logger.Debug(string.Format("ProcessSignInRequest, Issuer.Url {0}, ReplyUrl {1}, Identifier {2}", issuerUrl, replyUrl, identifierUrl));
+			var client = new Clients.OpenIdClient(issuerUrl, identifierUrl);
 			client.RequestAuthentication(httpContext, replyUrl);
 		}
 
 		public override IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
 		{
 			var site = new Uri(httpContext.Request.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped));
-			var issuerUrl = Issuer.Url;
-			if (!issuerUrl.IsAbsoluteUri)
-			{
-				issuerUrl = new Uri(site, issuerUrl);
-			}
+			var issuerUrl = new Uri(site,
+				Issuer.Url.MakeRelativeUri(new Uri(Issuer.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped))));
 
-			var client = new Clients.OpenIdClient(Issuer.Url, MultiProtocolIssuer.Identifier);
+			var identifierUrl = new Uri(site,
+				MultiProtocolIssuer.Identifier.MakeRelativeUri(
+					new Uri(MultiProtocolIssuer.Identifier.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped))));
+
+			var client = new Clients.OpenIdClient(issuerUrl, identifierUrl);
 			Logger.Debug(string.Format("ProcessSignInResponse"));
-			Logger.Debug(string.Format("Issuer.Url {0}, originalUrl {1}", issuerUrl, originalUrl));
+			Logger.Debug(string.Format("Issuer.Url {0}, originalUrl {1}, identifierUrl {2}", issuerUrl, originalUrl,
+				identifierUrl));
 
 			AuthenticationResult result;
 			try
