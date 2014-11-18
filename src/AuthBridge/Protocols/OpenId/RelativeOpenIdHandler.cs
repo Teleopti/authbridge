@@ -12,7 +12,7 @@ namespace AuthBridge.Protocols.OpenID
 {
 	public class RelativeOpenIdHandler : ProtocolHandlerBase
 	{
-		private static readonly ILog Logger = LogManager.GetLogger(typeof(OpenIdHandler));
+		private static readonly ILog Logger = LogManager.GetLogger(typeof(RelativeOpenIdHandler));
 		public RelativeOpenIdHandler(ClaimProvider issuer)
 			: base(issuer)
 		{
