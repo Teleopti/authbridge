@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Configuration;
+using System.Linq;
 using log4net;
 
 namespace AuthBridge.Web.Controllers
@@ -117,8 +118,18 @@ namespace AuthBridge.Web.Controllers
             FederatedAuthentication.WSFederationAuthenticationModule.SetPrincipalAndWriteSessionToken(sessionToken, true);
 
             // TODO: sign context cookie to avoid tampering with this value
-			Logger.InfoFormat("Original url: {0}", federationContext.OriginalUrl);
-            Response.Redirect(federationContext.OriginalUrl, false);
+			var originalUrl = federationContext.OriginalUrl;
+			var useRequestHost = ConfigurationManager.AppSettings["UseRequestHost"];
+	        if (!string.IsNullOrEmpty(useRequestHost) && bool.Parse(useRequestHost))
+	        {
+				var originalUri = new Uri(originalUrl);
+				var site = new Uri(HttpContext.Request.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped));
+				originalUrl = new Uri(site,
+					new Uri(originalUri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(originalUri)).ToString();
+
+	        }
+			Logger.InfoFormat("Original url: {0}", originalUrl);
+			Response.Redirect(originalUrl, false);
             federationContext.Destroy();
             HttpContext.ApplicationInstance.CompleteRequest();
         }
