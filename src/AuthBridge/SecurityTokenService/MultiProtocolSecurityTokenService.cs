@@ -47,12 +47,18 @@ namespace AuthBridge.SecurityTokenService
                 replyTo = request.ReplyTo;
             }
             else if (scopeModel.Url != null)
-            {
-	            replyTo =
-		            new Uri(new Uri(HttpContext.Current.Request.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)),
-			            new Uri(scopeModel.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri
-				            (
-					            scopeModel.Url)).ToString();
+			{
+				replyTo = scopeModel.Url.ToString();
+	            if (scopeModel.Url.Host == "dummy")
+	            {
+		            replyTo =
+			            new Uri(
+				            new Uri(HttpContext.Current.Request.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)),
+				            new Uri(scopeModel.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped))
+					            .MakeRelativeUri
+					            (
+						            scopeModel.Url)).ToString();
+	            }
             }
             else
             {

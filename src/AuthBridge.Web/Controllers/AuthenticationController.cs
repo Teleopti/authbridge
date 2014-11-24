@@ -126,7 +126,6 @@ namespace AuthBridge.Web.Controllers
 				var site = new Uri(HttpContext.Request.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped));
 				originalUrl = new Uri(site,
 					new Uri(originalUri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(originalUri)).ToString();
-
 	        }
 			Logger.InfoFormat("Original url: {0}", originalUrl);
 			Response.Redirect(originalUrl, false);
