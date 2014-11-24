@@ -119,6 +119,7 @@ namespace AuthBridge.Web.Controllers
 
             // TODO: sign context cookie to avoid tampering with this value
 			var originalUrl = federationContext.OriginalUrl;
+			Logger.InfoFormat("Original url before: {0}", originalUrl);
 			var useRequestHost = ConfigurationManager.AppSettings["UseRequestHost"];
 	        if (!string.IsNullOrEmpty(useRequestHost) && bool.Parse(useRequestHost))
 	        {
@@ -127,7 +128,7 @@ namespace AuthBridge.Web.Controllers
 				originalUrl = new Uri(site,
 					new Uri(originalUri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(originalUri)).ToString();
 	        }
-			Logger.InfoFormat("Original url: {0}", originalUrl);
+			Logger.InfoFormat("Original url after: {0}", originalUrl);
 			Response.Redirect(originalUrl, false);
             federationContext.Destroy();
             HttpContext.ApplicationInstance.CompleteRequest();

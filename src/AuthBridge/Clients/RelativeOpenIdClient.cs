@@ -30,25 +30,27 @@ namespace AuthBridge.Clients
 			var realm = new Realm(_realmUri ?? new Uri(returnUrl.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)));
 			var userSuppliedIdentifier = new Uri((Identifier)providerIdentifierField.GetValue(this));
 			
-			var site = new Uri("http://localhost");
-			var userSuppliedIdentifierForRequestMachine = new Uri(site,
-				new Uri(userSuppliedIdentifier.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(userSuppliedIdentifier));
 			Logger.InfoFormat("Request {0}; userSuppliedIdentifier {1}", request, userSuppliedIdentifier);
-			Logger.InfoFormat("Request {0}; userSuppliedIdentifierForRequestMachine {1}", request, userSuppliedIdentifierForRequestMachine);
-			IAuthenticationRequest authenticationRequest = relyingParty.CreateRequest(userSuppliedIdentifierForRequestMachine, realm, returnUrl);
+			IAuthenticationRequest authenticationRequest = relyingParty.CreateRequest(userSuppliedIdentifier, realm, returnUrl);
 			OnBeforeSendingAuthenticationRequest(authenticationRequest);
 
-			var property = authenticationRequest.DiscoveryResult.GetType()
-				.GetProperty("UserSuppliedIdentifier", BindingFlags.Instance | BindingFlags.NonPublic);
-
-			site = new Uri(context.Request.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped));
-			var userSupplied = new Uri(site,
-				new Uri(userSuppliedIdentifier.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(userSuppliedIdentifier));
-
-			Logger.InfoFormat("Request {0}; userSupplied {1}", request, userSupplied);
-
-			property.SetValue(authenticationRequest.DiscoveryResult, userSupplied, BindingFlags.SetProperty | BindingFlags.NonPublic, null, null, CultureInfo.CurrentCulture);
-			authenticationRequest.RedirectToProvider();
+			try
+			{
+				var property = authenticationRequest.DiscoveryResult.GetType().GetProperty("UserSuppliedIdentifier");
+				var site = new Uri(context.Request.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped));
+				var userSupplied = new Uri(site,
+					new Uri(userSuppliedIdentifier.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(userSuppliedIdentifier));
+				
+				Logger.InfoFormat("Request {0}; userSupplied {1}", request, userSupplied);
+				property.SetValue(authenticationRequest.DiscoveryResult, Identifier.Parse(userSupplied.ToString()), BindingFlags.SetProperty, null, null, CultureInfo.CurrentCulture);
+				
+				authenticationRequest.RedirectToProvider();
+			}
+			catch (Exception ex)
+			{
+				Logger.Error("Error in discovery modification", ex);
+				throw;
+			}
 		}
 	}
 }
