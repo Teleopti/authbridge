@@ -31,9 +31,15 @@ namespace AuthBridge.Protocols.OpenID
 				new Uri(MultiProtocolIssuer.Identifier.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(MultiProtocolIssuer.Identifier));
 
 			Logger.Debug(string.Format("ProcessSignInRequest, Issuer.Url {0}, ReplyUrl {1}, Identifier {2}", issuerUrl, replyUrl, identifierUrl));
-			var client = new Clients.OpenIdClient(issuerUrl, identifierUrl);
+			var client = new Clients.RelativeOpenIdClient(issuerUrl, identifierUrl);
+
+
+			Logger.InfoFormat("Status code: {0}", httpContext.Response.StatusCode);
+
+			scope.Url = new Uri(site,
+				new Uri(scope.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(scope.Url));
 			client.RequestAuthentication(httpContext, replyUrl);
-		}
+}
 
 		public override IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
 		{
@@ -44,7 +50,7 @@ namespace AuthBridge.Protocols.OpenID
 			var identifierUrl = new Uri(site,
 				new Uri(MultiProtocolIssuer.Identifier.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(MultiProtocolIssuer.Identifier));
 
-			var client = new Clients.OpenIdClient(issuerUrl, identifierUrl);
+			var client = new Clients.RelativeOpenIdClient(issuerUrl, identifierUrl);
 			Logger.Debug(string.Format("ProcessSignInResponse"));
 			Logger.Debug(string.Format("Issuer.Url {0}, originalUrl {1}, identifierUrl {2}", issuerUrl, originalUrl,
 				identifierUrl));
@@ -65,7 +71,7 @@ namespace AuthBridge.Protocols.OpenID
 				new Claim(System.IdentityModel.Claims.ClaimTypes.NameIdentifier, result.ProviderUserId)
 			};
 
-			var identity = new ClaimsIdentity(claims, Issuer.Identifier.ToString());
+			var identity = new ClaimsIdentity(claims, issuerUrl.ToString());
 			return identity;
 		}
 	}

@@ -1,4 +1,7 @@
-﻿namespace AuthBridge.SecurityTokenService
+﻿using System.Web;
+using log4net;
+
+namespace AuthBridge.SecurityTokenService
 {
     using System;
     using System.Collections.Generic;
@@ -15,6 +18,7 @@
 
     public class MultiProtocolSecurityTokenService : SecurityTokenService
     {
+	    private static readonly ILog Logger = LogManager.GetLogger(typeof (MultiProtocolSecurityTokenService));
         private readonly IConfigurationRepository multiProtocolConfiguration;
         
         private Model.Scope scopeModel;
@@ -36,21 +40,25 @@
 
             var scope = new Scope(request.AppliesTo.Uri.OriginalString, SecurityTokenServiceConfiguration.SigningCredentials);
             scope.TokenEncryptionRequired = false;
-            
+			
             string replyTo;
             if (!string.IsNullOrEmpty(request.ReplyTo)) 
             {
                 replyTo = request.ReplyTo;
             }
-            else if (this.scopeModel.Url != null)
+            else if (scopeModel.Url != null)
             {
-                replyTo = this.scopeModel.Url.ToString();
+	            replyTo =
+		            new Uri(new Uri(HttpContext.Current.Request.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)),
+			            new Uri(scopeModel.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri
+				            (
+					            scopeModel.Url)).ToString();
             }
             else
             {
                 replyTo = scope.AppliesToAddress;
             }
-            
+            Logger.InfoFormat("ReplyTo: {0}",replyTo);
             scope.ReplyToAddress = replyTo;
 
             return scope;

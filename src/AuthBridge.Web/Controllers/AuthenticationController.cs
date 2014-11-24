@@ -1,5 +1,5 @@
-﻿using System.Configuration;
-using System.Linq;
+﻿using System.Linq;
+using log4net;
 
 namespace AuthBridge.Web.Controllers
 {
@@ -13,15 +13,16 @@ namespace AuthBridge.Web.Controllers
     using Microsoft.IdentityModel.Tokens;
     using Microsoft.IdentityModel.Web;
 
-    using AuthBridge.Web.Services;
+    using Services;
 
-    using AuthBridge.Configuration;
-    using AuthBridge.Model;
-    using AuthBridge.SecurityTokenService;
+    using Configuration;
+    using Model;
+    using SecurityTokenService;
 
     [HandleError]
     public class AuthenticationController : Controller
     {
+	    private static readonly ILog Logger = LogManager.GetLogger(typeof (AuthenticationController));
         private readonly IProtocolDiscovery protocolDiscovery;
 
         private readonly IFederationContext federationContext;
@@ -37,10 +38,10 @@ namespace AuthBridge.Web.Controllers
 
         public AuthenticationController(IProtocolDiscovery defaultProtocolDiscovery, IFederationContext federationContext, IConfigurationRepository configuration)
         {
-            this.protocolDiscovery = defaultProtocolDiscovery;
+            protocolDiscovery = defaultProtocolDiscovery;
             this.federationContext = federationContext;
             this.configuration = configuration;
-            this.multiProtocolServiceProperties = this.configuration.RetrieveMultiProtocolIssuer();
+            multiProtocolServiceProperties = this.configuration.RetrieveMultiProtocolIssuer();
         }
 
         public ActionResult HomeRealmDiscovery()
@@ -55,32 +56,32 @@ namespace AuthBridge.Web.Controllers
         
         public ActionResult Authenticate()
         {            
-            var identifier = new Uri(this.Request.QueryString[WSFederationConstants.Parameters.HomeRealm]);
+            var identifier = new Uri(Request.QueryString[WSFederationConstants.Parameters.HomeRealm]);
 
-            ClaimProvider issuer = this.configuration.RetrieveIssuer(identifier);
+            ClaimProvider issuer = configuration.RetrieveIssuer(identifier);
             if (issuer == null)
             {
-                return this.HomeRealmDiscovery();
+                return HomeRealmDiscovery();
             }
 
-            var handler = this.protocolDiscovery.RetrieveProtocolHandler(issuer);
+            var handler = protocolDiscovery.RetrieveProtocolHandler(issuer);
             if (handler == null)
             {
                 throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "The protocol handler '{0}' was not found in the container", issuer.Protocol));
             }
 
-            this.federationContext.IssuerName = issuer.Identifier.ToString();
-	        if (string.IsNullOrEmpty(this.federationContext.Realm))
+			federationContext.IssuerName = issuer.Identifier.ToString();
+	        if (string.IsNullOrEmpty(federationContext.Realm))
 	        {
 				throw new InvalidOperationException("The context cookie was not found. Try to sign in again.");
 	        }
-            var scope = this.configuration.RetrieveScope(new Uri(this.federationContext.Realm));
+            var scope = configuration.RetrieveScope(new Uri(federationContext.Realm));
             if (scope == null)
             {
-                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "The scope '{0}' was not found in the configuration", this.federationContext.Realm));
+                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "The scope '{0}' was not found in the configuration", federationContext.Realm));
             }
 
-            handler.ProcessSignInRequest(scope, this.HttpContext);
+            handler.ProcessSignInRequest(scope, HttpContext);
             
             return new EmptyResult();
         }
@@ -88,34 +89,37 @@ namespace AuthBridge.Web.Controllers
         [ValidateInput(false)]
         public void ProcessResponse()
         {
-            if (string.IsNullOrEmpty(this.federationContext.IssuerName))
+            if (string.IsNullOrEmpty(federationContext.IssuerName))
             {
 				throw new InvalidOperationException("The context cookie was not found. Try to sign in again.");
             }
 
-            var issuer = this.configuration.RetrieveIssuer(new Uri(this.federationContext.IssuerName));
+            var issuer = configuration.RetrieveIssuer(new Uri(federationContext.IssuerName));
 
-            var handler = this.protocolDiscovery.RetrieveProtocolHandler(issuer);
+            var handler = protocolDiscovery.RetrieveProtocolHandler(issuer);
 
             if (handler == null)
                 throw new InvalidOperationException();
 
             IClaimsIdentity identity = handler.ProcessSignInResponse(
-                                                                this.federationContext.Realm,
-                                                                this.federationContext.OriginalUrl,
-                                                                this.HttpContext);
+                                                                federationContext.Realm,
+                                                                federationContext.OriginalUrl,
+                                                                HttpContext);
 
-            IClaimsIdentity outputIdentity = UpdateIssuer(identity, this.multiProtocolServiceProperties.Identifier.ToString(), issuer.Identifier.ToString());
-            outputIdentity.Claims.Add(new Claim(ClaimTypes.AuthenticationMethod, issuer.Identifier.ToString(), ClaimValueTypes.String, this.multiProtocolServiceProperties.Identifier.ToString()));
-            outputIdentity.Claims.Add(new Claim(ClaimTypes.AuthenticationInstant, DateTime.Now.ToString("o"), ClaimValueTypes.Datetime, this.multiProtocolServiceProperties.Identifier.ToString()));
+	        var protocolIdentifier = multiProtocolServiceProperties.Identifier.ToString();
+	        var issuerIdentifier = issuer.Identifier.ToString();
+	        IClaimsIdentity outputIdentity = UpdateIssuer(identity, protocolIdentifier, issuerIdentifier);
+            outputIdentity.Claims.Add(new Claim(ClaimTypes.AuthenticationMethod, issuerIdentifier, ClaimValueTypes.String, protocolIdentifier));
+            outputIdentity.Claims.Add(new Claim(ClaimTypes.AuthenticationInstant, DateTime.Now.ToString("o"), ClaimValueTypes.Datetime, protocolIdentifier));
 
-            var sessionToken = new SessionSecurityToken(new ClaimsPrincipal(new IClaimsIdentity[] { outputIdentity }));
+            var sessionToken = new SessionSecurityToken(new ClaimsPrincipal(new[] { outputIdentity }));
             FederatedAuthentication.SessionAuthenticationModule.CookieHandler.RequireSsl = !HttpContext.IsDebuggingEnabled;
             FederatedAuthentication.WSFederationAuthenticationModule.SetPrincipalAndWriteSessionToken(sessionToken, true);
 
             // TODO: sign context cookie to avoid tampering with this value
-            Response.Redirect(this.federationContext.OriginalUrl, false);
-            this.federationContext.Destroy();
+			Logger.InfoFormat("Original url: {0}", federationContext.OriginalUrl);
+            Response.Redirect(federationContext.OriginalUrl, false);
+            federationContext.Destroy();
             HttpContext.ApplicationInstance.CompleteRequest();
         }
 
@@ -143,16 +147,13 @@ namespace AuthBridge.Web.Controllers
                             else
                             {
                                 // user not authenticated yet, look for whr, if not there go to HomeRealmDiscovery page
-                                this.CreateFederationContext();
+                                CreateFederationContext();
 
-                                if (string.IsNullOrEmpty(this.Request.QueryString[WSFederationConstants.Parameters.HomeRealm]))
+                                if (string.IsNullOrEmpty(Request.QueryString[WSFederationConstants.Parameters.HomeRealm]))
                                 {
-                                    return this.RedirectToAction("HomeRealmDiscovery");
+                                    return RedirectToAction("HomeRealmDiscovery");
                                 }
-                                else
-                                {
-                                    return this.Authenticate();
-                                }
+	                            return Authenticate();
                             }
                         }
 
@@ -196,9 +197,9 @@ namespace AuthBridge.Web.Controllers
 
         private void CreateFederationContext()
         {
-            this.federationContext.OriginalUrl = this.HttpContext.Request.Url.PathAndQuery;
-            this.federationContext.Realm = this.Request.QueryString[WSFederationConstants.Parameters.Realm];
-            this.federationContext.IssuerName = this.Request.QueryString[WSFederationConstants.Parameters.HomeRealm];
+            federationContext.OriginalUrl = HttpContext.Request.Url.PathAndQuery;
+            federationContext.Realm = Request.QueryString[WSFederationConstants.Parameters.Realm];
+            federationContext.IssuerName = Request.QueryString[WSFederationConstants.Parameters.HomeRealm];
         }
     }
 }

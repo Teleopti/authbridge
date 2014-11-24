@@ -208,6 +208,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Clients\OpenIdClient.cs" />
+    <Compile Include="Clients\RelativeOpenIdClient.cs" />
     <Compile Include="Configuration\AllowedClaimProviderCollection.cs" />
     <Compile Include="Configuration\AllowedClaimProviderElement.cs" />
     <Compile Include="Configuration\ClaimRequirementCollection.cs" />
