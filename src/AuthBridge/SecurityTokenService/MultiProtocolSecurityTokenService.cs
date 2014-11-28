@@ -1,4 +1,6 @@
-﻿using System.Web;
+﻿using System.Configuration;
+using System.Web;
+using AuthBridge.Clients.Util;
 using log4net;
 
 namespace AuthBridge.SecurityTokenService
@@ -49,7 +51,7 @@ namespace AuthBridge.SecurityTokenService
             else if (scopeModel.Url != null)
 			{
 				replyTo = scopeModel.Url.ToString();
-	            if (scopeModel.Url.Host == "dummy")
+	            if (ConfigurationManager.AppSettings.GetBoolSetting("UseRelativeConfiguration"))
 	            {
 		            replyTo =
 			            new Uri(

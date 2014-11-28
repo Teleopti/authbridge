@@ -4,8 +4,8 @@ namespace AuthBridge.Configuration
 {
     using System;
     using System.Configuration;
-    using AuthBridge.Model;
-    using AuthBridge.Utilities;
+    using Model;
+    using Utilities;
     using System.Security.Cryptography.X509Certificates;
     using System.IO;
 
@@ -50,8 +50,8 @@ namespace AuthBridge.Configuration
             
             return new MultiProtocolIssuer
             {
-                Identifier = new Uri(configuration.Identifier, UriKind.RelativeOrAbsolute),
-                ReplyUrl = new Uri(configuration.ResponseEndpoint, UriKind.RelativeOrAbsolute),
+                Identifier = configuration.Identifier.ReplaceWithLocalhostWhenRelative(),
+                ReplyUrl = configuration.ResponseEndpoint.ReplaceWithLocalhostWhenRelative(),
                 SigningCertificate = cert
             };
         }

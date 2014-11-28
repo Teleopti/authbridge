@@ -209,6 +209,7 @@
   <ItemGroup>
     <Compile Include="Clients\OpenIdClient.cs" />
     <Compile Include="Clients\RelativeOpenIdClient.cs" />
+    <Compile Include="Clients\Util\ConfigurationExtensions.cs" />
     <Compile Include="Configuration\AllowedClaimProviderCollection.cs" />
     <Compile Include="Configuration\AllowedClaimProviderElement.cs" />
     <Compile Include="Configuration\ClaimRequirementCollection.cs" />
@@ -224,6 +225,7 @@
     <Compile Include="Configuration\ParameterCollection.cs" />
     <Compile Include="Configuration\ScopeCollection.cs" />
     <Compile Include="Configuration\ScopeElement.cs" />
+    <Compile Include="Configuration\UriStringExtensions.cs" />
     <Compile Include="Model\ClaimTypeRequirement.cs" />
     <Compile Include="Model\ClaimDemandLevel.cs" />
     <Compile Include="Model\ClaimProvider.cs" />

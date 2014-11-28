@@ -1,4 +1,7 @@
-﻿namespace AuthBridge.Model
+﻿using System.Configuration;
+using AuthBridge.Clients.Util;
+
+namespace AuthBridge.Model
 {
     using System;
     using System.Collections.Generic;
@@ -6,7 +9,7 @@
 
     using DotNetOpenAuth.OpenId.Extensions.SimpleRegistration;
 
-    using AuthBridge.Configuration;
+    using Configuration;
 
     public static class ModelExtensions
     {
@@ -34,7 +37,7 @@
             {
                 Identifier = new Uri(claimProvider.Name),
 				DisplayName = claimProvider.DisplayName,
-                Url = new Uri(claimProvider.Uri,UriKind.RelativeOrAbsolute),
+                Url = claimProvider.Uri.ReplaceWithLocalhostWhenRelative(),
                 Protocol = claimProvider.ProtocolHandler,
                 Parameters = claimProvider.Params.ToModel()
             };
@@ -62,7 +65,7 @@
             var scope = new Scope
             {
                 Identifier = new Uri(scopeElement.Identifier),
-                Url = new Uri(scopeElement.Uri,UriKind.RelativeOrAbsolute),
+                Url = scopeElement.Uri.ReplaceWithLocalhostWhenRelative(),
                 UseClaimsPolicyEngine = scopeElement.UseClaimsPolicyEngine
             };
 
@@ -91,7 +94,7 @@
             return scope;
         }
 
-        public static ClaimProvider ToModel(this AllowedClaimProviderElement allowedIssuer)
+	    public static ClaimProvider ToModel(this AllowedClaimProviderElement allowedIssuer)
         {
             return new ClaimProvider
             {
