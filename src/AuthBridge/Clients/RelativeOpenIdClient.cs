@@ -42,9 +42,13 @@ namespace AuthBridge.Clients
 			try
 			{
 				var property = authenticationRequest.DiscoveryResult.GetType().GetProperty("ProviderEndpoint");
-				
+				var providerEndPointUri = (Uri)property.GetValue(authenticationRequest.DiscoveryResult, null);
+
+				var providerEndPointUriRequestMachine = new Uri(new Uri(context.Request.Url.GetComponents(UriComponents.SchemeAndServer,UriFormat.Unescaped)),
+					new Uri(providerEndPointUri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(providerEndPointUri));
+
 				Logger.InfoFormat("Request {0}; userSupplied {1}", request, userSuppliedIdentifier);
-				property.SetValue(authenticationRequest.DiscoveryResult, userSuppliedIdentifier, BindingFlags.SetProperty, null, null, CultureInfo.CurrentCulture);
+				property.SetValue(authenticationRequest.DiscoveryResult, providerEndPointUriRequestMachine, BindingFlags.SetProperty, null, null, CultureInfo.CurrentCulture);
 				
 				authenticationRequest.RedirectToProvider();
 			}
