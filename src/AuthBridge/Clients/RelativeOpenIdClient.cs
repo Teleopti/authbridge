@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Globalization;
 using System.Reflection;
 using System.Web;
@@ -31,7 +32,7 @@ namespace AuthBridge.Clients
 			var relyingParty = (OpenIdRelyingParty)relyingPartyField.GetValue(this);
 			var realm = new Realm(_realmUri ?? new Uri(returnUrl.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)));
 			var userSuppliedIdentifier = new Uri((Identifier)providerIdentifierField.GetValue(this));
-			var localhost = new Uri("http://localhost");
+			var localhost = new Uri(ConfigurationManager.AppSettings["CustomEndpointHost"] ?? "http://localhost/");
 			var userSuppliedIdentifierForRequestMachine = new Uri(localhost,
 				new Uri(userSuppliedIdentifier.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(userSuppliedIdentifier));
 
