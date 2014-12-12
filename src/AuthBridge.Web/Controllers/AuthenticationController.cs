@@ -114,11 +114,9 @@ namespace AuthBridge.Web.Controllers
             outputIdentity.Claims.Add(new Claim(ClaimTypes.AuthenticationInstant, DateTime.Now.ToString("o"), ClaimValueTypes.Datetime, protocolIdentifier));
 
             var sessionToken = new SessionSecurityToken(new ClaimsPrincipal(new[] { outputIdentity }));
-            FederatedAuthentication.SessionAuthenticationModule.CookieHandler.RequireSsl = !HttpContext.IsDebuggingEnabled;
             FederatedAuthentication.WSFederationAuthenticationModule.SetPrincipalAndWriteSessionToken(sessionToken, true);
 
-            // TODO: sign context cookie to avoid tampering with this value
-			var originalUrl = federationContext.OriginalUrl;
+            var originalUrl = federationContext.OriginalUrl;
 			Logger.InfoFormat("Original url: {0}", originalUrl);
 			Response.Redirect(originalUrl, false);
             federationContext.Destroy();
