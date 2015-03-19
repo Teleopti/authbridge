@@ -200,7 +200,7 @@ namespace AuthBridge.Web.Controllers
             federationContext.OriginalUrl = HttpContext.Request.Url.PathAndQuery;
             federationContext.Realm = Request.QueryString[WSFederationConstants.Parameters.Realm];
             federationContext.IssuerName = Request.QueryString[WSFederationConstants.Parameters.HomeRealm];
-            federationContext.SetValue("ru", Request.QueryString[WSFederationConstants.Parameters.Context]);
+            federationContext.Context = Request.QueryString[WSFederationConstants.Parameters.Context];
         }
     }
 }

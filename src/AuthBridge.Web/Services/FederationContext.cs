@@ -25,6 +25,12 @@
             set { this.SetValue("issuerName", value); }
         }
 
+	    public string Context
+	    {
+			get { return this.GetValue("wctx"); }
+			set { this.SetValue("wctx", value); }
+	    }
+
         private static HttpCookie FederationCookie
         {
             get
