@@ -43,6 +43,7 @@
       <issuer uri="urn:IdentityServer" thumbprint="" displayName="IdentityServer"/>
 	  <issuer uri="urn:Windows" thumbprint="" displayName="Windows"/>
 	  <issuer uri="urn:Teleopti" thumbprint="" displayName="Teleopti"/>
+	  <issuer uri="urn:AzureAd" thumbprint="" displayName="Azure active directory"/>
     </issuers>
     <rules>
       <rule assertionsMatch="any">
