@@ -236,6 +236,7 @@
     <Compile Include="Clients\Util\MessagingUtilities.cs" />
     <Compile Include="Model\MultiProtocolIssuer.cs" />
     <Compile Include="Model\Scope.cs" />
+    <Compile Include="Protocols\OAuth\AzureAdOAuthHandler.cs" />
     <Compile Include="Protocols\OAuth\LiveIdHandler.cs" />
     <Compile Include="Protocols\OpenId\OpenIdHandler.cs" />
     <Compile Include="Protocols\OAuth\TwitterHandler.cs" />
