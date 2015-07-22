@@ -76,6 +76,13 @@
 			</input>
 			<output type="nameidentifier" copyFrom="INPUT_VALUE"/>
 		</rule>
+
+		<rule assertionsMatch="any">
+			<input>
+				<claim type="nameidentifier" issuer="AzureAd" value="*"/>
+			</input>
+			<output type="nameidentifier" copyFrom="INPUT_VALUE"/>
+		</rule>
 		
       <rule assertionsMatch="any">
         <input>
