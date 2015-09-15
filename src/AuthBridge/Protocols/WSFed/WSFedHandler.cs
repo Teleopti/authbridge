@@ -1,43 +1,43 @@
-﻿namespace AuthBridge.Protocols.WSFed
-{
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Net;
-    using System.Web;
-    using AuthBridge.Model;
-    using DotNetOpenAuth.AspNet;
-    using DotNetOpenAuth.AspNet.Clients;
-    using Microsoft.IdentityModel.Claims;
-    using System.Text;
-    using Microsoft.IdentityModel.Protocols.WSFederation;
-    using Microsoft.IdentityModel.Web;
-    using System.IdentityModel.Selectors;
+﻿using System;
+using System.Web;
+using AuthBridge.Clients;
+using AuthBridge.Model;
+using log4net;
+using Microsoft.IdentityModel.Claims;
+using Microsoft.IdentityModel.Protocols.WSFederation;
+using Microsoft.IdentityModel.Web;
+using System.IdentityModel.Selectors;
 using Microsoft.IdentityModel.Tokens;
-    using System.IdentityModel.Tokens;
+using System.IdentityModel.Tokens;
 
+namespace AuthBridge.Protocols.WSFed
+{
     public class WSFedHandler : ProtocolHandlerBase
     {
-        private readonly string signingKeyThumbprint;
+        private readonly string _signingKeyThumbprint;
+	    private readonly string _wsfedEndpoint;
 
-        public WSFedHandler(ClaimProvider issuer)
+		private static readonly ILog Logger = LogManager.GetLogger(typeof(WSFedHandler));
+
+	    public WSFedHandler(ClaimProvider issuer)
             : base(issuer)
         {
-            this.signingKeyThumbprint = issuer.Parameters["signingKeyThumbprint"];
+            _signingKeyThumbprint = issuer.Parameters["signingKeyThumbprint"];
+			_wsfedEndpoint = issuer.Parameters["wsfedEndpoint"];
         }
 
 
         public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
         {
-            RequestAuthentication(httpContext, this.Issuer.Url.ToString(), this.MultiProtocolIssuer.Identifier.ToString(), this.MultiProtocolIssuer.ReplyUrl.ToString());    
+			RequestAuthentication(httpContext, _wsfedEndpoint, MultiProtocolIssuer.Identifier.ToString(), MultiProtocolIssuer.ReplyUrl.ToString());    
         }
 
         public override IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
         {
             var token = FederatedAuthentication.WSFederationAuthenticationModule.GetSecurityToken(HttpContext.Current.Request);
-            FederatedAuthentication.ServiceConfiguration.AudienceRestriction.AllowedAudienceUris.Add(this.MultiProtocolIssuer.Identifier);
+            FederatedAuthentication.ServiceConfiguration.AudienceRestriction.AllowedAudienceUris.Add(MultiProtocolIssuer.Identifier);
             FederatedAuthentication.ServiceConfiguration.SecurityTokenHandlers.Configuration.CertificateValidator = X509CertificateValidator.None;
-            FederatedAuthentication.ServiceConfiguration.SecurityTokenHandlers.Configuration.IssuerNameRegistry = new SimpleIssuerNameRegistry(this.signingKeyThumbprint);
+            FederatedAuthentication.ServiceConfiguration.SecurityTokenHandlers.Configuration.IssuerNameRegistry = new SimpleIssuerNameRegistry(this._signingKeyThumbprint);
 
             ClaimsIdentityCollection identities = FederatedAuthentication.ServiceConfiguration.SecurityTokenHandlers.ValidateToken(token);
 
@@ -60,27 +60,26 @@ using Microsoft.IdentityModel.Tokens;
 
         private class SimpleIssuerNameRegistry : IssuerNameRegistry
         {
-            private readonly string trustedThumbrpint;
+            private readonly string _trustedThumbrpint;
 
             public SimpleIssuerNameRegistry(string trustedThumbprint)
             {
-                this.trustedThumbrpint = trustedThumbprint;
+                _trustedThumbrpint = trustedThumbprint;
             }
 
-            public override string GetIssuerName(System.IdentityModel.Tokens.SecurityToken securityToken)
+            public override string GetIssuerName(SecurityToken securityToken)
             {
                 var x509 = securityToken as X509SecurityToken;
                 if (x509 != null)
                 {
-                    if (x509.Certificate.Thumbprint.Equals(trustedThumbrpint, StringComparison.OrdinalIgnoreCase))
+                    if (x509.Certificate.Thumbprint != null && x509.Certificate.Thumbprint.Equals(_trustedThumbrpint, StringComparison.OrdinalIgnoreCase))
                     {
                         return x509.Certificate.Subject;
                     }
                 }
-
+				Logger.Error("Cannot verify thumbprint in IssuerNameRegistry.");
                 return null;
             }
         }
- 
     }
 }
