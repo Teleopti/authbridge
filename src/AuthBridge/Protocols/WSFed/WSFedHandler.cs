@@ -72,7 +72,7 @@ namespace AuthBridge.Protocols.WSFed
                 var x509 = securityToken as X509SecurityToken;
                 if (x509 != null)
                 {
-                    if (x509.Certificate.Thumbprint != null && x509.Certificate.Thumbprint.Equals(_trustedThumbrpint, StringComparison.OrdinalIgnoreCase))
+                    if (x509.Certificate.Thumbprint != null && x509.Certificate.Thumbprint.Equals(_trustedThumbrpint, StringComparison.InvariantCultureIgnoreCase))
                     {
                         return x509.Certificate.Subject;
                     }
