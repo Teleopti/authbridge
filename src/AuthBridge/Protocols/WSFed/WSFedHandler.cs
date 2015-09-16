@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Web;
-using AuthBridge.Clients;
 using AuthBridge.Model;
 using log4net;
 using Microsoft.IdentityModel.Claims;
@@ -15,7 +14,6 @@ namespace AuthBridge.Protocols.WSFed
     public class WSFedHandler : ProtocolHandlerBase
     {
         private readonly string _signingKeyThumbprint;
-	    private readonly string _wsfedEndpoint;
 
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(WSFedHandler));
 
@@ -23,13 +21,12 @@ namespace AuthBridge.Protocols.WSFed
             : base(issuer)
         {
             _signingKeyThumbprint = issuer.Parameters["signingKeyThumbprint"];
-			_wsfedEndpoint = issuer.Parameters["wsfedEndpoint"];
         }
 
 
         public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
         {
-			RequestAuthentication(httpContext, _wsfedEndpoint, MultiProtocolIssuer.Identifier.ToString(), MultiProtocolIssuer.ReplyUrl.ToString());    
+			RequestAuthentication(httpContext, Issuer.Url.ToString(), MultiProtocolIssuer.Identifier.ToString(), MultiProtocolIssuer.ReplyUrl.ToString());    
         }
 
         public override IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
