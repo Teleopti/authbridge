@@ -5,11 +5,12 @@
 
     public interface IConfigurationRepository
     {
-        ClaimProvider RetrieveIssuer(Uri identifier);
+	    ClaimProvider RetrieveIssuer(Uri identifier);
         ClaimProvider[] RetrieveIssuers();
 
         Scope RetrieveScope(Uri identifier);
 
-        MultiProtocolIssuer RetrieveMultiProtocolIssuer();
+	    MultiProtocolIssuer MultiProtocolIssuer { get; }
+
     }
 }

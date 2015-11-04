@@ -33,7 +33,7 @@ namespace AuthBridge.Web.Controllers
         private readonly MultiProtocolIssuer multiProtocolServiceProperties;
 
         public AuthenticationController()
-            : this(new DefaultProtocolDiscovery(), new FederationContext(), new DefaultConfigurationRepository())
+			: this(new DefaultProtocolDiscovery(), new FederationContext(), DefaultConfigurationRepository.Instance)
         {
         }
 
@@ -42,7 +42,7 @@ namespace AuthBridge.Web.Controllers
             protocolDiscovery = defaultProtocolDiscovery;
             this.federationContext = federationContext;
             this.configuration = configuration;
-            multiProtocolServiceProperties = this.configuration.RetrieveMultiProtocolIssuer();
+            multiProtocolServiceProperties = this.configuration.MultiProtocolIssuer;
         }
 
         public ActionResult HomeRealmDiscovery()

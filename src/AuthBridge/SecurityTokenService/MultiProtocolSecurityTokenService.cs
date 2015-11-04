@@ -26,7 +26,7 @@ namespace AuthBridge.SecurityTokenService
         private Model.Scope scopeModel;
 
         public MultiProtocolSecurityTokenService(SecurityTokenServiceConfiguration configuration)
-            : this(configuration, new DefaultConfigurationRepository())
+            : this(configuration, DefaultConfigurationRepository.Instance)
         {
         }
 

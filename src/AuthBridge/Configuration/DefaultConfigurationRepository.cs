@@ -11,7 +11,15 @@ namespace AuthBridge.Configuration
 
     public class DefaultConfigurationRepository : IConfigurationRepository
     {
-        public ClaimProvider RetrieveIssuer(Uri identifier)
+
+		public static readonly DefaultConfigurationRepository Instance = new DefaultConfigurationRepository();
+
+	    private DefaultConfigurationRepository()
+	    {
+			MultiProtocolIssuer = RetrieveMultiProtocolIssuer();
+	    }
+
+	    public ClaimProvider RetrieveIssuer(Uri identifier)
         {
             var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
             var claimProvider = configuration.ClaimProviders[identifier.ToString()];
@@ -27,7 +35,7 @@ namespace AuthBridge.Configuration
 		    return claimProviders.ToArray();
 	    }
 
-        public MultiProtocolIssuer RetrieveMultiProtocolIssuer()
+        private MultiProtocolIssuer RetrieveMultiProtocolIssuer()
         {
             var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
 
@@ -65,5 +73,7 @@ namespace AuthBridge.Configuration
 
             return model;
         }
+
+	    public MultiProtocolIssuer MultiProtocolIssuer { get; private set; }
     }
 }

@@ -13,11 +13,11 @@
 
         public MultiProtocolSecurityTokenServiceConfiguration(IConfigurationRepository configurationRepository) : base()
         {
-            this.serviceProperties = configurationRepository.RetrieveMultiProtocolIssuer();
+            this.serviceProperties = configurationRepository.MultiProtocolIssuer;
         }                    
 
         public MultiProtocolSecurityTokenServiceConfiguration()
-            : this(new DefaultConfigurationRepository())
+            : this(DefaultConfigurationRepository.Instance)
         {
             this.SigningCredentials = new X509SigningCredentials(this.serviceProperties.SigningCertificate);
             this.TokenIssuerName = this.serviceProperties.Identifier.ToString();

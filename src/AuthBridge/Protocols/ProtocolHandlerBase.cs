@@ -10,7 +10,7 @@
 
     public abstract class ProtocolHandlerBase : IProtocolHandler
     {
-        protected ProtocolHandlerBase(ClaimProvider issuer) : this(issuer, new DefaultConfigurationRepository())
+        protected ProtocolHandlerBase(ClaimProvider issuer) : this(issuer, DefaultConfigurationRepository.Instance)
         {
         }
         
@@ -24,7 +24,7 @@
 
             this.Issuer = issuer;
             this.Configuration = configuration;
-            this.MultiProtocolIssuer = this.Configuration.RetrieveMultiProtocolIssuer();              
+            this.MultiProtocolIssuer = this.Configuration.MultiProtocolIssuer;              
         }
 
         protected ClaimProvider Issuer { get; set; }

@@ -19,7 +19,7 @@
         private readonly IConfigurationRepository configuration;
 
         public FederationMetadataController()
-            : this(new DefaultConfigurationRepository())
+            : this(DefaultConfigurationRepository.Instance)
         {
         }
 
@@ -36,7 +36,7 @@
             var federationMetadataUrl = new Uri(appRoot, this.Url.RouteUrl("FederationMetadata"));
             var signInUrl = new Uri(appRoot, this.Url.RouteUrl("Process Request"));
 
-            var serviceProperties = this.configuration.RetrieveMultiProtocolIssuer();
+            var serviceProperties = this.configuration.MultiProtocolIssuer;
 
             return this.File(this.GetFederationMetadata(signInUrl, serviceProperties.Identifier, serviceProperties.SigningCertificate), "text/xml");
         }
