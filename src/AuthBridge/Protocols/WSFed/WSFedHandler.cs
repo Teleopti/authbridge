@@ -26,11 +26,14 @@ namespace AuthBridge.Protocols.WSFed
 
         public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
         {
+			Logger.Info(string.Format("process signin request! Identifier: {0}, ReplyUrl: {1}", MultiProtocolIssuer.Identifier, MultiProtocolIssuer.ReplyUrl));
 			RequestAuthentication(httpContext, Issuer.Url.ToString(), MultiProtocolIssuer.Identifier.ToString(), MultiProtocolIssuer.ReplyUrl.ToString());    
         }
 
         public override IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
         {
+			Logger.Info(string.Format("ProcessSignInResponse! realm: {0}, originalUrl: {1}", realm, originalUrl));
+
             var token = FederatedAuthentication.WSFederationAuthenticationModule.GetSecurityToken(HttpContext.Current.Request);
             FederatedAuthentication.ServiceConfiguration.AudienceRestriction.AllowedAudienceUris.Add(MultiProtocolIssuer.Identifier);
             FederatedAuthentication.ServiceConfiguration.SecurityTokenHandlers.Configuration.CertificateValidator = X509CertificateValidator.None;
@@ -50,6 +53,7 @@ namespace AuthBridge.Protocols.WSFed
             };
 
             var redirectUrl = signIn.WriteQueryString();
+			Logger.Info(string.Format("RequestAuthentication! redirectUrl: {0}", redirectUrl));
 
             httpContext.Response.Redirect(redirectUrl, false);
             httpContext.ApplicationInstance.CompleteRequest();
@@ -66,9 +70,11 @@ namespace AuthBridge.Protocols.WSFed
 
             public override string GetIssuerName(SecurityToken securityToken)
             {
+				Logger.Info(string.Format("GetIssuerName!"));
                 var x509 = securityToken as X509SecurityToken;
                 if (x509 != null)
                 {
+	                Logger.Info(string.Format("Thumbprint! {0}", x509.Certificate.Thumbprint));
                     if (x509.Certificate.Thumbprint != null && x509.Certificate.Thumbprint.Equals(_trustedThumbrpint, StringComparison.InvariantCultureIgnoreCase))
                     {
                         return x509.Certificate.Subject;
