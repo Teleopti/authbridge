@@ -47,7 +47,8 @@ namespace AuthBridge.Web.Controllers
 
         public ActionResult HomeRealmDiscovery()
         {
-	        var vms=configuration.RetrieveIssuers().Select(x => new ProviderViewModel
+			Logger.Info(string.Format("HomeRealmDiscovery!"));
+			var vms = configuration.RetrieveIssuers().Select(x => new ProviderViewModel
 	        {
 		        Identifier = x.Identifier.ToString(),
 		        DisplayName = x.DisplayName
@@ -56,7 +57,8 @@ namespace AuthBridge.Web.Controllers
         }
         
         public ActionResult Authenticate()
-        {            
+        {
+			Logger.Info(string.Format("Authenticate!"));
             var identifier = new Uri(Request.QueryString[WSFederationConstants.Parameters.HomeRealm]);
 
             ClaimProvider issuer = configuration.RetrieveIssuer(identifier);
@@ -90,14 +92,17 @@ namespace AuthBridge.Web.Controllers
         [ValidateInput(false)]
         public void ProcessResponse()
         {
+			Logger.Info(string.Format("ProcessResponse!"));
             if (string.IsNullOrEmpty(federationContext.IssuerName))
             {
 				throw new InvalidOperationException("The context cookie was not found. Try to sign in again.");
             }
-
+			Logger.Info(string.Format("ProcessResponse! federationContext.IssuerName: {0}", federationContext.IssuerName));
             var issuer = configuration.RetrieveIssuer(new Uri(federationContext.IssuerName));
+			Logger.Info(string.Format("ProcessResponse! issuer: {0}", issuer.DisplayName));
 
             var handler = protocolDiscovery.RetrieveProtocolHandler(issuer);
+			Logger.Info(string.Format("ProcessResponse! handler: {0}", handler));
 
             if (handler == null)
                 throw new InvalidOperationException();
@@ -125,7 +130,8 @@ namespace AuthBridge.Web.Controllers
 
         public ActionResult ProcessFederationRequest()
         {
-            var action = Request.QueryString[WSFederationConstants.Parameters.Action];
+			Logger.Info(string.Format("ProcessFederationRequest"));
+			var action = Request.QueryString[WSFederationConstants.Parameters.Action];
 
             try
             {
