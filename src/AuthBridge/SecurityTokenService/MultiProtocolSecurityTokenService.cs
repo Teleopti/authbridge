@@ -44,10 +44,18 @@ namespace AuthBridge.SecurityTokenService
             scope.TokenEncryptionRequired = false;
 			
             string replyTo;
-            if (!string.IsNullOrEmpty(request.ReplyTo)) 
-            {
-                replyTo = request.ReplyTo;
-            }
+            if (!string.IsNullOrEmpty(request.ReplyTo))
+			{
+				replyTo = request.ReplyTo;
+	            if (ConfigurationManager.AppSettings.GetBoolSetting("UseRelativeConfiguration"))
+	            {
+		            var uri = new Uri(replyTo);
+		            if (uri.IsAbsoluteUri)
+		            {
+			            replyTo = new Uri(uri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(uri).ToString();
+		            }
+	            }
+			}
             else if (scopeModel.Url != null)
 			{
 				replyTo = scopeModel.Url.ToString();
