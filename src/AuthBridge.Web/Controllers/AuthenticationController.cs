@@ -1,5 +1,6 @@
 ﻿using System.Configuration;
 using System.Linq;
+using AuthBridge.Clients.Util;
 using log4net;
 
 namespace AuthBridge.Web.Controllers
@@ -167,7 +168,16 @@ namespace AuthBridge.Web.Controllers
                     case WSFederationConstants.Actions.SignOut:
                         {
                             var requestMessage = (SignOutRequestMessage)WSFederationMessage.CreateFromUri(Request.Url);
-                            FederatedPassiveSecurityTokenServiceOperations.ProcessSignOutRequest(requestMessage, User, requestMessage.Reply, HttpContext.ApplicationInstance.Response);
+							var replyTo = requestMessage.Reply;
+							if (!string.IsNullOrEmpty(replyTo) && ConfigurationManager.AppSettings.GetBoolSetting("UseRelativeConfiguration"))
+							{
+								var uri = new Uri(replyTo);
+								if (uri.IsAbsoluteUri)
+								{
+									replyTo = new Uri(uri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(uri).ToString();
+								}
+							}
+                            FederatedPassiveSecurityTokenServiceOperations.ProcessSignOutRequest(requestMessage, User, replyTo, HttpContext.ApplicationInstance.Response);
                         }
 
                         break;
