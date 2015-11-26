@@ -174,7 +174,7 @@ namespace AuthBridge.Web.Controllers
 								var uri = new Uri(replyTo);
 								if (uri.IsAbsoluteUri)
 								{
-									replyTo = new Uri(uri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(uri).ToString();
+									replyTo = "/" + new Uri(uri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(uri);
 								}
 							}
                             FederatedPassiveSecurityTokenServiceOperations.ProcessSignOutRequest(requestMessage, User, replyTo, HttpContext.ApplicationInstance.Response);
