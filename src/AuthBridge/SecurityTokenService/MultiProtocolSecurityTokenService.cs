@@ -104,6 +104,13 @@ namespace AuthBridge.SecurityTokenService
             if (outputIdentity.Name == null && outputIdentity.Claims.SingleOrDefault(c => c.ClaimType == ClaimTypes.NameIdentifier) != null)
                 outputIdentity.Claims.Add(new Claim(ClaimTypes.Name, outputIdentity.Claims.SingleOrDefault(c => c.ClaimType == ClaimTypes.NameIdentifier).Value));
 
+	        var isPersistent =
+				((IClaimsIdentity)principal.Identity).Claims.SingleOrDefault(c => c.ClaimType == ClaimTypes.IsPersistent);
+	        if (isPersistent != null)
+	        {
+				outputIdentity.Claims.Add(new Claim(ClaimTypes.IsPersistent, isPersistent.Value));
+	        }
+
             return outputIdentity;
         }
 

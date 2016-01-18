@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Web;
+using AuthBridge.Clients.Util;
 using DotNetOpenAuth.OpenId;
+using DotNetOpenAuth.OpenId.Extensions.AttributeExchange;
 using DotNetOpenAuth.OpenId.RelyingParty;
+using Microsoft.IdentityModel.Claims;
 
 namespace AuthBridge.Clients
 {
@@ -28,5 +32,18 @@ namespace AuthBridge.Clients
             this.OnBeforeSendingAuthenticationRequest(authenticationRequest);
             authenticationRequest.RedirectToProvider();
 	    }
+
+		protected override Dictionary<string, string> GetExtraData(IAuthenticationResponse response)
+		{
+			var fetchResponse = response.GetExtension<FetchResponse>();
+			if (fetchResponse != null)
+			{
+				var extraData = new Dictionary<string, string>();
+				extraData.AddItemIfNotEmpty(ClaimTypes.IsPersistent, fetchResponse.GetAttributeValue(ClaimTypes.IsPersistent));
+
+				return extraData;
+			}
+			return null;
+		}
 	}
 }

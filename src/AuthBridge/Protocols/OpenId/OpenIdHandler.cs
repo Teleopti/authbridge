@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Web;
 using AuthBridge.Clients;
@@ -47,6 +48,7 @@ namespace AuthBridge.Protocols.OpenID
 				{
 					new Claim(System.IdentityModel.Claims.ClaimTypes.NameIdentifier, result.ProviderUserId)
 				};
+			claims.AddRange(result.ExtraData.Select(claim => new Claim(claim.Key, claim.Value)));
 
 			var identity = new ClaimsIdentity(claims, Issuer.Identifier.ToString());
 			return identity;

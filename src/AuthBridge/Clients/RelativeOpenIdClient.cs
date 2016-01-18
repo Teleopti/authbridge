@@ -4,10 +4,12 @@ using System.Configuration;
 using System.Globalization;
 using System.Reflection;
 using System.Web;
+using AuthBridge.Clients.Util;
 using DotNetOpenAuth.OpenId;
-using DotNetOpenAuth.OpenId.Messages;
+using DotNetOpenAuth.OpenId.Extensions.AttributeExchange;
 using DotNetOpenAuth.OpenId.RelyingParty;
 using log4net;
+using Microsoft.IdentityModel.Claims;
 
 namespace AuthBridge.Clients
 {
@@ -58,6 +60,19 @@ namespace AuthBridge.Clients
 				Logger.Error("Error in discovery modification", ex);
 				throw;
 			}
+		}
+
+		protected override Dictionary<string, string> GetExtraData(IAuthenticationResponse response)
+		{
+			var fetchResponse = response.GetExtension<FetchResponse>();
+			if (fetchResponse != null)
+			{
+				var extraData = new Dictionary<string, string>();
+				extraData.AddItemIfNotEmpty(ClaimTypes.IsPersistent, fetchResponse.GetAttributeValue(ClaimTypes.IsPersistent));
+
+				return extraData;
+			}
+			return null;
 		}
 	}
 }
