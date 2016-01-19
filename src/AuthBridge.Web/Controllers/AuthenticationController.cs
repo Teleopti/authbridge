@@ -119,7 +119,8 @@ namespace AuthBridge.Web.Controllers
             outputIdentity.Claims.Add(new Claim(ClaimTypes.AuthenticationMethod, issuerIdentifier, ClaimValueTypes.String, protocolIdentifier));
             outputIdentity.Claims.Add(new Claim(ClaimTypes.AuthenticationInstant, DateTime.Now.ToString("o"), ClaimValueTypes.Datetime, protocolIdentifier));
 
-            var sessionToken = new SessionSecurityToken(new ClaimsPrincipal(new[] { outputIdentity }));
+
+	        var sessionToken = new SessionSecurityToken(new ClaimsPrincipal(new[] {outputIdentity}), new TimeSpan(0, 0, 30));
             FederatedAuthentication.WSFederationAuthenticationModule.SetPrincipalAndWriteSessionToken(sessionToken, true);
 
             var originalUrl = federationContext.OriginalUrl;
