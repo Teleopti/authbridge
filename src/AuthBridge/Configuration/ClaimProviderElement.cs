@@ -41,5 +41,11 @@
         {
             get { return (ParameterCollection)this["params"]; }
         }
+
+		[ConfigurationProperty("idpInitiated", IsRequired = false)]
+		public bool IdpInitiated
+		{
+			get { return (bool)this["idpInitiated"]; }
+		}
     }
 }

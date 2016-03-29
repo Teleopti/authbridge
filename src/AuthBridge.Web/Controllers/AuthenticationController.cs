@@ -49,12 +49,12 @@ namespace AuthBridge.Web.Controllers
         public ActionResult HomeRealmDiscovery()
         {
 			Logger.Info(string.Format("HomeRealmDiscovery!"));
-			var vms = configuration.RetrieveIssuers().Select(x => new ProviderViewModel
+			var vms = configuration.RetrieveIssuers().Where(x=>!x.IdpInitiated).Select(x => new ProviderViewModel
 	        {
 		        Identifier = x.Identifier.ToString(),
 		        DisplayName = x.DisplayName
 	        });
-            return View("Authenticate", vms.ToArray());
+	        return View("Authenticate", vms.ToArray());
         }
         
         public ActionResult Authenticate()
@@ -145,11 +145,10 @@ namespace AuthBridge.Web.Controllers
 		    var sessionToken = new SessionSecurityToken(new ClaimsPrincipal(new[] {identity}));
 		    FederatedAuthentication.WSFederationAuthenticationModule.SetPrincipalAndWriteSessionToken(sessionToken, true);
 
-		    var config = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
-		    var scope = config.Scopes.OfType<ScopeElement>().FirstOrDefault();
+			var scope = configuration.RetrieveDefaultScope();
 		    if (scope != null)
 		    {
-			    Response.Redirect(string.Format("?wa=wsignin1.0&wtrealm={0}&wctx={1}&whr={2}", Uri.EscapeDataString(scope.Identifier), Uri.EscapeDataString("ru=/MyTime"), Uri.EscapeDataString(protocolIdentifier)), true);
+				Response.Redirect(string.Format("?wa=wsignin1.0&wtrealm={0}&wctx={1}&whr={2}", Uri.EscapeDataString(scope.Identifier), "ru=/Mytime", Uri.EscapeDataString(protocolIdentifier)), true);
 		    }
 		    else
 		    {

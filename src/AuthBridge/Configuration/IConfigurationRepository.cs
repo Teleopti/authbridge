@@ -12,5 +12,6 @@
 
 	    MultiProtocolIssuer MultiProtocolIssuer { get; }
 
+	    ScopeElement RetrieveDefaultScope();
     }
 }

@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Web;
 using System.Xml;
@@ -8,19 +11,14 @@ using Microsoft.IdentityModel.Claims;
 
 namespace AuthBridge.Protocols.Idp
 {
-	public class SamlDetail
-	{
-		public string Issuer { get; set; }
-		public string SubjectNameId { get; set; }
-		public DateTime NotBefore { get; set; }
-		public DateTime NotOnOrAfter { get; set; }
-	}
-
 	public class SamlIdpHandler : ProtocolIdpHandlerBase
 	{
+		private readonly string _signingKeyThumbprint;
+
 		public SamlIdpHandler(ClaimProvider issuer)
 			: base(issuer)
 		{
+			_signingKeyThumbprint = issuer.Parameters["signingKeyThumbprint"];
 		}
 
 		public override IClaimsIdentity ProcessIdpInitiatedRequest(HttpContextBase httpContext)
@@ -70,25 +68,22 @@ namespace AuthBridge.Protocols.Idp
 			return detail;
 		}
 
-		private static bool VerifySignaturesShouldWorkButIHadSomeIssuesWithReferences(XmlDocument xmlDoc)
+		private bool VerifySignaturesShouldWorkButIHadSomeIssuesWithReferences(XmlDocument xmlDoc)
 		{
-			return true;
-			/*
 			foreach (XmlElement node in xmlDoc.SelectNodes("//*[local-name()='Signature']"))
 			{
-				XmlDocument doc = new XmlDocument();
+				var doc = new XmlDocument();
 				doc.LoadXml(node.ParentNode.OuterXml);
 
-				SignedXml signedXml = new SignedXml(node.ParentNode as XmlElement);
+				var signedXml = new SignedXml(node.ParentNode as XmlElement);
 				signedXml.LoadXml(node);
 
 				var x509Data = signedXml.Signature.KeyInfo.OfType<KeyInfoX509Data>().First();
 				var cert = x509Data.Certificates.OfType<X509Certificate2>().First();
-				if (string.Compare(cert.Thumbprint, 0, "0fe81e3a29534b7a8427b380dfee673d032342e5", 0, cert.Thumbprint.Length, true) == 0)
+				if (cert.Thumbprint != null && cert.Thumbprint.Equals(_signingKeyThumbprint, StringComparison.InvariantCultureIgnoreCase))
 					return true;
 			}
 			return false;
-			*/
 		}
 
 	}

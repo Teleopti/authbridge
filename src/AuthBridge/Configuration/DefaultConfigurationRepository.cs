@@ -74,6 +74,13 @@ namespace AuthBridge.Configuration
             return model;
         }
 
+		public ScopeElement RetrieveDefaultScope()
+		{
+			var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
+
+			return configuration.Scopes.OfType<ScopeElement>().FirstOrDefault();
+		}
+
 	    public MultiProtocolIssuer MultiProtocolIssuer { get; private set; }
     }
 }

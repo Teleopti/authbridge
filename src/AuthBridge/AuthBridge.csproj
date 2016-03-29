@@ -187,6 +187,7 @@
     <Reference Include="System.Runtime.Serialization">
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Security" />
     <Reference Include="System.ServiceModel">
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
     </Reference>
@@ -236,6 +237,7 @@
     <Compile Include="Clients\Util\MessagingUtilities.cs" />
     <Compile Include="Model\MultiProtocolIssuer.cs" />
     <Compile Include="Model\Scope.cs" />
+    <Compile Include="Protocols\Idp\SamlDetail.cs" />
     <Compile Include="Protocols\IProtocolIdpHandler.cs" />
     <Compile Include="Protocols\OAuth\AzureAdOAuthHandler.cs" />
     <Compile Include="Protocols\OAuth\LiveIdHandler.cs" />
