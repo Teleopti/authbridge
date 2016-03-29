@@ -1,8 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Configuration;
+﻿using System.Configuration;
 using System.Linq;
-using System.Text;
-using System.Xml;
 using AuthBridge.Clients.Util;
 using log4net;
 
@@ -137,8 +134,8 @@ namespace AuthBridge.Web.Controllers
 		{
 			var protocolIdentifier = "urn:" + protocol;
 		    var issuer = configuration.RetrieveIssuer(new Uri(protocolIdentifier));
-			var handler = protocolDiscovery.RetrieveProtocolHandler(issuer);
-			var claimsIdentity = handler.ProcessSignInResponse("", "", HttpContext);
+			var handler = protocolDiscovery.RetrieveIdpProtocolHandler(issuer);
+			var claimsIdentity = handler.ProcessIdpInitiatedRequest(HttpContext);
 
 			var identity = UpdateIssuer(claimsIdentity, claimsIdentity.AuthenticationType, protocolIdentifier);
 
@@ -160,7 +157,6 @@ namespace AuthBridge.Web.Controllers
 		    }
 		    Response.End();
 	    }
-
 
 	    public ActionResult ProcessFederationRequest()
         {

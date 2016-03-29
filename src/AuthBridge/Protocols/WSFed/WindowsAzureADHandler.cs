@@ -16,7 +16,7 @@
 using Microsoft.IdentityModel.Tokens;
     using System.IdentityModel.Tokens;
 
-    public class WindowsAzureADHandler : ProtocolHandlerBase
+    public class WindowsAzureADHandler : ProtocolSpHandlerBase
     {
         private readonly string signingKeyThumbprint;
         private readonly string tenantId;

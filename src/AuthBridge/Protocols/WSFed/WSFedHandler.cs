@@ -11,7 +11,7 @@ using System.IdentityModel.Tokens;
 
 namespace AuthBridge.Protocols.WSFed
 {
-    public class WSFedHandler : ProtocolHandlerBase
+    public class WSFedHandler : ProtocolSpHandlerBase
     {
         private readonly string _signingKeyThumbprint;
 		private readonly string _wsfedEndpoint;

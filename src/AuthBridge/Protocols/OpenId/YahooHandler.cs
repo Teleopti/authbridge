@@ -10,7 +10,7 @@
     using DotNetOpenAuth.AspNet.Clients;
     using Microsoft.IdentityModel.Claims;
 
-    public class YahooHandler : ProtocolHandlerBase
+    public class YahooHandler : ProtocolSpHandlerBase
     {
         public YahooHandler(ClaimProvider issuer)
             : base(issuer)

@@ -28,10 +28,17 @@
         }
 
         public IProtocolHandler RetrieveProtocolHandler(ClaimProvider issuer)
-        {            
-            return this.container.Resolve<IProtocolHandler>(
+        {
+			return this.container.Resolve<IProtocolHandler>(
                               issuer.Protocol,
                               new ParameterOverride("issuer", issuer));
         }
+
+	    public IProtocolIdpHandler RetrieveIdpProtocolHandler(ClaimProvider issuer)
+	    {
+			return this.container.Resolve<IProtocolIdpHandler>(
+							   issuer.Protocol,
+							   new ParameterOverride("issuer", issuer));
+	    }
     }
 }

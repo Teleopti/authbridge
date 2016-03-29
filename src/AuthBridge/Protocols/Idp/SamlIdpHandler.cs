@@ -6,7 +6,7 @@ using System.Xml;
 using AuthBridge.Model;
 using Microsoft.IdentityModel.Claims;
 
-namespace AuthBridge.Protocols.OpenID
+namespace AuthBridge.Protocols.Idp
 {
 	public class SamlDetail
 	{
@@ -16,19 +16,14 @@ namespace AuthBridge.Protocols.OpenID
 		public DateTime NotOnOrAfter { get; set; }
 	}
 
-	public class SamlIdpHandler : ProtocolHandlerBase
+	public class SamlIdpHandler : ProtocolIdpHandlerBase
 	{
 		public SamlIdpHandler(ClaimProvider issuer)
 			: base(issuer)
 		{
 		}
 
-		public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
-		{
-			// not needed for idp
-		}
-
-		public override IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
+		public override IClaimsIdentity ProcessIdpInitiatedRequest(HttpContextBase httpContext)
 		{
 			var response = Encoding.UTF8.GetString(Convert.FromBase64String(httpContext.Request.Form["SAMLResponse"]));
 			var doc = new XmlDocument();

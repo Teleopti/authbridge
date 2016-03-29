@@ -1,40 +1,32 @@
-﻿namespace AuthBridge.Protocols
+﻿using System;
+using AuthBridge.Configuration;
+using AuthBridge.Model;
+
+namespace AuthBridge.Protocols
 {
-    using System;
-    using System.Web;
+	public abstract class ProtocolHandlerBase
+	{
+		protected ProtocolHandlerBase(ClaimProvider issuer) : this(issuer, DefaultConfigurationRepository.Instance)
+		{
+		}
 
-    using Microsoft.IdentityModel.Claims;
+		protected ProtocolHandlerBase(ClaimProvider issuer, IConfigurationRepository configuration)
+		{
+			if (issuer == null)
+				throw new ArgumentNullException("issuer");
 
-    using AuthBridge.Configuration;
-    using AuthBridge.Model;
+			if (configuration == null)
+				throw new ArgumentNullException("configuration");
 
-    public abstract class ProtocolHandlerBase : IProtocolHandler
-    {
-        protected ProtocolHandlerBase(ClaimProvider issuer) : this(issuer, DefaultConfigurationRepository.Instance)
-        {
-        }
-        
-        protected ProtocolHandlerBase(ClaimProvider issuer, IConfigurationRepository configuration)
-        {
-            if (issuer == null)
-                throw new ArgumentNullException("issuer");
+			this.Issuer = issuer;
+			this.Configuration = configuration;
+			this.MultiProtocolIssuer = this.Configuration.MultiProtocolIssuer;              
+		}
 
-            if (configuration == null)
-                throw new ArgumentNullException("configuration");
+		protected ClaimProvider Issuer { get; set; }
 
-            this.Issuer = issuer;
-            this.Configuration = configuration;
-            this.MultiProtocolIssuer = this.Configuration.MultiProtocolIssuer;              
-        }
+		protected IConfigurationRepository Configuration { get; set; }
 
-        protected ClaimProvider Issuer { get; set; }
-
-        protected IConfigurationRepository Configuration { get; set; }
-
-        protected MultiProtocolIssuer MultiProtocolIssuer { get; set; }
-
-        public abstract void ProcessSignInRequest(Scope scope, HttpContextBase httpContext);
-
-        public abstract IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext);        
-    }
+		protected MultiProtocolIssuer MultiProtocolIssuer { get; set; }
+	}
 }

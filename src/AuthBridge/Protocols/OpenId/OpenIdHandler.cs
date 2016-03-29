@@ -12,7 +12,7 @@ using Microsoft.IdentityModel.Claims;
 
 namespace AuthBridge.Protocols.OpenID
 {
-	public class OpenIdHandler : ProtocolHandlerBase
+	public class OpenIdHandler : ProtocolSpHandlerBase
 	{
 		private static readonly ILog Logger = LogManager.GetLogger(typeof (OpenIdHandler));
 		public OpenIdHandler(ClaimProvider issuer)

@@ -6,5 +6,6 @@
     public interface IProtocolDiscovery
     {
         IProtocolHandler RetrieveProtocolHandler(ClaimProvider issuer);
+		IProtocolIdpHandler RetrieveIdpProtocolHandler(ClaimProvider issuer);
     }
 }
