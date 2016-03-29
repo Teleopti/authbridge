@@ -26,7 +26,7 @@ namespace AuthBridge.Protocols.Idp
 			var response = Encoding.UTF8.GetString(Convert.FromBase64String(httpContext.Request.Form["SAMLResponse"]));
 			var doc = new XmlDocument();
 			doc.LoadXml(response);
-			if (!VerifySignaturesShouldWorkButIHadSomeIssuesWithReferences(doc))
+			if (!VerifySignatures(doc))
 			{
 				throw new InvalidOperationException("The thumbprint doesn't match the white list values.");
 			}
@@ -68,7 +68,7 @@ namespace AuthBridge.Protocols.Idp
 			return detail;
 		}
 
-		private bool VerifySignaturesShouldWorkButIHadSomeIssuesWithReferences(XmlDocument xmlDoc)
+		private bool VerifySignatures(XmlDocument xmlDoc)
 		{
 			foreach (XmlElement node in xmlDoc.SelectNodes("//*[local-name()='Signature']"))
 			{
