@@ -1,5 +1,8 @@
-﻿using System.Configuration;
+﻿using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
+using System.Text;
+using System.Xml;
 using AuthBridge.Clients.Util;
 using log4net;
 
@@ -21,7 +24,7 @@ namespace AuthBridge.Web.Controllers
     using Model;
     using SecurityTokenService;
 
-    [HandleError]
+	[HandleError]
     public class AuthenticationController : Controller
     {
 	    private static readonly ILog Logger = LogManager.GetLogger(typeof (AuthenticationController));
@@ -130,7 +133,36 @@ namespace AuthBridge.Web.Controllers
             HttpContext.ApplicationInstance.CompleteRequest();
         }
 
-        public ActionResult ProcessFederationRequest()
+		public void ProcessIdpInitiatedRequest(string protocol)
+		{
+			var protocolIdentifier = "urn:" + protocol;
+		    var issuer = configuration.RetrieveIssuer(new Uri(protocolIdentifier));
+			var handler = protocolDiscovery.RetrieveProtocolHandler(issuer);
+			var claimsIdentity = handler.ProcessSignInResponse("", "", HttpContext);
+
+			var identity = UpdateIssuer(claimsIdentity, claimsIdentity.AuthenticationType, protocolIdentifier);
+
+			identity.Claims.Add(new Claim(ClaimTypes.AuthenticationMethod, claimsIdentity.AuthenticationType, ClaimValueTypes.String, protocolIdentifier));
+		    identity.Claims.Add(new Claim(ClaimTypes.AuthenticationInstant, DateTime.Now.ToString("o"), ClaimValueTypes.Datetime, protocolIdentifier));
+
+		    var sessionToken = new SessionSecurityToken(new ClaimsPrincipal(new[] {identity}));
+		    FederatedAuthentication.WSFederationAuthenticationModule.SetPrincipalAndWriteSessionToken(sessionToken, true);
+
+		    var config = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
+		    var scope = config.Scopes.OfType<ScopeElement>().FirstOrDefault();
+		    if (scope != null)
+		    {
+			    Response.Redirect(string.Format("?wa=wsignin1.0&wtrealm={0}&wctx={1}&whr={2}", Uri.EscapeDataString(scope.Identifier), Uri.EscapeDataString("ru=/MyTime"), Uri.EscapeDataString(protocolIdentifier)), true);
+		    }
+		    else
+		    {
+			    Response.Write(protocol + " IdP initiated failed.");
+		    }
+		    Response.End();
+	    }
+
+
+	    public ActionResult ProcessFederationRequest()
         {
 			Logger.Info(string.Format("ProcessFederationRequest"));
 			var action = Request.QueryString[WSFederationConstants.Parameters.Action];

@@ -243,6 +243,7 @@
     <Compile Include="Protocols\OAuth\FacebookHandler.cs" />
     <Compile Include="Protocols\OpenId\GoogleHandler.cs" />
     <Compile Include="Protocols\OpenId\RelativeOpenIdHandler.cs" />
+    <Compile Include="Protocols\OpenId\SamlIdpHandler.cs" />
     <Compile Include="Protocols\ProtocolHandlerBase.cs" />
     <Compile Include="PolicyStoreFactory.cs" />
     <Compile Include="Protocols\WSFed\WindowsAzureADHandler.cs" />

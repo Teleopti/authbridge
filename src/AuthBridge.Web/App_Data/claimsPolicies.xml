@@ -44,8 +44,11 @@
 	  <issuer uri="urn:Windows" thumbprint="" displayName="Windows"/>
 	  <issuer uri="urn:Teleopti" thumbprint="" displayName="Teleopti"/>
 	  <issuer uri="urn:AzureAd" thumbprint="" displayName="AzureAd"/>
+	  <issuer uri="urn:SamlIdp" thumbprint="" displayName="SamlIdp"/>
     </issuers>
     <rules>
+		
+
       <rule assertionsMatch="any">
         <input>
           <claim type="yahoo.fullName" issuer="Yahoo" value="*"/>
@@ -74,6 +77,13 @@
 		<rule assertionsMatch="any">
 			<input>
 				<claim type="nameidentifier" issuer="Teleopti" value="*"/>
+			</input>
+			<output type="nameidentifier" copyFrom="INPUT_VALUE"/>
+		</rule>
+
+		<rule assertionsMatch="any">
+			<input>
+				<claim type="nameidentifier" issuer="SamlIdp" value="*"/>
 			</input>
 			<output type="nameidentifier" copyFrom="INPUT_VALUE"/>
 		</rule>
