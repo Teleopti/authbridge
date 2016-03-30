@@ -283,6 +283,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <None Include="AuthBridge.nuspec" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>

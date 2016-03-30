@@ -1,18 +1,20 @@
 <?xml version="1.0"?>
 <package >
-  <metadata>
-    <id>$id$</id>
-    <version>$version$</version>
-    <title>$title$</title>
-    <authors>$author$</authors>
-    <owners>$author$</owners>
-    <licenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</licenseUrl>
-    <projectUrl>http://PROJECT_URL_HERE_OR_DELETE_THIS_LINE</projectUrl>
-    <iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>
-    <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Authentication bridge between commonly used standards.</description>
-    <releaseNotes>Summary of changes made in this release of the package.</releaseNotes>
-    <copyright>Copyright Teleopti 2014</copyright>
-    <tags>auth authbridge openid oauth wsfed</tags>
-  </metadata>
+	<metadata>
+		<id>AuthBridge.Web</id>
+		<version>$version$</version>
+		<authors>Teleopti</authors>
+		<owners>Teleopti</owners>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>Authentication bridge between commonly used standards.</description>
+		<copyright>Teleopti</copyright>
+		<dependencies>
+			<dependency id="log4net" version="2.0.3" />
+			<dependency id="Microsoft.AspNet.Mvc" version="4.0.20710.0" />
+			<dependency id="Microsoft.AspNet.Razor" version="2.0.20710.0" />
+			<dependency id="Microsoft.AspNet.WebPages" version="2.0.20710.0" />
+			<dependency id="Microsoft.IdentityModel" version="6.1.7600.16394" />
+			<dependency id="Microsoft.Web.Infrastructure" version="1.0.0.0" />
+		</dependencies>
+	</metadata>
 </package>
