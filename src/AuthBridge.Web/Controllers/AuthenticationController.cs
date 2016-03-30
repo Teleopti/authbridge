@@ -148,7 +148,7 @@ namespace AuthBridge.Web.Controllers
 			var scope = configuration.RetrieveDefaultScope();
 		    if (scope != null)
 		    {
-				Response.Redirect(string.Format("?wa=wsignin1.0&wtrealm={0}&wctx={1}&whr={2}", Uri.EscapeDataString(scope.Identifier), "ru=/Mytime", Uri.EscapeDataString(protocolIdentifier)), true);
+				Response.Redirect(string.Format("?wa=wsignin1.0&wtrealm={0}&wctx={1}&whr={2}", Uri.EscapeDataString(scope.Identifier), "ru=~/Mytime", Uri.EscapeDataString(protocolIdentifier)), true);
 		    }
 		    else
 		    {
