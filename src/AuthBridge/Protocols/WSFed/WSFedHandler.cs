@@ -6,7 +6,6 @@ using Microsoft.IdentityModel.Claims;
 using Microsoft.IdentityModel.Protocols.WSFederation;
 using Microsoft.IdentityModel.Web;
 using System.IdentityModel.Selectors;
-using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens;
 
 namespace AuthBridge.Protocols.WSFed
@@ -61,7 +60,7 @@ namespace AuthBridge.Protocols.WSFed
 			httpContext.ApplicationInstance.CompleteRequest();
         }
 
-        private class SimpleIssuerNameRegistry : IssuerNameRegistry
+		private class SimpleIssuerNameRegistry : Microsoft.IdentityModel.Tokens.IssuerNameRegistry
         {
             private readonly string _trustedThumbrpint;
 
