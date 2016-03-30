@@ -48,7 +48,7 @@ namespace AuthBridge.Protocols.Idp
 
 		private static bool VerifyAllowedDateTimeRange(SamlDetail detail)
 		{
-			var now = DateTime.Now;
+			var now = DateTime.UtcNow;
 			return now >= detail.NotBefore && now < detail.NotOnOrAfter;
 		}
 
@@ -56,8 +56,8 @@ namespace AuthBridge.Protocols.Idp
 		{
 			var detail = new SamlDetail();
 			var conditionsElement = doc.SelectSingleNode("//*[local-name()='Conditions']");
-			detail.NotBefore = XmlConvert.ToDateTime(conditionsElement.Attributes["NotBefore"].Value);
-			detail.NotOnOrAfter = XmlConvert.ToDateTime(conditionsElement.Attributes["NotOnOrAfter"].Value);
+			detail.NotBefore = XmlConvert.ToDateTime(conditionsElement.Attributes["NotBefore"].Value, XmlDateTimeSerializationMode.Utc);
+			detail.NotOnOrAfter = XmlConvert.ToDateTime(conditionsElement.Attributes["NotOnOrAfter"].Value, XmlDateTimeSerializationMode.Utc);
 
 			var nameIdElement = doc.SelectSingleNode("//*[local-name()='Subject']/*[local-name()='NameID']");
 			detail.SubjectNameId = nameIdElement.InnerText;
