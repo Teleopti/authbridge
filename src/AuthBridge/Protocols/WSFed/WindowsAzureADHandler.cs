@@ -2,12 +2,11 @@
 {
     using System;
     using System.Web;
-    using AuthBridge.Model;
+    using Model;
     using Microsoft.IdentityModel.Claims;
     using Microsoft.IdentityModel.Protocols.WSFederation;
     using Microsoft.IdentityModel.Web;
     using System.IdentityModel.Selectors;
-using Microsoft.IdentityModel.Tokens;
     using System.IdentityModel.Tokens;
 
     public class WindowsAzureADHandler : ProtocolHandlerBase
@@ -66,7 +65,7 @@ using Microsoft.IdentityModel.Tokens;
             httpContext.ApplicationInstance.CompleteRequest();
         }
 
-        private class SimpleIssuerNameRegistry : IssuerNameRegistry
+		private class SimpleIssuerNameRegistry : Microsoft.IdentityModel.Tokens.IssuerNameRegistry
         {
             private readonly string trustedThumbrpint;
 
@@ -75,7 +74,7 @@ using Microsoft.IdentityModel.Tokens;
                 this.trustedThumbrpint = trustedThumbprint;
             }
 
-            public override string GetIssuerName(System.IdentityModel.Tokens.SecurityToken securityToken)
+            public override string GetIssuerName(SecurityToken securityToken)
             {
                 var x509 = securityToken as X509SecurityToken;
                 if (x509 != null)

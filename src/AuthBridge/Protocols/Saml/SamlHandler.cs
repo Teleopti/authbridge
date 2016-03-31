@@ -6,10 +6,8 @@ using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Web;
 using System.Xml;
-using AuthBridge.Configuration;
 using AuthBridge.Model;
 using Microsoft.IdentityModel.Claims;
-using Microsoft.IdentityModel.Protocols.WSFederation;
 
 namespace AuthBridge.Protocols.Saml
 {
@@ -80,7 +78,7 @@ namespace AuthBridge.Protocols.Saml
 
 		private static bool VerifyAllowedDateTimeRange(SamlDetail detail)
 		{
-			var now = DateTime.Now;
+			var now = DateTime.UtcNow;
 			return now >= detail.NotBefore && now < detail.NotOnOrAfter;
 		}
 
@@ -88,8 +86,8 @@ namespace AuthBridge.Protocols.Saml
 		{
 			var detail = new SamlDetail();
 			var conditionsElement = doc.SelectSingleNode("//*[local-name()='Conditions']");
-			detail.NotBefore = XmlConvert.ToDateTime(conditionsElement.Attributes["NotBefore"].Value);
-			detail.NotOnOrAfter = XmlConvert.ToDateTime(conditionsElement.Attributes["NotOnOrAfter"].Value);
+			detail.NotBefore = XmlConvert.ToDateTime(conditionsElement.Attributes["NotBefore"].Value, XmlDateTimeSerializationMode.Utc);
+			detail.NotOnOrAfter = XmlConvert.ToDateTime(conditionsElement.Attributes["NotOnOrAfter"].Value, XmlDateTimeSerializationMode.Utc);
 
 			var nameIdElement = doc.SelectSingleNode("//*[local-name()='Subject']/*[local-name()='NameID']");
 			detail.SubjectNameId = nameIdElement.InnerText;

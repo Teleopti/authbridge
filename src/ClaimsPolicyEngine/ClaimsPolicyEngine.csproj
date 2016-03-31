@@ -124,6 +124,7 @@
     <EmbeddedResource Include="content\claimMappings.xsd" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ClaimsPolicyEngine.nuspec" />
     <None Include="IPolicyStoreCollaboratorsDiagram.cd" />
     <None Include="packages.config" />
   </ItemGroup>

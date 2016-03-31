@@ -1,0 +1,19 @@
+﻿<?xml version="1.0"?>
+<package >
+	<metadata>
+		<id>ClaimsPolicyEngine</id>
+		<version>$version$</version>
+		<authors>Teleopti</authors>
+		<owners>Teleopti</owners>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>ClaimsPolicyEngine</description>
+		<copyright>Teleopti</copyright>
+		<dependencies>
+			<dependency id="Microsoft.IdentityModel" version="6.1.7600.16394" />
+		</dependencies>
+	</metadata>
+	<files>
+		<file src="bin\Release\ClaimsPolicyEngine.dll" target="lib\net451"/>
+	</files>
+	
+</package>
