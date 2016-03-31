@@ -10,7 +10,7 @@ using DotNetOpenAuth.AspNet;
 
 namespace AuthBridge.Protocols.OAuth
 {
-	public class LiveIdHandler : ProtocolSpHandlerBase
+	public class LiveIdHandler : ProtocolHandlerBase
     {
         private readonly ClaimProvider issuer;
         private readonly string appId;

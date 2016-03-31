@@ -10,7 +10,7 @@
     using DotNetOpenAuth.AspNet.Clients;
     using Microsoft.IdentityModel.Claims;
 
-    public class FacebookHandler : ProtocolSpHandlerBase
+    public class FacebookHandler : ProtocolHandlerBase
     {
         private readonly ClaimProvider issuer;
 

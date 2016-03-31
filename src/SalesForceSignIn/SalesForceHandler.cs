@@ -11,7 +11,7 @@ using Microsoft.IdentityModel.Claims;
 
 namespace SalesForceSignIn
 {
-	public class SalesForceHandler : ProtocolSpHandlerBase
+	public class SalesForceHandler : ProtocolHandlerBase
 	{
 		private readonly ClaimProvider issuer;
 		private readonly string appId;

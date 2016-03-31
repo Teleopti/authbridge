@@ -40,7 +40,7 @@ namespace AuthBridge.Web.Controllers
 
         public AuthenticationController(IProtocolDiscovery defaultProtocolDiscovery, IFederationContext federationContext, IConfigurationRepository configuration)
         {
-            protocolDiscovery = defaultProtocolDiscovery;
+			protocolDiscovery = defaultProtocolDiscovery;
             this.federationContext = federationContext;
             this.configuration = configuration;
             multiProtocolServiceProperties = this.configuration.MultiProtocolIssuer;
@@ -134,8 +134,15 @@ namespace AuthBridge.Web.Controllers
 		{
 			var protocolIdentifier = "urn:" + protocol;
 		    var issuer = configuration.RetrieveIssuer(new Uri(protocolIdentifier));
-			var handler = protocolDiscovery.RetrieveIdpProtocolHandler(issuer);
-			var claimsIdentity = handler.ProcessIdpInitiatedRequest(HttpContext);
+			var handler = protocolDiscovery.RetrieveProtocolHandler(issuer);
+			var scope = configuration.RetrieveDefaultScope();
+			if (scope == null)
+			{
+				Response.Write(protocol + " IdP initiated failed.");
+				Response.End();
+				return;
+			}
+			var claimsIdentity = handler.ProcessSignInResponse(scope.Identifier, "TODO", HttpContext);
 
 			var identity = UpdateIssuer(claimsIdentity, claimsIdentity.AuthenticationType, protocolIdentifier);
 
@@ -144,16 +151,9 @@ namespace AuthBridge.Web.Controllers
 
 		    var sessionToken = new SessionSecurityToken(new ClaimsPrincipal(new[] {identity}));
 		    FederatedAuthentication.WSFederationAuthenticationModule.SetPrincipalAndWriteSessionToken(sessionToken, true);
-
-			var scope = configuration.RetrieveDefaultScope();
-		    if (scope != null)
-		    {
-				Response.Redirect(string.Format("?wa=wsignin1.0&wtrealm={0}&wctx={1}&whr={2}", Uri.EscapeDataString(scope.Identifier), "ru=~/Mytime", Uri.EscapeDataString(protocolIdentifier)), true);
-		    }
-		    else
-		    {
-			    Response.Write(protocol + " IdP initiated failed.");
-		    }
+			var relayState = Request.Form["RelayState"];
+			var returnUrl = string.IsNullOrWhiteSpace(relayState) ? "~/Mytime" : relayState;
+			Response.Redirect(string.Format("?wa=wsignin1.0&wtrealm={0}&wctx={1}&whr={2}", Uri.EscapeDataString(scope.Identifier), "ru="+ returnUrl, Uri.EscapeDataString(protocolIdentifier)), true);
 		    Response.End();
 	    }
 

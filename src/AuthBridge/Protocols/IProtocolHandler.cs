@@ -1,7 +1,6 @@
 ﻿namespace AuthBridge.Protocols
 {
-    using System;
-    using System.Web;
+	using System.Web;
     using Microsoft.IdentityModel.Claims;
     using AuthBridge.Model;
 

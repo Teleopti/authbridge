@@ -33,12 +33,5 @@
                               issuer.Protocol,
                               new ParameterOverride("issuer", issuer));
         }
-
-	    public IProtocolIdpHandler RetrieveIdpProtocolHandler(ClaimProvider issuer)
-	    {
-			return this.container.Resolve<IProtocolIdpHandler>(
-							   issuer.Protocol,
-							   new ParameterOverride("issuer", issuer));
-	    }
     }
 }

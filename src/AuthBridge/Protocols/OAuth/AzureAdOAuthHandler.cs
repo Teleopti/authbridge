@@ -10,7 +10,7 @@ using DotNetOpenAuth.AspNet;
 
 namespace AuthBridge.Protocols.OAuth
 {
-	public class AzureAdOAuthHandler : ProtocolSpHandlerBase
+	public class AzureAdOAuthHandler : ProtocolHandlerBase
     {
         private readonly ClaimProvider issuer;
         private readonly string _appId;

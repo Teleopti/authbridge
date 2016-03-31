@@ -6,23 +6,42 @@ using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Web;
 using System.Xml;
+using AuthBridge.Configuration;
 using AuthBridge.Model;
 using Microsoft.IdentityModel.Claims;
+using Microsoft.IdentityModel.Protocols.WSFederation;
 
-namespace AuthBridge.Protocols.Idp
+namespace AuthBridge.Protocols.Saml
 {
-	public class SamlIdpHandler : ProtocolIdpHandlerBase
+	public class SamlHandler : ProtocolHandlerBase
 	{
 		private readonly string _signingKeyThumbprint;
+		private readonly string _assertionConsumerServiceUrl;
+		private readonly string _issuer;
+		private readonly string _identityProviderSSOURL;
 
-		public SamlIdpHandler(ClaimProvider issuer)
+		public SamlHandler(ClaimProvider issuer)
 			: base(issuer)
 		{
 			_signingKeyThumbprint = issuer.Parameters["signingKeyThumbprint"];
+			_assertionConsumerServiceUrl = string.Format("{0}idp?protocol=Saml", MultiProtocolIssuer.Identifier);
+			_issuer = issuer.Parameters["issuer"];
+			_identityProviderSSOURL = issuer.Parameters["identityProviderSSOURL"];
 		}
 
-		public override IClaimsIdentity ProcessIdpInitiatedRequest(HttpContextBase httpContext)
+		public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
 		{
+			var samlRequest = new AuthRequest(_assertionConsumerServiceUrl, _issuer);
+			var preparedRequest = samlRequest.GetRequest(AuthRequest.AuthRequestFormat.Base64 | AuthRequest.AuthRequestFormat.Compressed | AuthRequest.AuthRequestFormat.UrlEncode);
+			var returnUrl = GetReturnUrlQueryParameterFromUrl(httpContext.Request.Url.AbsoluteUri);
+			httpContext.Response.Redirect(string.Format("{0}?SAMLRequest={1}&RelayState={2}", _identityProviderSSOURL, preparedRequest, returnUrl));
+
+			httpContext.Response.End();
+		}
+
+		public override IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
+		{
+			
 			var response = Encoding.UTF8.GetString(Convert.FromBase64String(httpContext.Request.Form["SAMLResponse"]));
 			var doc = new XmlDocument();
 			doc.LoadXml(response);
@@ -40,10 +59,23 @@ namespace AuthBridge.Protocols.Idp
 			//You must add a claims policy for the protocol identifier!
 			var issuerIdentifier = information.Issuer;
 			var claims = new List<Claim>
-		    {
-			    new Claim(System.IdentityModel.Claims.ClaimTypes.NameIdentifier, information.SubjectNameId)
-		    };
+			{
+				new Claim(System.IdentityModel.Claims.ClaimTypes.NameIdentifier, information.SubjectNameId)
+			};
 			return new ClaimsIdentity(claims, issuerIdentifier);
+		}
+
+		private static string GetReturnUrlQueryParameterFromUrl(string context)
+		{
+			var queryNameValueCollection = HttpUtility.ParseQueryString(context);
+
+			var returnUrl = queryNameValueCollection["wctx"].Replace("ru=", "");
+			if (!String.IsNullOrEmpty(returnUrl))
+			{
+				if (!returnUrl.EndsWith("/"))
+					returnUrl += "/";
+			}
+			return returnUrl;
 		}
 
 		private static bool VerifyAllowedDateTimeRange(SamlDetail detail)
@@ -86,5 +118,6 @@ namespace AuthBridge.Protocols.Idp
 			return false;
 		}
 
+		
 	}
 }

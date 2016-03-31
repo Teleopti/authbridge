@@ -44,7 +44,7 @@
 	  <issuer uri="urn:Windows" thumbprint="" displayName="Windows"/>
 	  <issuer uri="urn:Teleopti" thumbprint="" displayName="Teleopti"/>
 	  <issuer uri="urn:AzureAd" thumbprint="" displayName="AzureAd"/>
-	  <issuer uri="urn:SamlIdp" thumbprint="" displayName="SamlIdp"/>
+	  <issuer uri="urn:Saml" thumbprint="" displayName="Saml"/>
     </issuers>
     <rules>
 		
@@ -83,7 +83,7 @@
 
 		<rule assertionsMatch="any">
 			<input>
-				<claim type="nameidentifier" issuer="SamlIdp" value="*"/>
+				<claim type="nameidentifier" issuer="Saml" value="*"/>
 			</input>
 			<output type="nameidentifier" copyFrom="INPUT_VALUE"/>
 		</rule>

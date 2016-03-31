@@ -10,7 +10,7 @@
     using DotNetOpenAuth.AspNet.Clients;
     using Microsoft.IdentityModel.Claims;
 
-    public class GoogleHandler : ProtocolSpHandlerBase
+    public class GoogleHandler : ProtocolHandlerBase
     {
         public GoogleHandler(ClaimProvider issuer)
             : base(issuer)

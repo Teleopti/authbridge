@@ -11,7 +11,7 @@ using System.IdentityModel.Tokens;
 
 namespace AuthBridge.Protocols.WSFed
 {
-    public class WSFedHandler : ProtocolSpHandlerBase
+    public class WSFedHandler : ProtocolHandlerBase
     {
         private readonly string _signingKeyThumbprint;
 		private readonly string _wsfedEndpoint;
@@ -46,7 +46,7 @@ namespace AuthBridge.Protocols.WSFed
             return identities[0];            
         }
 
-        private void RequestAuthentication(HttpContextBase httpContext, string identityProviderUrl, string realm, string replyUrl)
+        private static void RequestAuthentication(HttpContextBase httpContext, string identityProviderUrl, string realm, string replyUrl)
         {
             var signIn = new SignInRequestMessage(new Uri(identityProviderUrl), realm)
             {
@@ -63,11 +63,11 @@ namespace AuthBridge.Protocols.WSFed
 
         private class SimpleIssuerNameRegistry : IssuerNameRegistry
         {
-            private readonly string _trustedThumbrpint;
+            private readonly string _trustedThumbprint;
 
             public SimpleIssuerNameRegistry(string trustedThumbprint)
             {
-                _trustedThumbrpint = trustedThumbprint;
+                _trustedThumbprint = trustedThumbprint;
             }
 
             public override string GetIssuerName(SecurityToken securityToken)
@@ -77,7 +77,7 @@ namespace AuthBridge.Protocols.WSFed
                 if (x509 != null)
                 {
 	                Logger.Info(string.Format("Thumbprint! {0}", x509.Certificate.Thumbprint));
-                    if (x509.Certificate.Thumbprint != null && x509.Certificate.Thumbprint.Equals(_trustedThumbrpint, StringComparison.InvariantCultureIgnoreCase))
+                    if (x509.Certificate.Thumbprint != null && x509.Certificate.Thumbprint.Equals(_trustedThumbprint, StringComparison.InvariantCultureIgnoreCase))
                     {
                         return x509.Certificate.Subject;
                     }

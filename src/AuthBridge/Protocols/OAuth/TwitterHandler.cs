@@ -10,7 +10,7 @@
     using DotNetOpenAuth.AspNet.Clients;
     using Microsoft.IdentityModel.Claims;
 
-    public class TwitterHandler : ProtocolSpHandlerBase
+    public class TwitterHandler : ProtocolHandlerBase
     {
         private readonly ClaimProvider issuer;
         private readonly string consumerKey;

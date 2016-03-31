@@ -11,7 +11,7 @@ using Microsoft.IdentityModel.Claims;
 
 namespace AuthBridge.Protocols.OpenID
 {
-	public class RelativeOpenIdHandler : ProtocolSpHandlerBase
+	public class RelativeOpenIdHandler : ProtocolHandlerBase
 	{
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(RelativeOpenIdHandler));
 		public RelativeOpenIdHandler(ClaimProvider issuer)

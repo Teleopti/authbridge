@@ -1,22 +1,16 @@
 ﻿namespace AuthBridge.Protocols.WSFed
 {
     using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Net;
     using System.Web;
     using AuthBridge.Model;
-    using DotNetOpenAuth.AspNet;
-    using DotNetOpenAuth.AspNet.Clients;
     using Microsoft.IdentityModel.Claims;
-    using System.Text;
     using Microsoft.IdentityModel.Protocols.WSFederation;
     using Microsoft.IdentityModel.Web;
     using System.IdentityModel.Selectors;
 using Microsoft.IdentityModel.Tokens;
     using System.IdentityModel.Tokens;
 
-    public class WindowsAzureADHandler : ProtocolSpHandlerBase
+    public class WindowsAzureADHandler : ProtocolHandlerBase
     {
         private readonly string signingKeyThumbprint;
         private readonly string tenantId;

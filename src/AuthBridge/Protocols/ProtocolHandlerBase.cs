@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Web;
 using AuthBridge.Configuration;
 using AuthBridge.Model;
+using Microsoft.IdentityModel.Claims;
 
 namespace AuthBridge.Protocols
 {
-	public abstract class ProtocolHandlerBase
+	public abstract class ProtocolHandlerBase : IProtocolHandler
 	{
 		protected ProtocolHandlerBase(ClaimProvider issuer) : this(issuer, DefaultConfigurationRepository.Instance)
 		{
@@ -28,5 +30,8 @@ namespace AuthBridge.Protocols
 		protected IConfigurationRepository Configuration { get; set; }
 
 		protected MultiProtocolIssuer MultiProtocolIssuer { get; set; }
+
+		public abstract void ProcessSignInRequest(Scope scope, HttpContextBase httpContext);
+		public abstract IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext);
 	}
 }
