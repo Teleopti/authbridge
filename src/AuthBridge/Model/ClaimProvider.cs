@@ -13,7 +13,7 @@
 
         public string Protocol { get; set; }
 
-		public bool IdpInitiated { get; set; }
+		public bool IdpInitiatedOnly { get; set; }
 
         public string Profile { get; set; }
 

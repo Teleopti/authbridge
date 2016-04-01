@@ -42,10 +42,10 @@
             get { return (ParameterCollection)this["params"]; }
         }
 
-		[ConfigurationProperty("idpInitiated", IsRequired = false)]
-		public bool IdpInitiated
+		[ConfigurationProperty("idpInitiatedOnly", IsRequired = false)]
+		public bool IdpInitiatedOnly
 		{
-			get { return (bool)this["idpInitiated"]; }
+			get { return (bool)this["idpInitiatedOnly"]; }
 		}
     }
 }

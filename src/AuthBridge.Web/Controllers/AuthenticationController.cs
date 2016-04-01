@@ -49,7 +49,7 @@ namespace AuthBridge.Web.Controllers
         public ActionResult HomeRealmDiscovery()
         {
 			Logger.Info(string.Format("HomeRealmDiscovery!"));
-			var vms = configuration.RetrieveIssuers().Where(x=>!x.IdpInitiated).Select(x => new ProviderViewModel
+			var vms = configuration.RetrieveIssuers().Where(x=>!x.IdpInitiatedOnly).Select(x => new ProviderViewModel
 	        {
 		        Identifier = x.Identifier.ToString(),
 		        DisplayName = x.DisplayName

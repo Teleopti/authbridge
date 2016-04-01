@@ -39,7 +39,7 @@ namespace AuthBridge.Model
 				DisplayName = claimProvider.DisplayName,
                 Url = claimProvider.Uri.ReplaceWithLocalhostWhenRelative(),
                 Protocol = claimProvider.ProtocolHandler,
-				IdpInitiated = claimProvider.IdpInitiated,
+				IdpInitiatedOnly = claimProvider.IdpInitiatedOnly,
                 Parameters = claimProvider.Params.ToModel()
             };
         }
