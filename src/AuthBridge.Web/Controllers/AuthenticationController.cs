@@ -142,7 +142,9 @@ namespace AuthBridge.Web.Controllers
 				Response.End();
 				return;
 			}
-			var claimsIdentity = handler.ProcessSignInResponse(scope.Identifier, "TODO", HttpContext);
+			var relayState = Request.Form["RelayState"];
+			var returnUrl = string.IsNullOrWhiteSpace(relayState) ? "~/Mytime" : relayState;
+			var claimsIdentity = handler.ProcessSignInResponse(scope.Identifier, returnUrl, HttpContext);
 
 			var identity = UpdateIssuer(claimsIdentity, claimsIdentity.AuthenticationType, protocolIdentifier);
 
@@ -151,8 +153,7 @@ namespace AuthBridge.Web.Controllers
 
 		    var sessionToken = new SessionSecurityToken(new ClaimsPrincipal(new[] {identity}));
 		    FederatedAuthentication.WSFederationAuthenticationModule.SetPrincipalAndWriteSessionToken(sessionToken, true);
-			var relayState = Request.Form["RelayState"];
-			var returnUrl = string.IsNullOrWhiteSpace(relayState) ? "~/Mytime" : relayState;
+			
 			Response.Redirect(string.Format("?wa=wsignin1.0&wtrealm={0}&wctx={1}&whr={2}", Uri.EscapeDataString(scope.Identifier), "ru="+ returnUrl, Uri.EscapeDataString(protocolIdentifier)), true);
 		    Response.End();
 	    }
