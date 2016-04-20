@@ -67,9 +67,10 @@ namespace AuthBridge.Protocols.Saml
 		{
 			var queryNameValueCollection = HttpUtility.ParseQueryString(context);
 
-			var returnUrl = queryNameValueCollection["wctx"].Replace("ru=", "");
+			var returnUrl = queryNameValueCollection["wctx"];
 			if (!String.IsNullOrEmpty(returnUrl))
 			{
+				returnUrl = returnUrl.Replace("ru=", "");
 				if (!returnUrl.EndsWith("/"))
 					returnUrl += "/";
 			}
