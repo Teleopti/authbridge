@@ -14,7 +14,6 @@ namespace AuthBridge.Protocols.Saml
 	public class SamlHandler : ProtocolHandlerBase
 	{
 		private readonly string _signingKeyThumbprint;
-		private readonly string _assertionConsumerServiceUrl;
 		private readonly string _issuer;
 		private readonly string _identityProviderSSOURL;
 
@@ -22,14 +21,13 @@ namespace AuthBridge.Protocols.Saml
 			: base(issuer)
 		{
 			_signingKeyThumbprint = issuer.Parameters["signingKeyThumbprint"];
-			_assertionConsumerServiceUrl = string.Format("{0}idp?protocol=Saml", MultiProtocolIssuer.Identifier);
 			_issuer = issuer.Parameters["issuer"];
 			_identityProviderSSOURL = issuer.Parameters["identityProviderSSOURL"];
 		}
 
 		public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
 		{
-			var samlRequest = new AuthRequest(_assertionConsumerServiceUrl, _issuer);
+			var samlRequest = new AuthRequest(MultiProtocolIssuer.ReplyUrl.ToString(), _issuer);
 			var preparedRequest = samlRequest.GetRequest(AuthRequest.AuthRequestFormat.Base64 | AuthRequest.AuthRequestFormat.Compressed | AuthRequest.AuthRequestFormat.UrlEncode);
 			var returnUrl = GetReturnUrlQueryParameterFromUrl(httpContext.Request.Url.AbsoluteUri);
 			httpContext.Response.Redirect(string.Format("{0}?SAMLRequest={1}&RelayState={2}", _identityProviderSSOURL, preparedRequest, returnUrl));
