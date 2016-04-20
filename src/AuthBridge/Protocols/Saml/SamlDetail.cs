@@ -57,7 +57,7 @@ namespace AuthBridge.Protocols.Saml
 					xw.WriteEndElement();
 
 					xw.WriteStartElement("samlp", "NameIDPolicy", "urn:oasis:names:tc:SAML:2.0:protocol");
-					xw.WriteAttributeString("Format", "urn:oasis:names:tc:SAML:2.0:nameid-format:unspecified");
+					xw.WriteAttributeString("Format", "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified");
 					xw.WriteAttributeString("AllowCreate", "true");
 					xw.WriteEndElement();
 
