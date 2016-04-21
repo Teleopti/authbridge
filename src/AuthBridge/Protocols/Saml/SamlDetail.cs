@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
@@ -13,6 +14,7 @@ namespace AuthBridge.Protocols.Saml
 		public string SubjectNameId { get; set; }
 		public DateTime NotBefore { get; set; }
 		public DateTime NotOnOrAfter { get; set; }
+		public List<string> AudienceRestrictions { get; set; }
 	}
 
 	public class AuthRequest

@@ -16,6 +16,7 @@ namespace AuthBridge.Protocols.Saml
 		private readonly string _signingKeyThumbprint;
 		private readonly string _issuer;
 		private readonly string _identityProviderSSOURL;
+		private readonly string _audienceRestriction;
 
 		public SamlHandler(ClaimProvider issuer)
 			: base(issuer)
@@ -23,6 +24,7 @@ namespace AuthBridge.Protocols.Saml
 			_signingKeyThumbprint = issuer.Parameters["signingKeyThumbprint"];
 			_issuer = issuer.Parameters["issuer"];
 			_identityProviderSSOURL = issuer.Parameters["identityProviderSSOURL"];
+			_audienceRestriction = issuer.Parameters["audienceRestriction"];
 		}
 
 		public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
@@ -51,7 +53,10 @@ namespace AuthBridge.Protocols.Saml
 			{
 				throw new InvalidOperationException("This SAML response is not valid any longer.");
 			}
-
+			if (!VerifyAudience(information))
+			{
+				throw new InvalidOperationException("Audience does not match the white list values.");
+			}
 			//You must add a claims policy for the protocol identifier!
 			var issuerIdentifier = information.Issuer;
 			var claims = new List<Claim>
@@ -59,6 +64,14 @@ namespace AuthBridge.Protocols.Saml
 				new Claim(System.IdentityModel.Claims.ClaimTypes.NameIdentifier, information.SubjectNameId)
 			};
 			return new ClaimsIdentity(claims, issuerIdentifier);
+		}
+
+		private bool VerifyAudience(SamlDetail information)
+		{
+			if (string.IsNullOrEmpty(_audienceRestriction))
+				return true;
+
+			return information.AudienceRestrictions.Contains(_audienceRestriction);
 		}
 
 		private static string GetReturnUrlQueryParameterFromUrl(string context)
@@ -93,7 +106,13 @@ namespace AuthBridge.Protocols.Saml
 
 			var issuerElement = doc.SelectSingleNode("//*[local-name()='Issuer']");
 			detail.Issuer = issuerElement.InnerText;
-
+			var audienceElements = doc.SelectNodes("//*[local-name()='Conditions']/*[local-name()='AudienceRestriction']/*[local-name()='Audience']");
+			detail.AudienceRestrictions = new List<string>();
+			if (audienceElements != null)
+			{
+				foreach (var audienceElement in audienceElements)
+					detail.AudienceRestrictions.Add(((XmlNode)audienceElement).InnerText);
+			}
 			return detail;
 		}
 
