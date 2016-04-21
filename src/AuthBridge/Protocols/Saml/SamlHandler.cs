@@ -7,7 +7,9 @@ using System.Text;
 using System.Web;
 using System.Xml;
 using AuthBridge.Model;
+using log4net;
 using Microsoft.IdentityModel.Claims;
+using ClaimTypes = System.IdentityModel.Claims.ClaimTypes;
 
 namespace AuthBridge.Protocols.Saml
 {
@@ -17,6 +19,8 @@ namespace AuthBridge.Protocols.Saml
 		private readonly string _issuer;
 		private readonly string _identityProviderSSOURL;
 		private readonly string _audienceRestriction;
+		private static readonly ILog Logger = LogManager.GetLogger(typeof(SamlHandler));
+
 
 		public SamlHandler(ClaimProvider issuer)
 			: base(issuer)
@@ -39,20 +43,25 @@ namespace AuthBridge.Protocols.Saml
 
 		public override IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
 		{
-			
+			Logger.Info("ProcessSignInResponse");
 			var response = Encoding.UTF8.GetString(Convert.FromBase64String(httpContext.Request.Form["SAMLResponse"]));
+			Logger.InfoFormat("SAMLResponse: {0}", response);
 			var doc = new XmlDocument();
 			doc.LoadXml(response);
 			if (!VerifySignatures(doc))
 			{
 				throw new InvalidOperationException("The thumbprint doesn't match the white list values.");
 			}
+			Logger.Info("Verified signature successfully");
 
 			var information = ExtractInformation(doc);
+			Logger.InfoFormat("Extracted information: SubjectNameId: {0}, Issuer: {1}, NotBefore: {2}, NotOnOrAfter: {3}", information.SubjectNameId, information.Issuer, information.NotBefore, information.NotOnOrAfter);
 			if (!VerifyAllowedDateTimeRange(information))
 			{
 				throw new InvalidOperationException("This SAML response is not valid any longer.");
 			}
+			Logger.Info("Verified allowed date time range successfully");
+
 			if (!VerifyAudience(information))
 			{
 				throw new InvalidOperationException("Audience does not match the white list values.");
@@ -61,7 +70,7 @@ namespace AuthBridge.Protocols.Saml
 			var issuerIdentifier = information.Issuer;
 			var claims = new List<Claim>
 			{
-				new Claim(System.IdentityModel.Claims.ClaimTypes.NameIdentifier, information.SubjectNameId)
+				new Claim(ClaimTypes.NameIdentifier, information.SubjectNameId)
 			};
 			return new ClaimsIdentity(claims, issuerIdentifier);
 		}
@@ -79,7 +88,7 @@ namespace AuthBridge.Protocols.Saml
 			var queryNameValueCollection = HttpUtility.ParseQueryString(context);
 
 			var returnUrl = queryNameValueCollection["wctx"];
-			if (!String.IsNullOrEmpty(returnUrl))
+			if (!string.IsNullOrEmpty(returnUrl))
 			{
 				returnUrl = returnUrl.Replace("ru=", "");
 				if (!returnUrl.EndsWith("/"))
@@ -91,6 +100,7 @@ namespace AuthBridge.Protocols.Saml
 		private static bool VerifyAllowedDateTimeRange(SamlDetail detail)
 		{
 			var now = DateTime.UtcNow;
+			Logger.InfoFormat("UtcNow: {0}, NotBefore: {1}, NotOnOrAfter: {2}, now >= detail.NotBefore: {3}, now < detail.NotOnOrAfter: {4}", now, detail.NotBefore, detail.NotOnOrAfter, now >= detail.NotBefore, now < detail.NotOnOrAfter);
 			return now >= detail.NotBefore && now < detail.NotOnOrAfter;
 		}
 
@@ -98,8 +108,11 @@ namespace AuthBridge.Protocols.Saml
 		{
 			var detail = new SamlDetail();
 			var conditionsElement = doc.SelectSingleNode("//*[local-name()='Conditions']");
-			detail.NotBefore = XmlConvert.ToDateTime(conditionsElement.Attributes["NotBefore"].Value, XmlDateTimeSerializationMode.Utc);
-			detail.NotOnOrAfter = XmlConvert.ToDateTime(conditionsElement.Attributes["NotOnOrAfter"].Value, XmlDateTimeSerializationMode.Utc);
+			if (conditionsElement != null)
+			{
+				detail.NotBefore = XmlConvert.ToDateTime(conditionsElement.Attributes["NotBefore"].Value, XmlDateTimeSerializationMode.Utc);
+				detail.NotOnOrAfter = XmlConvert.ToDateTime(conditionsElement.Attributes["NotOnOrAfter"].Value, XmlDateTimeSerializationMode.Utc);
+			}
 
 			var nameIdElement = doc.SelectSingleNode("//*[local-name()='Subject']/*[local-name()='NameID']");
 			detail.SubjectNameId = nameIdElement.InnerText;
