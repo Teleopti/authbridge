@@ -69,6 +69,11 @@ namespace AuthBridge.Protocols.Saml
 					xw.WriteString(_issuer);
 					xw.WriteEndElement();
 
+					xw.WriteStartElement("samlp", "NameIDPolicy", protocol);
+					xw.WriteAttributeString("Format", "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified");
+					xw.WriteAttributeString("AllowCreate", "true");
+					xw.WriteEndElement();
+
 					if (!string.IsNullOrEmpty(_audienceRestriction))
 					{
 						xw.WriteStartElement("saml", "Conditions", assertion);
@@ -79,11 +84,6 @@ namespace AuthBridge.Protocols.Saml
 						xw.WriteEndElement();
 						xw.WriteEndElement();
 					}
-
-					xw.WriteStartElement("samlp", "NameIDPolicy", protocol);
-					xw.WriteAttributeString("Format", "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified");
-					xw.WriteAttributeString("AllowCreate", "true");
-					xw.WriteEndElement();
 
 					xw.WriteStartElement("samlp", "RequestedAuthnContext", protocol);
 					xw.WriteAttributeString("Comparison", "minimum");
