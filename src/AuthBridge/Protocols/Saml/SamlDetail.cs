@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Text;
 using System.Web;
 using System.Xml;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AuthBridge.Protocols.Saml
 {
@@ -29,6 +30,7 @@ namespace AuthBridge.Protocols.Saml
 		private readonly string _issueInstant;
 		private readonly string _assertionConsumerServiceUrl;
 		private readonly string _issuer;
+		private readonly string _audienceRestriction;
 
 		[Flags]
 		public enum AuthRequestFormat
@@ -38,53 +40,67 @@ namespace AuthBridge.Protocols.Saml
 			UrlEncode = 4,
 		}
 
-		public AuthRequest(string assertionConsumerServiceUrl, string issuer)
+		public AuthRequest(string assertionConsumerServiceUrl, string issuer, string audienceRestriction)
 		{
 			_assertionConsumerServiceUrl = assertionConsumerServiceUrl;
 			_issuer = issuer;
+			_audienceRestriction = audienceRestriction;
 			Id = "_" + Guid.NewGuid();
 			_issueInstant = DateTime.Now.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ");
 		}
 
 		public string GetRequest(AuthRequestFormat format)
 		{
+			const string protocol = "urn:oasis:names:tc:SAML:2.0:protocol";
+			const string assertion = "urn:oasis:names:tc:SAML:2.0:assertion";
 			using (var sw = new StringWriter())
 			{
 				var xws = new XmlWriterSettings {OmitXmlDeclaration = true};
 				using (var xw = XmlWriter.Create(sw, xws))
 				{
-					xw.WriteStartElement("samlp", "AuthnRequest", "urn:oasis:names:tc:SAML:2.0:protocol");
+					xw.WriteStartElement("samlp", "AuthnRequest", protocol);
 					xw.WriteAttributeString("ID", Id);
 					xw.WriteAttributeString("Version", "2.0");
 					xw.WriteAttributeString("IssueInstant", _issueInstant);
 					xw.WriteAttributeString("ProtocolBinding", "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST");
 					xw.WriteAttributeString("AssertionConsumerServiceURL", _assertionConsumerServiceUrl);
 
-					xw.WriteStartElement("saml", "Issuer", "urn:oasis:names:tc:SAML:2.0:assertion");
+					xw.WriteStartElement("saml", "Issuer", assertion);
 					xw.WriteString(_issuer);
 					xw.WriteEndElement();
 
-					xw.WriteStartElement("samlp", "NameIDPolicy", "urn:oasis:names:tc:SAML:2.0:protocol");
+					if (!string.IsNullOrEmpty(_audienceRestriction))
+					{
+						xw.WriteStartElement("saml", "Conditions", assertion);
+						xw.WriteStartElement("saml", "AudienceRestriction", assertion);
+						xw.WriteStartElement("saml", "Audience", assertion);
+						xw.WriteString(_audienceRestriction);
+						xw.WriteEndElement();
+						xw.WriteEndElement();
+						xw.WriteEndElement();
+					}
+
+					xw.WriteStartElement("samlp", "NameIDPolicy", protocol);
 					xw.WriteAttributeString("Format", "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified");
 					xw.WriteAttributeString("AllowCreate", "true");
 					xw.WriteEndElement();
 
-					xw.WriteStartElement("samlp", "RequestedAuthnContext", "urn:oasis:names:tc:SAML:2.0:protocol");
+					xw.WriteStartElement("samlp", "RequestedAuthnContext", protocol);
 					xw.WriteAttributeString("Comparison", "minimum");
 
-					xw.WriteStartElement("saml", "AuthnContextClassRef", "urn:oasis:names:tc:SAML:2.0:assertion");
+					xw.WriteStartElement("saml", "AuthnContextClassRef", assertion);
 					xw.WriteString("urn:oasis:names:tc:SAML:2.0:ac:classes:unspecified");
 					xw.WriteEndElement();
-					xw.WriteStartElement("saml", "AuthnContextClassRef", "urn:oasis:names:tc:SAML:2.0:assertion");
+					xw.WriteStartElement("saml", "AuthnContextClassRef", assertion);
 					xw.WriteString("urn:oasis:names:tc:SAML:2.0:ac:classes:Password");
 					xw.WriteEndElement();
-					xw.WriteStartElement("saml", "AuthnContextClassRef", "urn:oasis:names:tc:SAML:2.0:assertion");
+					xw.WriteStartElement("saml", "AuthnContextClassRef", assertion);
 					xw.WriteString("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport");
 					xw.WriteEndElement();
-					xw.WriteStartElement("saml", "AuthnContextClassRef", "urn:oasis:names:tc:SAML:2.0:assertion");
+					xw.WriteStartElement("saml", "AuthnContextClassRef", assertion);
 					xw.WriteString("urn:oasis:names:tc:SAML:2.0:ac:classes:Kerberos");
 					xw.WriteEndElement();
-					xw.WriteStartElement("saml", "AuthnContextClassRef", "urn:oasis:names:tc:SAML:2.0:assertion");
+					xw.WriteStartElement("saml", "AuthnContextClassRef", assertion);
 					xw.WriteString("urn:federation:authentication:windows");
 					xw.WriteEndElement();
 
