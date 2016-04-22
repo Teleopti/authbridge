@@ -7,6 +7,7 @@ using System.Text;
 using System.Web;
 using System.Xml;
 using AuthBridge.Model;
+using AuthBridge.Utilities;
 using log4net;
 using Microsoft.IdentityModel.Claims;
 using ClaimTypes = System.IdentityModel.Claims.ClaimTypes;
@@ -54,18 +55,27 @@ namespace AuthBridge.Protocols.Saml
 			}
 			Logger.Info("Verified signature successfully");
 
+			if (!VerifyStatus(doc))
+			{
+				throw new InvalidOperationException("The response was not successfull");
+			}
+			Logger.Info("Verified status successfully");
+
 			var information = ExtractInformation(doc);
 			Logger.InfoFormat("Extracted information: SubjectNameId: {0}, Issuer: {1}, NotBefore: {2}, NotOnOrAfter: {3}", information.SubjectNameId, information.Issuer, information.NotBefore, information.NotOnOrAfter);
+			
+			if (!VerifyAudience(information))
+			{
+				throw new InvalidOperationException("Audience does not match the white list values.");
+			}
+			Logger.Info("Verified audience successfully");
+
 			if (!VerifyAllowedDateTimeRange(information))
 			{
 				throw new InvalidOperationException("This SAML response is not valid any longer.");
 			}
 			Logger.Info("Verified allowed date time range successfully");
 
-			if (!VerifyAudience(information))
-			{
-				throw new InvalidOperationException("Audience does not match the white list values.");
-			}
 			//You must add a claims policy for the protocol identifier!
 			var issuerIdentifier = information.Issuer;
 			var claims = new List<Claim>
@@ -75,13 +85,7 @@ namespace AuthBridge.Protocols.Saml
 			return new ClaimsIdentity(claims, issuerIdentifier);
 		}
 
-		private bool VerifyAudience(SamlDetail information)
-		{
-			if (string.IsNullOrEmpty(_audienceRestriction))
-				return true;
-
-			return information.AudienceRestrictions.Contains(_audienceRestriction);
-		}
+		
 
 		private static string GetReturnUrlQueryParameterFromUrl(string context)
 		{
@@ -99,9 +103,11 @@ namespace AuthBridge.Protocols.Saml
 
 		private static bool VerifyAllowedDateTimeRange(SamlDetail detail)
 		{
-			var now = DateTime.UtcNow;
-			Logger.InfoFormat("UtcNow: {0}, NotBefore: {1}, NotOnOrAfter: {2}, now >= detail.NotBefore: {3}, now < detail.NotOnOrAfter: {4}", now, detail.NotBefore, detail.NotOnOrAfter, now >= detail.NotBefore, now < detail.NotOnOrAfter);
-			return now >= detail.NotBefore && now < detail.NotOnOrAfter;
+			var now = DateTime.UtcNow.TruncateTo(DateTimeUtils.DateTruncate.Second);
+			var notBefore = detail.NotBefore.TruncateTo(DateTimeUtils.DateTruncate.Second);
+			var notOnOrAfter = detail.NotOnOrAfter.TruncateTo(DateTimeUtils.DateTruncate.Second);
+			Logger.InfoFormat("UtcNow: {0}, notBefore: {1}, notOnOrAfter: {2}, notBefore <= now: {3}, now < now < notOnOrAfter: {4}", now, notBefore, notOnOrAfter, notBefore <= now, now < notOnOrAfter);
+			return notBefore <= now && now < notOnOrAfter;
 		}
 
 		private static SamlDetail ExtractInformation(XmlDocument doc)
@@ -147,6 +153,18 @@ namespace AuthBridge.Protocols.Saml
 			return false;
 		}
 
-		
+		private static bool VerifyStatus(XmlDocument doc)
+		{
+			var statusCode = doc.SelectSingleNode("//*[local-name()='Status']/*[local-name()='StatusCode']");
+			return statusCode.Attributes["Value"].Value.EndsWith("status:Success");
+		}
+
+		private bool VerifyAudience(SamlDetail information)
+		{
+			if (string.IsNullOrEmpty(_audienceRestriction))
+				return true;
+
+			return information.AudienceRestrictions.Contains(_audienceRestriction);
+		}
 	}
 }

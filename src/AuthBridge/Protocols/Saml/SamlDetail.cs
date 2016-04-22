@@ -15,6 +15,12 @@ namespace AuthBridge.Protocols.Saml
 		public DateTime NotBefore { get; set; }
 		public DateTime NotOnOrAfter { get; set; }
 		public List<string> AudienceRestrictions { get; set; }
+
+		public SamlDetail()
+		{
+			NotBefore = DateTime.MinValue;
+			NotOnOrAfter = DateTime.MaxValue;
+		}
 	}
 
 	public class AuthRequest

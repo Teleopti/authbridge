@@ -258,6 +258,7 @@
     <Compile Include="Protocols\IProtocolHandler.cs" />
     <Compile Include="Protocols\OpenId\YahooHandler.cs" />
     <Compile Include="Model\ModelExtensions.cs" />
+    <Compile Include="Utilities\DateTimeUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Policy.xml" />
