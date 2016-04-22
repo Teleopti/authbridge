@@ -110,8 +110,9 @@ namespace AuthBridge.Protocols.Saml
 			var now = DateTime.UtcNow.TruncateTo(DateTimeUtils.DateTruncate.Second);
 			var notBefore = detail.NotBefore.TruncateTo(DateTimeUtils.DateTruncate.Second);
 			var notOnOrAfter = detail.NotOnOrAfter.TruncateTo(DateTimeUtils.DateTruncate.Second);
-			Logger.InfoFormat("UtcNow: {0}, notBefore: {1}, notOnOrAfter: {2}, notBefore <= now: {3}, now < now < notOnOrAfter: {4}", now, notBefore, notOnOrAfter, notBefore <= now, now < notOnOrAfter);
-			return notBefore <= now && now < notOnOrAfter;
+			var notBeforeSubtract5Second = notBefore.Subtract(TimeSpan.FromSeconds(5));
+			Logger.InfoFormat("UtcNow: {0}, notBefore: {1}, notOnOrAfter: {2}, notBeforeSubtract5Second <= now: {3}, now < notOnOrAfter: {4}", now, notBefore, notOnOrAfter, notBeforeSubtract5Second <= now, now < notOnOrAfter);
+			return notBeforeSubtract5Second <= now && now < notOnOrAfter;
 		}
 
 		private static SamlDetail ExtractInformation(XmlDocument doc)
