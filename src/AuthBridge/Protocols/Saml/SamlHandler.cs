@@ -107,12 +107,12 @@ namespace AuthBridge.Protocols.Saml
 
 		private static bool VerifyAllowedDateTimeRange(SamlDetail detail)
 		{
-			var now = DateTime.UtcNow.TruncateTo(DateTimeUtils.DateTruncate.Second);
+			var utcnow = DateTime.UtcNow.TruncateTo(DateTimeUtils.DateTruncate.Second);
 			var notBefore = detail.NotBefore.TruncateTo(DateTimeUtils.DateTruncate.Second);
 			var notOnOrAfter = detail.NotOnOrAfter.TruncateTo(DateTimeUtils.DateTruncate.Second);
 			var notBeforeSubtract5Second = notBefore.Subtract(TimeSpan.FromSeconds(5));
-			Logger.InfoFormat("UtcNow: {0}, notBefore: {1}, notOnOrAfter: {2}, notBeforeSubtract5Second <= now: {3}, now < notOnOrAfter: {4}", now, notBefore, notOnOrAfter, notBeforeSubtract5Second <= now, now < notOnOrAfter);
-			return notBeforeSubtract5Second <= now && now < notOnOrAfter;
+			Logger.InfoFormat("utcnow: {0}, notBefore: {1}, notOnOrAfter: {2}, notBeforeSubtract5Second <= utcnow: {3}, utcnow < notOnOrAfter: {4}", utcnow, notBefore, notOnOrAfter, notBeforeSubtract5Second <= utcnow, utcnow < notOnOrAfter);
+			return notBeforeSubtract5Second <= utcnow && utcnow < notOnOrAfter;
 		}
 
 		private static SamlDetail ExtractInformation(XmlDocument doc)
