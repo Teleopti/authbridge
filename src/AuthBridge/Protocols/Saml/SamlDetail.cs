@@ -64,10 +64,22 @@ namespace AuthBridge.Protocols.Saml
 					xw.WriteEndElement();
 
 					xw.WriteStartElement("samlp", "RequestedAuthnContext", "urn:oasis:names:tc:SAML:2.0:protocol");
-					xw.WriteAttributeString("Comparison", "exact");
+					xw.WriteAttributeString("Comparison", "minimum");
 
 					xw.WriteStartElement("saml", "AuthnContextClassRef", "urn:oasis:names:tc:SAML:2.0:assertion");
+					xw.WriteString("urn:oasis:names:tc:SAML:2.0:ac:classes:unspecified");
+					xw.WriteEndElement();
+					xw.WriteStartElement("saml", "AuthnContextClassRef", "urn:oasis:names:tc:SAML:2.0:assertion");
+					xw.WriteString("urn:oasis:names:tc:SAML:2.0:ac:classes:Password");
+					xw.WriteEndElement();
+					xw.WriteStartElement("saml", "AuthnContextClassRef", "urn:oasis:names:tc:SAML:2.0:assertion");
 					xw.WriteString("urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport");
+					xw.WriteEndElement();
+					xw.WriteStartElement("saml", "AuthnContextClassRef", "urn:oasis:names:tc:SAML:2.0:assertion");
+					xw.WriteString("urn:oasis:names:tc:SAML:2.0:ac:classes:Kerberos");
+					xw.WriteEndElement();
+					xw.WriteStartElement("saml", "AuthnContextClassRef", "urn:oasis:names:tc:SAML:2.0:assertion");
+					xw.WriteString("urn:federation:authentication:windows");
 					xw.WriteEndElement();
 
 					xw.WriteEndElement();
