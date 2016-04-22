@@ -51,13 +51,13 @@ namespace AuthBridge.Protocols.Saml
 			doc.LoadXml(response);
 			if (!VerifySignatures(doc))
 			{
-				throw new InvalidOperationException("The thumbprint doesn't match the white list values.");
+				ThrowAndLog("The thumbprint doesn't match the white list values.");
 			}
 			Logger.Info("Verified signature successfully");
 
 			if (!VerifyStatus(doc))
 			{
-				throw new InvalidOperationException("The response was not successfull");
+				ThrowAndLog("The SAML response status was not 'status:Success'");
 			}
 			Logger.Info("Verified status successfully");
 
@@ -66,13 +66,13 @@ namespace AuthBridge.Protocols.Saml
 			
 			if (!VerifyAudience(information))
 			{
-				throw new InvalidOperationException("Audience does not match the white list values.");
+				ThrowAndLog("Audience does not match the white list values.");
 			}
 			Logger.Info("Verified audience successfully");
 
 			if (!VerifyAllowedDateTimeRange(information))
 			{
-				throw new InvalidOperationException("This SAML response is not valid any longer.");
+				ThrowAndLog("This SAML response is not valid any longer.");
 			}
 			Logger.Info("Verified allowed date time range successfully");
 
@@ -85,7 +85,11 @@ namespace AuthBridge.Protocols.Saml
 			return new ClaimsIdentity(claims, issuerIdentifier);
 		}
 
-		
+		private static void ThrowAndLog(string message)
+		{
+			Logger.Error(message);
+			throw new InvalidOperationException(message);
+		}
 
 		private static string GetReturnUrlQueryParameterFromUrl(string context)
 		{
@@ -121,6 +125,10 @@ namespace AuthBridge.Protocols.Saml
 			}
 
 			var nameIdElement = doc.SelectSingleNode("//*[local-name()='Subject']/*[local-name()='NameID']");
+			if (nameIdElement == null)
+			{
+				ThrowAndLog("NameID Claim Policy not configured correctly.");
+			}
 			detail.SubjectNameId = nameIdElement.InnerText;
 
 			var issuerElement = doc.SelectSingleNode("//*[local-name()='Issuer']");
