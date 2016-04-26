@@ -1,13 +1,14 @@
-﻿namespace AuthBridge.Protocols
+﻿using System.Security.Claims;
+
+namespace AuthBridge.Protocols
 {
 	using System.Web;
-    using Microsoft.IdentityModel.Claims;
     using AuthBridge.Model;
 
     public interface IProtocolHandler
     {
         void ProcessSignInRequest(Scope scope, HttpContextBase httpContext);
 
-        IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext);
+		ClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext);
     }
 }

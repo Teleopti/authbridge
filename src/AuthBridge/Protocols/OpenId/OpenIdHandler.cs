@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Web;
 using AuthBridge.Clients;
 using AuthBridge.Model;
 using DotNetOpenAuth.AspNet;
 using log4net;
-using Microsoft.IdentityModel.Claims;
 
 namespace AuthBridge.Protocols.OpenID
 {
@@ -27,7 +27,7 @@ namespace AuthBridge.Protocols.OpenID
 			client.RequestAuthentication(httpContext, MultiProtocolIssuer.ReplyUrl);
 		}
 
-		public override IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
+		public override ClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
 		{
             var client = new OpenIdClient(Issuer.Url, MultiProtocolIssuer.Identifier);
 			Logger.Debug(string.Format("ProcessSignInResponse"));

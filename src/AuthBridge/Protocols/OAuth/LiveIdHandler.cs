@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Web;
-using Microsoft.IdentityModel.Claims;
 using AuthBridge.Model;
 using DotNetOpenAuth.AspNet.Clients;
 using System.Net;
 using System.IO;
+using System.Security.Claims;
 using DotNetOpenAuth.AspNet;
 
 namespace AuthBridge.Protocols.OAuth
@@ -32,7 +32,7 @@ namespace AuthBridge.Protocols.OAuth
             client.RequestAuthentication(httpContext, this.MultiProtocolIssuer.ReplyUrl);
         }
 
-        public override IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
+        public override ClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
         {
             var client = new MicrosoftClient(this.appId, this.secretKey);
             AuthenticationResult result;

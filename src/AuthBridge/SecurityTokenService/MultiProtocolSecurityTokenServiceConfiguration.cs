@@ -1,8 +1,10 @@
-﻿namespace AuthBridge.SecurityTokenService
+﻿using System.IdentityModel.Configuration;
+using System.IdentityModel.Tokens;
+
+namespace AuthBridge.SecurityTokenService
 {
     using System.Web;
-    using Microsoft.IdentityModel.Configuration;
-    using Microsoft.IdentityModel.SecurityTokenService;
+
     using AuthBridge.Configuration;
 
     public class MultiProtocolSecurityTokenServiceConfiguration : SecurityTokenServiceConfiguration

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Security.Claims;
 using System.Web;
 using AuthBridge.Clients.Util;
 using DotNetOpenAuth.OpenId;
 using DotNetOpenAuth.OpenId.Extensions.AttributeExchange;
 using DotNetOpenAuth.OpenId.RelyingParty;
-using Microsoft.IdentityModel.Claims;
 
 namespace AuthBridge.Clients
 {

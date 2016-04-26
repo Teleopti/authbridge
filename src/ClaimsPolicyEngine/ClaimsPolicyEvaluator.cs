@@ -1,10 +1,11 @@
-﻿namespace ClaimsPolicyEngine
+﻿using System.Security.Claims;
+
+namespace ClaimsPolicyEngine
 {
     using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
-    using Microsoft.IdentityModel.Claims;
     using ClaimsPolicyEngine.Exceptions;
     using ClaimsPolicyEngine.Model;
     using ClaimsPolicyEngine.Properties;
@@ -117,14 +118,10 @@
             foreach (InputPolicyClaim inputPolicyClaim in rule.InputClaims)
             {                
                 var claimsMatched = inputClaims.Where(c => (c.Issuer == inputPolicyClaim.Issuer.Uri || c.OriginalIssuer == inputPolicyClaim.Issuer.Uri) 
-                                                        && c.ClaimType.Equals(inputPolicyClaim.ClaimType.FullName, StringComparison.OrdinalIgnoreCase)
+                                                        && c.Type.Equals(inputPolicyClaim.ClaimType.FullName, StringComparison.OrdinalIgnoreCase)
                                                         && ((inputPolicyClaim.Value == Wildcard) || (c.Value.ToUpperInvariant() == inputPolicyClaim.Value.ToUpperInvariant())));
-                if (claimsMatched == null)
-                {
-                    break;
-                }
 
-                matchingClaims.AddRange(claimsMatched);
+	            matchingClaims.AddRange(claimsMatched);
             }
 
             return matchingClaims;

@@ -1,7 +1,7 @@
 using System;
+using System.IdentityModel.Services;
 using System.Web;
 using System.Web.Util;
-using Microsoft.IdentityModel.Protocols.WSFederation;
 
 namespace AuthBridge.Web
 {
@@ -12,12 +12,10 @@ namespace AuthBridge.Web
                                                      string collectionKey, out int validationFailureIndex)
         {
             validationFailureIndex = 0;
-
             if (requestValidationSource == RequestValidationSource.Form &&
                 collectionKey.Equals(WSFederationConstants.Parameters.Result, StringComparison.Ordinal))
             {
-                SignInResponseMessage message =
-                    WSFederationMessage.CreateFromFormPost(context.Request) as SignInResponseMessage;
+                var message = WSFederationMessage.CreateFromFormPost(new HttpRequestWrapper(context.Request)) as SignInResponseMessage;
 
                 if (message != null)
                 {

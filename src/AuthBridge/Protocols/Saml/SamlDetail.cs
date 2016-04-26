@@ -5,7 +5,6 @@ using System.IO.Compression;
 using System.Text;
 using System.Web;
 using System.Xml;
-using Microsoft.IdentityModel.Tokens;
 
 namespace AuthBridge.Protocols.Saml
 {

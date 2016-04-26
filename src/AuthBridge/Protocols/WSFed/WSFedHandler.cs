@@ -2,11 +2,10 @@
 using System.Web;
 using AuthBridge.Model;
 using log4net;
-using Microsoft.IdentityModel.Claims;
-using Microsoft.IdentityModel.Protocols.WSFederation;
-using Microsoft.IdentityModel.Web;
 using System.IdentityModel.Selectors;
+using System.IdentityModel.Services;
 using System.IdentityModel.Tokens;
+using System.Security.Claims;
 
 namespace AuthBridge.Protocols.WSFed
 {
@@ -32,15 +31,16 @@ namespace AuthBridge.Protocols.WSFed
 	        RequestAuthentication(httpContext, identityProviderUrl, MultiProtocolIssuer.Identifier.ToString(), MultiProtocolIssuer.ReplyUrl.ToString());
 		}
 
-        public override IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
+        public override ClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
         {
 			Logger.Info(string.Format("ProcessSignInResponse! realm: {0}, originalUrl: {1}", realm, originalUrl));
 
-            var token = FederatedAuthentication.WSFederationAuthenticationModule.GetSecurityToken(HttpContext.Current.Request);
-            FederatedAuthentication.ServiceConfiguration.AudienceRestriction.AllowedAudienceUris.Add(MultiProtocolIssuer.Identifier);
-			FederatedAuthentication.ServiceConfiguration.SecurityTokenHandlers.Configuration.CertificateValidator = X509CertificateValidator.None;
-			FederatedAuthentication.ServiceConfiguration.SecurityTokenHandlers.Configuration.IssuerNameRegistry = new SimpleIssuerNameRegistry(this._signingKeyThumbprint);
-            ClaimsIdentityCollection identities = FederatedAuthentication.ServiceConfiguration.SecurityTokenHandlers.ValidateToken(token);
+			var token = FederatedAuthentication.WSFederationAuthenticationModule.GetSecurityToken(httpContext.Request);
+
+			FederatedAuthentication.FederationConfiguration.IdentityConfiguration.AudienceRestriction.AllowedAudienceUris.Add(MultiProtocolIssuer.Identifier);
+			FederatedAuthentication.FederationConfiguration.IdentityConfiguration.SecurityTokenHandlers.Configuration.CertificateValidator = X509CertificateValidator.None;
+			FederatedAuthentication.FederationConfiguration.IdentityConfiguration.SecurityTokenHandlers.Configuration.IssuerNameRegistry = new SimpleIssuerNameRegistry(this._signingKeyThumbprint);
+            var identities = FederatedAuthentication.FederationConfiguration.IdentityConfiguration.SecurityTokenHandlers.ValidateToken(token);
 
             return identities[0];            
         }
@@ -60,7 +60,7 @@ namespace AuthBridge.Protocols.WSFed
 			httpContext.ApplicationInstance.CompleteRequest();
         }
 
-		private class SimpleIssuerNameRegistry : Microsoft.IdentityModel.Tokens.IssuerNameRegistry
+		private class SimpleIssuerNameRegistry : IssuerNameRegistry
         {
             private readonly string _trustedThumbprint;
 

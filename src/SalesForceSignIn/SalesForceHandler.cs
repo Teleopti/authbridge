@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Security.Claims;
 using System.Web;
-using AuthBridge.Clients;
 using AuthBridge.Model;
 using AuthBridge.Protocols;
 using DotNetOpenAuth.AspNet;
-using Microsoft.IdentityModel.Claims;
 
 namespace SalesForceSignIn
 {
@@ -33,7 +32,7 @@ namespace SalesForceSignIn
 			client.RequestAuthentication(httpContext, MultiProtocolIssuer.ReplyUrl);
 		}
 
-		public override IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
+		public override ClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
 		{
 			var client = new SalesforceClient(appId, secretKey);
 

@@ -1,9 +1,9 @@
-﻿namespace AuthBridge.Web
+﻿using System.IdentityModel.Services;
+
+namespace AuthBridge.Web
 {
     using System.Web.Mvc;
     using System.Web.Routing;
-    using Microsoft.IdentityModel.Web;
-    using System;
 
     public class MvcApplication : System.Web.HttpApplication
     {
@@ -25,8 +25,8 @@
         protected void Application_Start()
         {
             RegisterRoutes(RouteTable.Routes);
-
-            FederatedAuthentication.ServiceConfigurationCreated += (sender, e) =>
+			
+			FederatedAuthentication.FederationConfigurationCreated += (sender, e) =>
             {
                 FederatedAuthentication.WSFederationAuthenticationModule.SecurityTokenReceived += WSFederationAuthenticationModule_SecurityTokenReceived;
             };

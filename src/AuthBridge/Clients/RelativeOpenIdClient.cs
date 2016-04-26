@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
 using System.Reflection;
+using System.Security.Claims;
 using System.Web;
 using AuthBridge.Clients.Util;
 using DotNetOpenAuth.OpenId;
 using DotNetOpenAuth.OpenId.Extensions.AttributeExchange;
 using DotNetOpenAuth.OpenId.RelyingParty;
 using log4net;
-using Microsoft.IdentityModel.Claims;
 
 namespace AuthBridge.Clients
 {

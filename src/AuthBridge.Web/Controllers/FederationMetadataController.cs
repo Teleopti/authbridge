@@ -1,16 +1,15 @@
-﻿namespace AuthBridge.Web.Controllers
+﻿using System.IdentityModel.Metadata;
+using System.IdentityModel.Protocols.WSTrust;
+using System.IdentityModel.Tokens;
+using System.Security.Claims;
+
+namespace AuthBridge.Web.Controllers
 {
     using System;
     using System.IO;
     using System.Security.Cryptography.X509Certificates;
     using System.ServiceModel;
     using System.Web.Mvc;
-
-    using Microsoft.IdentityModel.Claims;
-    using Microsoft.IdentityModel.Protocols.WSFederation;
-    using Microsoft.IdentityModel.Protocols.WSFederation.Metadata;
-    using Microsoft.IdentityModel.Protocols.WSIdentity;
-    using Microsoft.IdentityModel.SecurityTokenService;
 
     using AuthBridge.Configuration;
 
@@ -46,8 +45,8 @@
             var credentials = new X509SigningCredentials(signingCertificate);
 
             // Figure out the hostname exposed from Azure and what port the service is listening on
-            EndpointAddress realm = new EndpointAddress(identifier);
-            EndpointAddress passiveEndpoint = new EndpointAddress(passiveSignInUrl);
+            var realm = new EndpointAddress(identifier);
+            var passiveEndpoint = new EndpointReference(passiveSignInUrl.AbsoluteUri);
 
             // Create metadata document for relying party
             EntityDescriptor entity = new EntityDescriptor(new EntityId(realm.Uri.AbsoluteUri));

@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Web;
 using AuthBridge.Clients;
-using Microsoft.IdentityModel.Claims;
 using AuthBridge.Model;
 using System.Net;
 using System.IO;
+using System.Security.Claims;
 using DotNetOpenAuth.AspNet;
 
 namespace AuthBridge.Protocols.OAuth
@@ -40,7 +40,7 @@ namespace AuthBridge.Protocols.OAuth
             client.RequestAuthentication(httpContext, MultiProtocolIssuer.ReplyUrl);
         }
 
-        public override IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
+        public override ClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
         {
 			var client = new AzureAdOAuthClient(_appId, _secretKey, _graphApiEndpoint, _tokenEndpoint, _authorizationEndpoint, _graphApiVersion);
             AuthenticationResult result;

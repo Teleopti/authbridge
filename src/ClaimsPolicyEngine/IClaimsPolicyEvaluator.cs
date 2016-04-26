@@ -1,9 +1,10 @@
+using System.Security.Claims;
+
 namespace ClaimsPolicyEngine
 {
     using System;
     using System.Collections.Generic;
 
-    using Microsoft.IdentityModel.Claims;
 
     public interface IClaimsPolicyEvaluator
     {

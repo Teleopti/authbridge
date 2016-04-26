@@ -8,9 +8,6 @@
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<description>ClaimsPolicyEngine</description>
 		<copyright>Teleopti</copyright>
-		<dependencies>
-			<dependency id="Microsoft.IdentityModel" version="6.1.7600.16394" />
-		</dependencies>
 	</metadata>
 	<files>
 		<file src="bin\Release\ClaimsPolicyEngine.dll" target="lib\net451"/>
