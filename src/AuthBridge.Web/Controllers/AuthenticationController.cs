@@ -149,9 +149,12 @@ namespace AuthBridge.Web.Controllers
 			var identity = UpdateIssuer(claimsIdentity, claimsIdentity.AuthenticationType, protocolIdentifier);
 
 			identity.Claims.Add(new Claim(ClaimTypes.AuthenticationMethod, claimsIdentity.AuthenticationType, ClaimValueTypes.String, protocolIdentifier));
-		    identity.Claims.Add(new Claim(ClaimTypes.AuthenticationInstant, DateTime.Now.ToString("o"), ClaimValueTypes.Datetime, protocolIdentifier));
+			Logger.InfoFormat("added claim ClaimTypes.AuthenticationMethod# claimsIdentity.AuthenticationType: {0}, protocolIdentifier: {1}", claimsIdentity.AuthenticationType, protocolIdentifier);
+			var dateTimeNow = DateTime.Now.ToString("o");
+			identity.Claims.Add(new Claim(ClaimTypes.AuthenticationInstant, dateTimeNow, ClaimValueTypes.Datetime, protocolIdentifier));
+			Logger.InfoFormat("added claim ClaimTypes.AuthenticationInstant# claimsIdentity.AuthenticationType: {0}, protocolIdentifier: {1}", dateTimeNow, protocolIdentifier);
 
-		    var sessionToken = new SessionSecurityToken(new ClaimsPrincipal(new[] {identity}));
+			var sessionToken = new SessionSecurityToken(new ClaimsPrincipal(new[] {identity}));
 		    FederatedAuthentication.WSFederationAuthenticationModule.SetPrincipalAndWriteSessionToken(sessionToken, true);
 			
 			Response.Redirect(string.Format("?wa=wsignin1.0&wtrealm={0}&wctx={1}&whr={2}", Uri.EscapeDataString(scope.Identifier), "ru="+ returnUrl, Uri.EscapeDataString(protocolIdentifier)), true);
@@ -161,6 +164,7 @@ namespace AuthBridge.Web.Controllers
 	    public ActionResult ProcessFederationRequest()
         {
 			Logger.Info(string.Format("ProcessFederationRequest"));
+
 			var action = Request.QueryString[WSFederationConstants.Parameters.Action];
 
             try
@@ -174,6 +178,13 @@ namespace AuthBridge.Web.Controllers
                             if (User != null && User.Identity != null && User.Identity.IsAuthenticated)
                             {
                                 var sts = new MultiProtocolSecurityTokenService(MultiProtocolSecurityTokenServiceConfiguration.Current);
+	                            if (((ClaimsIdentity) User.Identity) != null&& ((ClaimsIdentity)User.Identity).Claims != null)
+	                            {
+									foreach (var claim in ((ClaimsIdentity)User.Identity).Claims)
+									{
+										Logger.InfoFormat("claim, Issuer: {0}, OriginalIssuer: {1}, ClaimType:{2}, Subject:{3}, Value: {4}, ValueType: {5}", claim.Issuer, claim.OriginalIssuer, claim.ClaimType, claim.Subject, claim.Value, claim.ValueType);
+									}
+								}
                                 var responseMessage = FederatedPassiveSecurityTokenServiceOperations.ProcessSignInRequest(requestMessage, User, sts);
                                 responseMessage.Write(Response.Output);
                                 Response.Flush();
@@ -234,7 +245,8 @@ namespace AuthBridge.Web.Controllers
             IClaimsIdentity outputIdentity = new ClaimsIdentity();
             foreach (var claim in input.Claims)
             {
-                outputIdentity.Claims.Add(new Claim(claim.ClaimType, claim.Value, claim.ValueType, issuer, originalIssuer));
+	            Logger.InfoFormat("outputIdentity.Claims.Add {0},{1},{2},{3}, {4}", claim.ClaimType, claim.Value, claim.ValueType, issuer, originalIssuer);
+				outputIdentity.Claims.Add(new Claim(claim.ClaimType, claim.Value, claim.ValueType, issuer, originalIssuer));
             }
 
             return outputIdentity;

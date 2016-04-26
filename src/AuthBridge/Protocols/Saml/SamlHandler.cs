@@ -76,6 +76,7 @@ namespace AuthBridge.Protocols.Saml
 			}
 			Logger.Info("Verified allowed date time range successfully");
 
+			Logger.InfoFormat("information.Issuer: {0}, information.SubjectNameId: {1}", information.Issuer, information.SubjectNameId);
 			//You must add a claims policy for the protocol identifier!
 			var issuerIdentifier = information.Issuer;
 			var claims = new List<Claim>
