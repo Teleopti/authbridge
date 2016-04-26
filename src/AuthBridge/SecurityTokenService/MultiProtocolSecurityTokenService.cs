@@ -74,7 +74,6 @@ namespace AuthBridge.SecurityTokenService
             {
                 replyTo = scope.AppliesToAddress;
             }
-            Logger.InfoFormat("ReplyTo: {0}",replyTo);
             scope.ReplyToAddress = replyTo;
 
             return scope;

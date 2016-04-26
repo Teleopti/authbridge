@@ -1,5 +1,6 @@
 ﻿using System.Configuration;
 using System.Linq;
+using System.Web;
 using AuthBridge.Clients.Util;
 using log4net;
 
@@ -90,51 +91,57 @@ namespace AuthBridge.Web.Controllers
             return new EmptyResult();
         }
 
-        [ValidateInput(false)]
-        public void ProcessResponse()
-        {
-			Logger.Info(string.Format("ProcessResponse!"));
-            if (string.IsNullOrEmpty(federationContext.IssuerName))
-            {
-				throw new InvalidOperationException("The context cookie was not found. Try to sign in again.");
-            }
-			Logger.Info(string.Format("ProcessResponse! federationContext.IssuerName: {0}", federationContext.IssuerName));
-            var issuer = configuration.RetrieveIssuer(new Uri(federationContext.IssuerName));
+		private void ProcessResponse(string issuerName, string realm, string originalUrl, HttpContextBase httpContext)
+		{
+			var issuer = configuration.RetrieveIssuer(new Uri(issuerName));
 			Logger.Info(string.Format("ProcessResponse! issuer: {0}", issuer.DisplayName));
 
-            var handler = protocolDiscovery.RetrieveProtocolHandler(issuer);
+			var handler = protocolDiscovery.RetrieveProtocolHandler(issuer);
 			Logger.Info(string.Format("ProcessResponse! handler: {0}", handler));
 
-            if (handler == null)
-                throw new InvalidOperationException();
+			if (handler == null)
+				throw new InvalidOperationException();
 
-            IClaimsIdentity identity = handler.ProcessSignInResponse(
-                                                                federationContext.Realm,
-                                                                federationContext.OriginalUrl,
-                                                                HttpContext);
+			IClaimsIdentity identity = handler.ProcessSignInResponse(realm, originalUrl, httpContext);
 
-	        var protocolIdentifier = multiProtocolServiceProperties.Identifier.ToString();
-	        var issuerIdentifier = issuer.Identifier.ToString();
-	        IClaimsIdentity outputIdentity = UpdateIssuer(identity, protocolIdentifier, issuerIdentifier);
-            outputIdentity.Claims.Add(new Claim(ClaimTypes.AuthenticationMethod, issuerIdentifier, ClaimValueTypes.String, protocolIdentifier));
-            outputIdentity.Claims.Add(new Claim(ClaimTypes.AuthenticationInstant, DateTime.Now.ToString("o"), ClaimValueTypes.Datetime, protocolIdentifier));
+			var protocolIdentifier = multiProtocolServiceProperties.Identifier.ToString();
+			var issuerIdentifier = issuer.Identifier.ToString();
+			IClaimsIdentity outputIdentity = UpdateIssuer(identity, protocolIdentifier, issuerIdentifier);
+			outputIdentity.Claims.Add(new Claim(ClaimTypes.AuthenticationMethod, issuerIdentifier, ClaimValueTypes.String, protocolIdentifier));
+			outputIdentity.Claims.Add(new Claim(ClaimTypes.AuthenticationInstant, DateTime.Now.ToString("o"), ClaimValueTypes.Datetime, protocolIdentifier));
 
+			foreach (var claim in outputIdentity.Claims)
+			{
+				Logger.InfoFormat("added claim, claim.ClaimType: {0}, claim.Value: {1}, claim.ValueType: {2}, claim.Issuer: {3}", claim.ClaimType, claim.Value, claim.ValueType, claim.Issuer);
+			}
+			var sessionToken = new SessionSecurityToken(new ClaimsPrincipal(new[] { outputIdentity }), new TimeSpan(0, 30, 0));
+			FederatedAuthentication.WSFederationAuthenticationModule.SetPrincipalAndWriteSessionToken(sessionToken, true);
 
-	        var sessionToken = new SessionSecurityToken(new ClaimsPrincipal(new[] {outputIdentity}), new TimeSpan(0, 30, 0));
-            FederatedAuthentication.WSFederationAuthenticationModule.SetPrincipalAndWriteSessionToken(sessionToken, true);
-
-            var originalUrl = federationContext.OriginalUrl;
 			Logger.InfoFormat("Original url: {0}", originalUrl);
 			Response.Redirect(originalUrl, false);
-            federationContext.Destroy();
-            HttpContext.ApplicationInstance.CompleteRequest();
-        }
+		}
+
+		[ValidateInput(false)]
+		public void ProcessResponse()
+		{
+			Logger.Info(string.Format("ProcessResponse!"));
+			if (string.IsNullOrEmpty(federationContext.IssuerName))
+			{
+				Logger.ErrorFormat(string.Format("The context cookie was not found. Try to sign in again."));
+				throw new InvalidOperationException("The context cookie was not found. Try to sign in again.");
+			}
+			Logger.Info(string.Format("ProcessResponse! federationContext.IssuerName: {0}", federationContext.IssuerName));
+
+			ProcessResponse(federationContext.IssuerName, federationContext.Realm, federationContext.OriginalUrl, HttpContext);
+
+			federationContext.Destroy();
+			HttpContext.ApplicationInstance.CompleteRequest();
+		}
 
 		public void ProcessIdpInitiatedRequest(string protocol)
 		{
 			var protocolIdentifier = "urn:" + protocol;
-		    var issuer = configuration.RetrieveIssuer(new Uri(protocolIdentifier));
-			var handler = protocolDiscovery.RetrieveProtocolHandler(issuer);
+
 			var scope = configuration.RetrieveDefaultScope();
 			if (scope == null)
 			{
@@ -144,27 +151,16 @@ namespace AuthBridge.Web.Controllers
 			}
 			var relayState = Request.Form["RelayState"];
 			var returnUrl = string.IsNullOrWhiteSpace(relayState) ? "~/Mytime" : relayState;
-			var claimsIdentity = handler.ProcessSignInResponse(scope.Identifier, returnUrl, HttpContext);
 
-			var identity = UpdateIssuer(claimsIdentity, claimsIdentity.AuthenticationType, protocolIdentifier);
+			var originalUrl = string.Format("?wa=wsignin1.0&wtrealm={0}&wctx={1}&whr={2}", Uri.EscapeDataString(scope.Identifier), "ru=" + returnUrl, Uri.EscapeDataString(protocolIdentifier));
+			ProcessResponse(protocolIdentifier, scope.Identifier, originalUrl, HttpContext);
 
-			identity.Claims.Add(new Claim(ClaimTypes.AuthenticationMethod, claimsIdentity.AuthenticationType, ClaimValueTypes.String, protocolIdentifier));
-			Logger.InfoFormat("added claim ClaimTypes.AuthenticationMethod# claimsIdentity.AuthenticationType: {0}, protocolIdentifier: {1}", claimsIdentity.AuthenticationType, protocolIdentifier);
-			var dateTimeNow = DateTime.Now.ToString("o");
-			identity.Claims.Add(new Claim(ClaimTypes.AuthenticationInstant, dateTimeNow, ClaimValueTypes.Datetime, protocolIdentifier));
-			Logger.InfoFormat("added claim ClaimTypes.AuthenticationInstant# claimsIdentity.AuthenticationType: {0}, protocolIdentifier: {1}", dateTimeNow, protocolIdentifier);
-
-			var sessionToken = new SessionSecurityToken(new ClaimsPrincipal(new[] {identity}));
-		    FederatedAuthentication.WSFederationAuthenticationModule.SetPrincipalAndWriteSessionToken(sessionToken, true);
-			
-			Response.Redirect(string.Format("?wa=wsignin1.0&wtrealm={0}&wctx={1}&whr={2}", Uri.EscapeDataString(scope.Identifier), "ru="+ returnUrl, Uri.EscapeDataString(protocolIdentifier)), true);
-		    Response.End();
-	    }
+			HttpContext.ApplicationInstance.CompleteRequest();
+		}
 
 	    public ActionResult ProcessFederationRequest()
         {
 			Logger.Info(string.Format("ProcessFederationRequest"));
-
 			var action = Request.QueryString[WSFederationConstants.Parameters.Action];
 
             try
