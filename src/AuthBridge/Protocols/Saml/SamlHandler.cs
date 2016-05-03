@@ -20,6 +20,8 @@ namespace AuthBridge.Protocols.Saml
 		private readonly string _issuer;
 		private readonly string _identityProviderSSOURL;
 		private readonly string _audienceRestriction;
+		private readonly string _requestedAuthnContextComparisonMethod;
+		private readonly List<string> _authnContextClassRefs;
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(SamlHandler));
 
 
@@ -30,11 +32,16 @@ namespace AuthBridge.Protocols.Saml
 			_issuer = issuer.Parameters["issuer"];
 			_identityProviderSSOURL = issuer.Parameters["identityProviderSSOURL"];
 			_audienceRestriction = issuer.Parameters["audienceRestriction"];
+			_requestedAuthnContextComparisonMethod = issuer.Parameters["requestedAuthnContextComparisonMethod"];
+			var authnContextClassRefs = issuer.Parameters["authnContextClassRefs"];
+			_authnContextClassRefs = !string.IsNullOrWhiteSpace(authnContextClassRefs)
+				? authnContextClassRefs.Split(',').ToList()
+				: new List<string>();
 		}
 
 		public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
 		{
-			var samlRequest = new AuthRequest(MultiProtocolIssuer.ReplyUrl.ToString(), _issuer, _audienceRestriction);
+			var samlRequest = new AuthRequest(MultiProtocolIssuer.ReplyUrl.ToString(), _issuer, _audienceRestriction, _requestedAuthnContextComparisonMethod, _authnContextClassRefs);
 			var preparedRequest = samlRequest.GetRequest(AuthRequest.AuthRequestFormat.Base64 | AuthRequest.AuthRequestFormat.Compressed | AuthRequest.AuthRequestFormat.UrlEncode);
 			var returnUrl = GetReturnUrlQueryParameterFromUrl(httpContext.Request.Url.AbsoluteUri);
 			httpContext.Response.Redirect(string.Format("{0}?SAMLRequest={1}&RelayState={2}", _identityProviderSSOURL, preparedRequest, returnUrl));
