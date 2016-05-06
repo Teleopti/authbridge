@@ -52,9 +52,9 @@ namespace AuthBridge.Protocols.OpenID
 				new Uri(MultiProtocolIssuer.Identifier.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(MultiProtocolIssuer.Identifier));
 
 			var client = new Clients.RelativeOpenIdClient(issuerUrl, identifierUrl);
-			Logger.Debug(string.Format("ProcessSignInResponse"));
-			Logger.Debug(string.Format("Issuer.Url {0}, originalUrl {1}, identifierUrl {2}", issuerUrl, originalUrl,
-				identifierUrl));
+			Logger.Debug("ProcessSignInResponse");
+			Logger.DebugFormat("Issuer.Url {0}, originalUrl {1}, identifierUrl {2}", issuerUrl, originalUrl,
+				identifierUrl);
 
 			AuthenticationResult result;
 			try

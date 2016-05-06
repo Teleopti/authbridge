@@ -49,7 +49,7 @@ namespace AuthBridge.Web.Controllers
 
         public ActionResult HomeRealmDiscovery()
         {
-			Logger.Info(string.Format("HomeRealmDiscovery!"));
+			Logger.Info("HomeRealmDiscovery!");
 			var vms = configuration.RetrieveIssuers().Where(x=>!x.IdpInitiatedOnly).Select(x => new ProviderViewModel
 	        {
 		        Identifier = x.Identifier.ToString(),
@@ -60,7 +60,7 @@ namespace AuthBridge.Web.Controllers
         
         public ActionResult Authenticate()
         {
-			Logger.Info(string.Format("Authenticate!"));
+			Logger.Info("Authenticate!");
             var identifier = new Uri(Request.QueryString[WSFederationConstants.Parameters.HomeRealm]);
 
             ClaimProvider issuer = configuration.RetrieveIssuer(identifier);
@@ -94,10 +94,10 @@ namespace AuthBridge.Web.Controllers
 		private void ProcessResponse(string issuerName, string realm, string originalUrl, HttpContextBase httpContext)
 		{
 			var issuer = configuration.RetrieveIssuer(new Uri(issuerName));
-			Logger.Info(string.Format("ProcessResponse! issuer: {0}", issuer.DisplayName));
+			Logger.InfoFormat("ProcessResponse! issuer: {0}", issuer.DisplayName);
 
 			var handler = protocolDiscovery.RetrieveProtocolHandler(issuer);
-			Logger.Info(string.Format("ProcessResponse! handler: {0}", handler));
+			Logger.InfoFormat("ProcessResponse! handler: {0}", handler);
 
 			if (handler == null)
 				throw new InvalidOperationException();
@@ -110,9 +110,13 @@ namespace AuthBridge.Web.Controllers
 			outputIdentity.Claims.Add(new Claim(ClaimTypes.AuthenticationMethod, issuerIdentifier, ClaimValueTypes.String, protocolIdentifier));
 			outputIdentity.Claims.Add(new Claim(ClaimTypes.AuthenticationInstant, DateTime.Now.ToString("o"), ClaimValueTypes.Datetime, protocolIdentifier));
 
-			foreach (var claim in outputIdentity.Claims)
+			if (Logger.IsInfoEnabled)
 			{
-				Logger.InfoFormat("added claim, claim.ClaimType: {0}, claim.Value: {1}, claim.ValueType: {2}, claim.Issuer: {3}", claim.ClaimType, claim.Value, claim.ValueType, claim.Issuer);
+				foreach (var claim in outputIdentity.Claims)
+				{
+					Logger.InfoFormat("added claim, claim.ClaimType: {0}, claim.Value: {1}, claim.ValueType: {2}, claim.Issuer: {3}",
+						claim.ClaimType, claim.Value, claim.ValueType, claim.Issuer);
+				}
 			}
 			var sessionToken = new SessionSecurityToken(new ClaimsPrincipal(new[] { outputIdentity }), new TimeSpan(0, 30, 0));
 			FederatedAuthentication.WSFederationAuthenticationModule.SetPrincipalAndWriteSessionToken(sessionToken, true);
@@ -124,13 +128,14 @@ namespace AuthBridge.Web.Controllers
 		[ValidateInput(false)]
 		public void ProcessResponse()
 		{
-			Logger.Info(string.Format("ProcessResponse!"));
+			Logger.Info("ProcessResponse!");
 			if (string.IsNullOrEmpty(federationContext.IssuerName))
 			{
-				Logger.ErrorFormat(string.Format("The context cookie was not found. Try to sign in again."));
+				Logger.ErrorFormat("The context cookie was not found. Try to sign in again.");
 				throw new InvalidOperationException("The context cookie was not found. Try to sign in again.");
 			}
-			Logger.Info(string.Format("ProcessResponse! federationContext.IssuerName: {0}", federationContext.IssuerName));
+			Logger.InfoFormat("ProcessResponse! federationContext.IssuerName: {0}", federationContext.IssuerName);
+			Logger.InfoFormat("ProcessResponse! federationContext.OriginalUrl: {0}", federationContext.OriginalUrl);
 
 			ProcessResponse(federationContext.IssuerName, federationContext.Realm, federationContext.OriginalUrl, HttpContext);
 
@@ -160,7 +165,7 @@ namespace AuthBridge.Web.Controllers
 
 	    public ActionResult ProcessFederationRequest()
         {
-			Logger.Info(string.Format("ProcessFederationRequest"));
+			Logger.Info("ProcessFederationRequest");
 			var action = Request.QueryString[WSFederationConstants.Parameters.Action];
 
             try
@@ -174,15 +179,24 @@ namespace AuthBridge.Web.Controllers
                             if (User != null && User.Identity != null && User.Identity.IsAuthenticated)
                             {
                                 var sts = new MultiProtocolSecurityTokenService(MultiProtocolSecurityTokenServiceConfiguration.Current);
-	                            if (((ClaimsIdentity) User.Identity) != null&& ((ClaimsIdentity)User.Identity).Claims != null)
+	                            if (Logger.IsInfoEnabled)
 	                            {
-									foreach (var claim in ((ClaimsIdentity)User.Identity).Claims)
-									{
-										Logger.InfoFormat("claim, Issuer: {0}, OriginalIssuer: {1}, ClaimType:{2}, Subject:{3}, Value: {4}, ValueType: {5}", claim.Issuer, claim.OriginalIssuer, claim.ClaimType, claim.Subject, claim.Value, claim.ValueType);
-									}
-								}
-                                var responseMessage = FederatedPassiveSecurityTokenServiceOperations.ProcessSignInRequest(requestMessage, User, sts);
-                                responseMessage.Write(Response.Output);
+		                            var user = User.Identity as IClaimsIdentity;
+		                            if (user != null && user.Claims != null)
+		                            {
+			                            foreach (var claim in user.Claims)
+			                            {
+				                            Logger.InfoFormat(
+					                            "claim, Issuer: {0}, OriginalIssuer: {1}, ClaimType:{2}, Subject:{3}, Value: {4}, ValueType: {5}",
+					                            claim.Issuer, claim.OriginalIssuer, claim.ClaimType, claim.Subject, claim.Value,
+					                            claim.ValueType);
+			                            }
+		                            }
+									Logger.InfoFormat("Reply: {0}",requestMessage.Reply);
+	                            }
+								Logger.InfoFormat("Before ProcessSignInRequest");
+	                            var responseMessage = FederatedPassiveSecurityTokenServiceOperations.ProcessSignInRequest(requestMessage, User, sts);
+								responseMessage.Write(Response.Output);
                                 Response.Flush();
                                 Response.End();
                                 HttpContext.ApplicationInstance.CompleteRequest();
@@ -190,6 +204,7 @@ namespace AuthBridge.Web.Controllers
                             else
                             {
                                 // user not authenticated yet, look for whr, if not there go to HomeRealmDiscovery page
+								Logger.InfoFormat("User is not authenticated yet, redirecting to given realm.");
                                 CreateFederationContext();
 
                                 if (string.IsNullOrEmpty(Request.QueryString[WSFederationConstants.Parameters.HomeRealm]))
