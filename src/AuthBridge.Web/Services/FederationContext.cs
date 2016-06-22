@@ -39,7 +39,7 @@
 
                 if (cookie == null)
                 {
-                    cookie = new HttpCookie("FederationContext");
+                    cookie = new HttpCookie("FederationContext") {HttpOnly = true};
                     HttpContext.Current.Response.Cookies.Add(cookie);
                 }
 
