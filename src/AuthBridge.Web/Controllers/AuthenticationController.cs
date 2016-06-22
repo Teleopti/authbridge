@@ -196,6 +196,7 @@ namespace AuthBridge.Web.Controllers
 	                            }
 								Logger.InfoFormat("Before ProcessSignInRequest");
 	                            var responseMessage = FederatedPassiveSecurityTokenServiceOperations.ProcessSignInRequest(requestMessage, User, sts);
+								FederatedAuthentication.SessionAuthenticationModule.DeleteSessionTokenCookie();
 								responseMessage.Write(Response.Output);
                                 Response.Flush();
                                 Response.End();
