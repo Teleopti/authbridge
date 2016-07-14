@@ -293,7 +293,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="AuthBridge.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
