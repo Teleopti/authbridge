@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Security.Claims;
 using System.Web;
 using AuthBridge.Configuration;
 using AuthBridge.Model;
-using Microsoft.IdentityModel.Claims;
 
 namespace AuthBridge.Protocols
 {
@@ -32,6 +32,6 @@ namespace AuthBridge.Protocols
 		protected MultiProtocolIssuer MultiProtocolIssuer { get; set; }
 
 		public abstract void ProcessSignInRequest(Scope scope, HttpContextBase httpContext);
-		public abstract IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext);
+		public abstract ClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext);
 	}
 }

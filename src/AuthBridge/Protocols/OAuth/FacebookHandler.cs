@@ -1,4 +1,6 @@
-﻿namespace AuthBridge.Protocols.OAuth
+﻿using System.Security.Claims;
+
+namespace AuthBridge.Protocols.OAuth
 {
     using System;
     using System.Collections.Generic;
@@ -8,7 +10,6 @@
     using AuthBridge.Model;
     using DotNetOpenAuth.AspNet;
     using DotNetOpenAuth.AspNet.Clients;
-    using Microsoft.IdentityModel.Claims;
 
     public class FacebookHandler : ProtocolHandlerBase
     {
@@ -35,7 +36,7 @@
             facebook.RequestAuthentication(httpContext, this.MultiProtocolIssuer.ReplyUrl);
         }
 
-        public override IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
+        public override ClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
         {
             var client = new FacebookClient(this.applicationId, this.secret);
             

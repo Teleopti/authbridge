@@ -1,6 +1,9 @@
 ﻿using System.Configuration;
+using System.IdentityModel.Services;
+using System.IdentityModel.Tokens;
 using System.Linq;
 using System.Web;
+using System.Security.Claims;
 using AuthBridge.Clients.Util;
 using log4net;
 
@@ -10,11 +13,6 @@ namespace AuthBridge.Web.Controllers
     using System.Globalization;
     using System.Security.Principal;
     using System.Web.Mvc;
-
-    using Microsoft.IdentityModel.Claims;
-    using Microsoft.IdentityModel.Protocols.WSFederation;
-    using Microsoft.IdentityModel.Tokens;
-    using Microsoft.IdentityModel.Web;
 
     using Services;
 
@@ -102,20 +100,23 @@ namespace AuthBridge.Web.Controllers
 			if (handler == null)
 				throw new InvalidOperationException();
 
-			IClaimsIdentity identity = handler.ProcessSignInResponse(realm, originalUrl, httpContext);
+            ClaimsIdentity identity = handler.ProcessSignInResponse(
+                                                                federationContext.Realm,
+                                                                federationContext.OriginalUrl,
+                                                                HttpContext);
 
-			var protocolIdentifier = multiProtocolServiceProperties.Identifier.ToString();
-			var issuerIdentifier = issuer.Identifier.ToString();
-			IClaimsIdentity outputIdentity = UpdateIssuer(identity, protocolIdentifier, issuerIdentifier);
-			outputIdentity.Claims.Add(new Claim(ClaimTypes.AuthenticationMethod, issuerIdentifier, ClaimValueTypes.String, protocolIdentifier));
-			outputIdentity.Claims.Add(new Claim(ClaimTypes.AuthenticationInstant, DateTime.Now.ToString("o"), ClaimValueTypes.Datetime, protocolIdentifier));
+	        var protocolIdentifier = multiProtocolServiceProperties.Identifier.ToString();
+	        var issuerIdentifier = issuer.Identifier.ToString();
+	        ClaimsIdentity outputIdentity = UpdateIssuer(identity, protocolIdentifier, issuerIdentifier);
+            outputIdentity.AddClaim(new Claim(ClaimTypes.AuthenticationMethod, issuerIdentifier, ClaimValueTypes.String, protocolIdentifier));
+            outputIdentity.AddClaim(new Claim(ClaimTypes.AuthenticationInstant, DateTime.UtcNow.ToString("o"), ClaimValueTypes.DateTime, protocolIdentifier));
 
 			if (Logger.IsInfoEnabled)
 			{
 				foreach (var claim in outputIdentity.Claims)
 				{
-					Logger.InfoFormat("added claim, claim.ClaimType: {0}, claim.Value: {1}, claim.ValueType: {2}, claim.Issuer: {3}",
-						claim.ClaimType, claim.Value, claim.ValueType, claim.Issuer);
+					Logger.InfoFormat("added claim, claim.Type: {0}, claim.Value: {1}, claim.ValueType: {2}, claim.Issuer: {3}",
+						claim.Type, claim.Value, claim.ValueType, claim.Issuer);
 				}
 			}
 			var sessionToken = new SessionSecurityToken(new ClaimsPrincipal(new[] { outputIdentity }), new TimeSpan(0, 30, 0));
@@ -159,7 +160,6 @@ namespace AuthBridge.Web.Controllers
 
 			var originalUrl = string.Format("?wa=wsignin1.0&wtrealm={0}&wctx={1}&whr={2}", Uri.EscapeDataString(scope.Identifier), "ru=" + returnUrl, Uri.EscapeDataString(protocolIdentifier));
 			ProcessResponse(protocolIdentifier, scope.Identifier, originalUrl, HttpContext);
-
 			HttpContext.ApplicationInstance.CompleteRequest();
 		}
 
@@ -176,26 +176,27 @@ namespace AuthBridge.Web.Controllers
                         {
                             var requestMessage = (SignInRequestMessage)WSFederationMessage.CreateFromUri(Request.Url);
                             
+							
                             if (User != null && User.Identity != null && User.Identity.IsAuthenticated)
                             {
                                 var sts = new MultiProtocolSecurityTokenService(MultiProtocolSecurityTokenServiceConfiguration.Current);
 	                            if (Logger.IsInfoEnabled)
 	                            {
-		                            var user = User.Identity as IClaimsIdentity;
+		                            var user = User.Identity as ClaimsIdentity;
 		                            if (user != null && user.Claims != null)
 		                            {
 			                            foreach (var claim in user.Claims)
 			                            {
 				                            Logger.InfoFormat(
-					                            "claim, Issuer: {0}, OriginalIssuer: {1}, ClaimType:{2}, Subject:{3}, Value: {4}, ValueType: {5}",
-					                            claim.Issuer, claim.OriginalIssuer, claim.ClaimType, claim.Subject, claim.Value,
+												"claim, Issuer: {0}, OriginalIssuer: {1}, Type:{2}, Subject:{3}, Value: {4}, ValueType: {5}",
+					                            claim.Issuer, claim.OriginalIssuer, claim.Type, claim.Subject, claim.Value,
 					                            claim.ValueType);
 			                            }
 		                            }
 									Logger.InfoFormat("Reply: {0}",requestMessage.Reply);
 	                            }
 								Logger.InfoFormat("Before ProcessSignInRequest");
-	                            var responseMessage = FederatedPassiveSecurityTokenServiceOperations.ProcessSignInRequest(requestMessage, User, sts);
+                                var responseMessage = FederatedPassiveSecurityTokenServiceOperations.ProcessSignInRequest(requestMessage, new ClaimsPrincipal(User), sts);
 								FederatedAuthentication.SessionAuthenticationModule.DeleteSessionTokenCookie();
 								responseMessage.Write(Response.Output);
                                 Response.Flush();
@@ -229,7 +230,7 @@ namespace AuthBridge.Web.Controllers
 									replyTo = "/" + new Uri(uri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(uri);
 								}
 							}
-                            FederatedPassiveSecurityTokenServiceOperations.ProcessSignOutRequest(requestMessage, User, replyTo, HttpContext.ApplicationInstance.Response);
+                            FederatedPassiveSecurityTokenServiceOperations.ProcessSignOutRequest(requestMessage, new ClaimsPrincipal(User), replyTo, HttpContext.ApplicationInstance.Response);
                         }
 
                         break;
@@ -252,13 +253,13 @@ namespace AuthBridge.Web.Controllers
                 throw new InvalidOperationException("Windows authentication is not supported.");
         }
 
-        private static IClaimsIdentity UpdateIssuer(IClaimsIdentity input, string issuer, string originalIssuer)
+        private static ClaimsIdentity UpdateIssuer(ClaimsIdentity input, string issuer, string originalIssuer)
         {
-            IClaimsIdentity outputIdentity = new ClaimsIdentity();
+            ClaimsIdentity outputIdentity = new ClaimsIdentity(new Claim[] {}, input.AuthenticationType);
             foreach (var claim in input.Claims)
             {
-	            Logger.InfoFormat("outputIdentity.Claims.Add {0},{1},{2},{3}, {4}", claim.ClaimType, claim.Value, claim.ValueType, issuer, originalIssuer);
-				outputIdentity.Claims.Add(new Claim(claim.ClaimType, claim.Value, claim.ValueType, issuer, originalIssuer));
+	            Logger.InfoFormat("outputIdentity.Claims.Add {0},{1},{2},{3}, {4}", claim.Type, claim.Value, claim.ValueType, issuer, originalIssuer);
+                outputIdentity.AddClaim(new Claim(claim.Type, claim.Value, claim.ValueType, issuer, originalIssuer));
             }
 
             return outputIdentity;

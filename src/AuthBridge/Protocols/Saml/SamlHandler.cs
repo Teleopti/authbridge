@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Text;
@@ -9,7 +10,6 @@ using System.Xml;
 using AuthBridge.Model;
 using AuthBridge.Utilities;
 using log4net;
-using Microsoft.IdentityModel.Claims;
 using ClaimTypes = System.IdentityModel.Claims.ClaimTypes;
 
 namespace AuthBridge.Protocols.Saml
@@ -48,8 +48,8 @@ namespace AuthBridge.Protocols.Saml
 
 			httpContext.Response.End();
 		}
-
-		public override IClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
+		
+		public override ClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
 		{
 			Logger.Info("ProcessSignInResponse");
 			var response = Encoding.UTF8.GetString(Convert.FromBase64String(httpContext.Request.Form["SAMLResponse"]));

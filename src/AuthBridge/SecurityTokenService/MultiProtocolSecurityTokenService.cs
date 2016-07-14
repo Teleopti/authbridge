@@ -1,4 +1,8 @@
 ﻿using System.Configuration;
+using System.IdentityModel;
+using System.IdentityModel.Configuration;
+using System.IdentityModel.Protocols.WSTrust;
+using System.Security.Claims;
 using System.Web;
 using AuthBridge.Clients.Util;
 using log4net;
@@ -9,16 +13,11 @@ namespace AuthBridge.SecurityTokenService
     using System.Collections.Generic;
     using System.ServiceModel;
 
-    using Microsoft.IdentityModel.Claims;
-    using Microsoft.IdentityModel.Configuration;
-    using Microsoft.IdentityModel.Protocols.WSTrust;
-    using Microsoft.IdentityModel.SecurityTokenService;
-
     using ClaimsPolicyEngine;
     using AuthBridge.Configuration;
     using System.Linq;
 
-    public class MultiProtocolSecurityTokenService : SecurityTokenService
+    public class MultiProtocolSecurityTokenService : System.IdentityModel.SecurityTokenService
     {
 	    private static readonly ILog Logger = LogManager.GetLogger(typeof (MultiProtocolSecurityTokenService));
         private readonly IConfigurationRepository multiProtocolConfiguration;
@@ -36,9 +35,10 @@ namespace AuthBridge.SecurityTokenService
             this.multiProtocolConfiguration = multiProtocolConfiguration;            
         }
 
-        protected override Scope GetScope(IClaimsPrincipal principal, RequestSecurityToken request)
+        protected override Scope GetScope(ClaimsPrincipal principal, RequestSecurityToken request)
         {
-            this.scopeModel = this.ValidateAppliesTo(request.AppliesTo);
+			
+            this.scopeModel = this.ValidateAppliesTo(new EndpointAddress(request.AppliesTo.Uri));
 
             var scope = new Scope(request.AppliesTo.Uri.OriginalString, SecurityTokenServiceConfiguration.SigningCredentials);
             scope.TokenEncryptionRequired = false;
@@ -79,7 +79,7 @@ namespace AuthBridge.SecurityTokenService
             return scope;
         }
 
-        protected override IClaimsIdentity GetOutputClaimsIdentity(IClaimsPrincipal principal, RequestSecurityToken request, Scope scope)
+        protected override ClaimsIdentity GetOutputClaimsIdentity(ClaimsPrincipal principal, RequestSecurityToken request, Scope scope)
         {
             if (null == principal)
             {
@@ -92,22 +92,22 @@ namespace AuthBridge.SecurityTokenService
             if (this.scopeModel.UseClaimsPolicyEngine)
             {
                 IClaimsPolicyEvaluator evaluator = new ClaimsPolicyEvaluator(PolicyStoreFactory.Instance);
-                outputClaims = evaluator.Evaluate(new Uri(scope.AppliesToAddress), ((IClaimsIdentity)principal.Identity).Claims);
+                outputClaims = evaluator.Evaluate(new Uri(scope.AppliesToAddress), ((ClaimsIdentity)principal.Identity).Claims);
             }
             else
             {
-                outputClaims = ((IClaimsIdentity)principal.Identity).Claims;
+                outputClaims = ((ClaimsIdentity)principal.Identity).Claims;
             }
 
-            outputIdentity.Claims.AddRange(outputClaims);
-            if (outputIdentity.Name == null && outputIdentity.Claims.SingleOrDefault(c => c.ClaimType == ClaimTypes.NameIdentifier) != null)
-                outputIdentity.Claims.Add(new Claim(ClaimTypes.Name, outputIdentity.Claims.SingleOrDefault(c => c.ClaimType == ClaimTypes.NameIdentifier).Value));
+            outputIdentity.AddClaims(outputClaims);
+            if (outputIdentity.Name == null && outputIdentity.Claims.SingleOrDefault(c => c.Type == ClaimTypes.NameIdentifier) != null)
+                outputIdentity.AddClaim(new Claim(ClaimTypes.Name, outputIdentity.Claims.SingleOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value));
 
 	        var isPersistent =
-				((IClaimsIdentity)principal.Identity).Claims.SingleOrDefault(c => c.ClaimType == ClaimTypes.IsPersistent);
+				((ClaimsIdentity)principal.Identity).Claims.SingleOrDefault(c => c.Type == ClaimTypes.IsPersistent);
 	        if (isPersistent != null)
 	        {
-				outputIdentity.Claims.Add(new Claim(ClaimTypes.IsPersistent, isPersistent.Value));
+				outputIdentity.AddClaim(new Claim(ClaimTypes.IsPersistent, isPersistent.Value));
 	        }
 
             return outputIdentity;
