@@ -156,7 +156,7 @@ namespace AuthBridge.Web.Controllers
 				return;
 			}
 			var relayState = Request.Form["RelayState"];
-			var returnUrl = string.IsNullOrWhiteSpace(relayState) ? "~/Mytime" : relayState;
+			var returnUrl = string.IsNullOrWhiteSpace(relayState) ? "" : relayState;
 
 			var originalUrl = string.Format("?wa=wsignin1.0&wtrealm={0}&wctx={1}&whr={2}", Uri.EscapeDataString(scope.Identifier), "ru=" + returnUrl, Uri.EscapeDataString(protocolIdentifier));
 			ProcessResponse(protocolIdentifier, scope.Identifier, originalUrl, HttpContext);
