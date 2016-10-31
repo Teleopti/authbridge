@@ -26,7 +26,7 @@
     <div>
         <% if (!string.IsNullOrEmpty(Model.ErrorMessage))
             { %>
-        <p><%="Warning: " + Model.ErrorMessage%></p>
+        <p><%="Technical information: " + Model.ErrorMessage%></p>
         <% } %>
     </div>
 </asp:Content>
