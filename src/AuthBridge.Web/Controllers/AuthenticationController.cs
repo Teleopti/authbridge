@@ -211,7 +211,7 @@ namespace AuthBridge.Web.Controllers
 
                                 if (string.IsNullOrEmpty(Request.QueryString[WSFederationConstants.Parameters.HomeRealm]))
                                 {
-									return RedirectToAction("HomeRealmDiscovery", new { errorMessage = HttpUtility.ParseQueryString(requestMessage.Context).Get("em")});
+                                    return HomeRealmDiscovery(HttpUtility.ParseQueryString(requestMessage.Context).Get("em"));
                                 }
 	                            return Authenticate();
                             }

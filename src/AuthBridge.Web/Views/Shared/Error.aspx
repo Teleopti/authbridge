@@ -1,6 +1,5 @@
 ﻿<%@ Page Language="C#" MasterPageFile="~/Views/Shared/Site.Master" Inherits="System.Web.Mvc.ViewPage<System.Web.Mvc.HandleErrorInfo>" %>
 <%@ Import Namespace="System.IdentityModel.Services.Configuration" %>
-<%@ Import Namespace="AuthBridge.Configuration" %>
 
 
 <script runat="server">
@@ -18,7 +17,6 @@
 
     private void returnToScopeApplication(Exception exception)
     {
-        var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
         var identityModelServicesSection = ConfigurationManager.GetSection("system.identityModel.services") as SystemIdentityModelServicesSection ;
         if (identityModelServicesSection != null)
         {
@@ -29,7 +27,7 @@
                 if (wsFederation != null)
                 {
                     clearFederationContext();
-                    Response.Redirect(wsFederation.Issuer + "?wa=wsignin1.0&wtrealm=" + wsFederation.Realm + "&wctx=ru%3d" + wsFederation.SignOutReply +"%26em%3d" + HttpUtility.UrlEncode(exMessage.Text), true);
+                    Response.Redirect(wsFederation.Issuer + "?wa=wsignin1.0&wtrealm=" + wsFederation.Realm + "&wctx=ru%3d" + wsFederation.SignOutReply +"%26em%3d" + HttpUtility.UrlEncode(exception.Message), true);
                 }
             }
         }
