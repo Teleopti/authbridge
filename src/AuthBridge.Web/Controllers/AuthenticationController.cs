@@ -76,8 +76,8 @@ namespace AuthBridge.Web.Controllers
 			federationContext.IssuerName = issuer.Identifier.ToString();
 	        if (string.IsNullOrEmpty(federationContext.Realm))
 	        {
-				throw new InvalidOperationException("The context cookie was not found. Try to sign in again.");
-	        }
+                CreateFederationContextFromConfiguration();
+            }
             var scope = configuration.RetrieveScope(new Uri(federationContext.Realm));
             if (scope == null)
             {
@@ -89,7 +89,7 @@ namespace AuthBridge.Web.Controllers
             return new EmptyResult();
         }
 
-		private void ProcessResponse(string issuerName, string originalUrl)
+	    private void ProcessResponse(string issuerName, string originalUrl)
 		{
 			var issuer = configuration.RetrieveIssuer(new Uri(issuerName));
 			Logger.InfoFormat("ProcessResponse! issuer: {0}", issuer.DisplayName);
@@ -271,6 +271,15 @@ namespace AuthBridge.Web.Controllers
             federationContext.Realm = Request.QueryString[WSFederationConstants.Parameters.Realm];
             federationContext.IssuerName = Request.QueryString[WSFederationConstants.Parameters.HomeRealm];
             federationContext.Context = Request.QueryString[WSFederationConstants.Parameters.Context];
+        }
+
+        private void CreateFederationContextFromConfiguration()
+        {
+            var realm = FederatedAuthentication.FederationConfiguration.WsFederationConfiguration.Realm;
+            var returnUrl = FederatedAuthentication.FederationConfiguration.WsFederationConfiguration.SignOutReply;
+            federationContext.OriginalUrl = "/?wa=wsignin1.0&wtrealm="+HttpUtility.UrlEncode(realm)+ "&wctx=ru%3d" + HttpUtility.UrlEncode(returnUrl);
+            federationContext.Realm = realm;
+            federationContext.Context = "ru%3d" + returnUrl;
         }
     }
 
