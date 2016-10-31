@@ -2,8 +2,8 @@
 using System.IdentityModel.Services;
 using System.IdentityModel.Tokens;
 using System.Linq;
-using System.Web;
 using System.Security.Claims;
+using System.Web;
 using AuthBridge.Clients.Util;
 using log4net;
 
@@ -45,18 +45,18 @@ namespace AuthBridge.Web.Controllers
             multiProtocolServiceProperties = this.configuration.MultiProtocolIssuer;
         }
 
-        public ActionResult HomeRealmDiscovery()
-        {
+		public ActionResult HomeRealmDiscovery(string errorMessage = "")
+		{
 			Logger.Info("HomeRealmDiscovery!");
-			var vms = configuration.RetrieveIssuers().Where(x=>!x.IdpInitiatedOnly).Select(x => new ProviderViewModel
-	        {
-		        Identifier = x.Identifier.ToString(),
-		        DisplayName = x.DisplayName
-	        });
-	        return View("Authenticate", vms.ToArray());
-        }
-        
-        public ActionResult Authenticate()
+			var vms = configuration.RetrieveIssuers().Where(x => !x.IdpInitiatedOnly).Select(x => new ProviderViewModel
+			{
+				Identifier = x.Identifier.ToString(),
+				DisplayName = x.DisplayName
+			});
+			return View("Authenticate", new HrdViewModel {Providers = vms.ToArray(), ErrorMessage = errorMessage });
+		}
+
+		public ActionResult Authenticate()
         {
 			Logger.Info("Authenticate!");
             var identifier = new Uri(Request.QueryString[WSFederationConstants.Parameters.HomeRealm]);
@@ -89,7 +89,7 @@ namespace AuthBridge.Web.Controllers
             return new EmptyResult();
         }
 
-		private void ProcessResponse(string issuerName, string realm, string originalUrl, HttpContextBase httpContext)
+		private void ProcessResponse(string issuerName, string originalUrl)
 		{
 			var issuer = configuration.RetrieveIssuer(new Uri(issuerName));
 			Logger.InfoFormat("ProcessResponse! issuer: {0}", issuer.DisplayName);
@@ -138,7 +138,7 @@ namespace AuthBridge.Web.Controllers
 			Logger.InfoFormat("ProcessResponse! federationContext.IssuerName: {0}", federationContext.IssuerName);
 			Logger.InfoFormat("ProcessResponse! federationContext.OriginalUrl: {0}", federationContext.OriginalUrl);
 
-			ProcessResponse(federationContext.IssuerName, federationContext.Realm, federationContext.OriginalUrl, HttpContext);
+			ProcessResponse(federationContext.IssuerName, federationContext.OriginalUrl);
 
 			federationContext.Destroy();
 			HttpContext.ApplicationInstance.CompleteRequest();
@@ -159,7 +159,7 @@ namespace AuthBridge.Web.Controllers
 			var returnUrl = string.IsNullOrWhiteSpace(relayState) ? "" : relayState;
 
 			var originalUrl = string.Format("?wa=wsignin1.0&wtrealm={0}&wctx={1}&whr={2}", Uri.EscapeDataString(scope.Identifier), "ru=" + returnUrl, Uri.EscapeDataString(protocolIdentifier));
-			ProcessResponse(protocolIdentifier, scope.Identifier, originalUrl, HttpContext);
+			ProcessResponse(protocolIdentifier, originalUrl);
 			HttpContext.ApplicationInstance.CompleteRequest();
 		}
 
@@ -211,7 +211,7 @@ namespace AuthBridge.Web.Controllers
 
                                 if (string.IsNullOrEmpty(Request.QueryString[WSFederationConstants.Parameters.HomeRealm]))
                                 {
-                                    return RedirectToAction("HomeRealmDiscovery");
+									return RedirectToAction("HomeRealmDiscovery", new { errorMessage = HttpUtility.ParseQueryString(requestMessage.Context).Get("em")});
                                 }
 	                            return Authenticate();
                             }
@@ -273,4 +273,10 @@ namespace AuthBridge.Web.Controllers
             federationContext.Context = Request.QueryString[WSFederationConstants.Parameters.Context];
         }
     }
+
+	public class HrdViewModel
+	{
+		public ProviderViewModel[] Providers { get; set; }
+		public string ErrorMessage { get; set; }
+	}
 }

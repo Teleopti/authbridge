@@ -82,9 +82,11 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.IdentityModel">
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="System.IdentityModel.Selectors" />
-    <Reference Include="System.identitymodel.services" />
+    <Reference Include="System.IdentityModel.Services">
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.ServiceModel">
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
     </Reference>
