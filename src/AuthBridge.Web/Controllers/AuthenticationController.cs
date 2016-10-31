@@ -158,7 +158,7 @@ namespace AuthBridge.Web.Controllers
 			var relayState = Request.Form["RelayState"];
 			var returnUrl = string.IsNullOrWhiteSpace(relayState) ? "" : relayState;
 
-			var originalUrl = string.Format("?wa=wsignin1.0&wtrealm={0}&wctx={1}&whr={2}", Uri.EscapeDataString(scope.Identifier), "ru=" + returnUrl, Uri.EscapeDataString(protocolIdentifier));
+			var originalUrl = $"?wa=wsignin1.0&wtrealm={Uri.EscapeDataString(scope.Identifier)}&wctx={"ru=" + returnUrl}&whr={Uri.EscapeDataString(protocolIdentifier)}";
 			ProcessResponse(protocolIdentifier, originalUrl);
 			HttpContext.ApplicationInstance.CompleteRequest();
 		}
@@ -277,7 +277,7 @@ namespace AuthBridge.Web.Controllers
         {
             var realm = FederatedAuthentication.FederationConfiguration.WsFederationConfiguration.Realm;
             var returnUrl = FederatedAuthentication.FederationConfiguration.WsFederationConfiguration.SignOutReply;
-            federationContext.OriginalUrl = "/?wa=wsignin1.0&wtrealm="+HttpUtility.UrlEncode(realm)+ "&wctx=ru%3d" + HttpUtility.UrlEncode(returnUrl);
+            federationContext.OriginalUrl = FederatedAuthentication.FederationConfiguration.WsFederationConfiguration.Issuer + "?wa=wsignin1.0&wtrealm=" + HttpUtility.UrlEncode(realm)+ "&wctx=ru%3d" + HttpUtility.UrlEncode(returnUrl);
             federationContext.Realm = realm;
             federationContext.Context = "ru%3d" + returnUrl;
         }
