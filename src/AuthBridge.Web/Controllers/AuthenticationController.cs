@@ -92,13 +92,15 @@ namespace AuthBridge.Web.Controllers
 	    private void ProcessResponse(string issuerName, string originalUrl)
 		{
 			var issuer = configuration.RetrieveIssuer(new Uri(issuerName));
+		    if (issuer == null)
+				throw new InvalidOperationException("Error: no claim provider configured for " + issuerName);
 			Logger.InfoFormat("ProcessResponse! issuer: {0}", issuer.DisplayName);
 
 			var handler = protocolDiscovery.RetrieveProtocolHandler(issuer);
 			Logger.InfoFormat("ProcessResponse! handler: {0}", handler);
 
 			if (handler == null)
-				throw new InvalidOperationException();
+				throw new InvalidOperationException("Error: no handler for " + issuerName);
 
             ClaimsIdentity identity = handler.ProcessSignInResponse(
                                                                 federationContext.Realm,
