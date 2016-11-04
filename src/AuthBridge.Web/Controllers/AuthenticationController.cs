@@ -179,26 +179,32 @@ namespace AuthBridge.Web.Controllers
 							
                         if (User != null && User.Identity != null && User.Identity.IsAuthenticated)
                         {
-                            var sts = new MultiProtocolSecurityTokenService(MultiProtocolSecurityTokenServiceConfiguration.Current);
-	                        if (Logger.IsInfoEnabled)
+	                        try
 	                        {
-		                        var user = User.Identity as ClaimsIdentity;
-		                        if (user != null && user.Claims != null)
-		                        {
-			                        foreach (var claim in user.Claims)
-			                        {
-				                        Logger.InfoFormat(
-											"claim, Issuer: {0}, OriginalIssuer: {1}, Type:{2}, Subject:{3}, Value: {4}, ValueType: {5}",
-					                        claim.Issuer, claim.OriginalIssuer, claim.Type, claim.Subject, claim.Value,
-					                        claim.ValueType);
-			                        }
-		                        }
-								Logger.InfoFormat("Reply: {0}",requestMessage.Reply);
-	                        }
-							Logger.InfoFormat("Before ProcessSignInRequest");
-                            var responseMessage = FederatedPassiveSecurityTokenServiceOperations.ProcessSignInRequest(requestMessage, new ClaimsPrincipal(User), sts);
-							FederatedAuthentication.SessionAuthenticationModule.DeleteSessionTokenCookie();
-							responseMessage.Write(Response.Output);
+								var sts = new MultiProtocolSecurityTokenService(MultiProtocolSecurityTokenServiceConfiguration.Current);
+								if (Logger.IsInfoEnabled)
+								{
+									var user = User.Identity as ClaimsIdentity;
+									if (user != null && user.Claims != null)
+									{
+										foreach (var claim in user.Claims)
+										{
+											Logger.InfoFormat(
+												"claim, Issuer: {0}, OriginalIssuer: {1}, Type:{2}, Subject:{3}, Value: {4}, ValueType: {5}",
+												claim.Issuer, claim.OriginalIssuer, claim.Type, claim.Subject, claim.Value,
+												claim.ValueType);
+										}
+									}
+									Logger.InfoFormat("Reply: {0}", requestMessage.Reply);
+								}
+								Logger.InfoFormat("Before ProcessSignInRequest");
+								var responseMessage = FederatedPassiveSecurityTokenServiceOperations.ProcessSignInRequest(requestMessage, new ClaimsPrincipal(User), sts);
+								responseMessage.Write(Response.Output);
+							}
+	                        finally
+	                        {
+								FederatedAuthentication.SessionAuthenticationModule.DeleteSessionTokenCookie();
+							}
                             Response.Flush();
                             Response.End();
                             HttpContext.ApplicationInstance.CompleteRequest();
