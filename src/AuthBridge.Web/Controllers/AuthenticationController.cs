@@ -170,80 +170,73 @@ namespace AuthBridge.Web.Controllers
 			Logger.Info("ProcessFederationRequest");
 			var action = Request.QueryString[WSFederationConstants.Parameters.Action];
 
-            try
+            switch (action)
             {
-                switch (action)
-                {
-                    case WSFederationConstants.Actions.SignIn:
-                        {
-                            var requestMessage = (SignInRequestMessage)WSFederationMessage.CreateFromUri(Request.Url);
+                case WSFederationConstants.Actions.SignIn:
+                    {
+                        var requestMessage = (SignInRequestMessage)WSFederationMessage.CreateFromUri(Request.Url);
                             
 							
-                            if (User != null && User.Identity != null && User.Identity.IsAuthenticated)
-                            {
-                                var sts = new MultiProtocolSecurityTokenService(MultiProtocolSecurityTokenServiceConfiguration.Current);
-	                            if (Logger.IsInfoEnabled)
-	                            {
-		                            var user = User.Identity as ClaimsIdentity;
-		                            if (user != null && user.Claims != null)
-		                            {
-			                            foreach (var claim in user.Claims)
-			                            {
-				                            Logger.InfoFormat(
-												"claim, Issuer: {0}, OriginalIssuer: {1}, Type:{2}, Subject:{3}, Value: {4}, ValueType: {5}",
-					                            claim.Issuer, claim.OriginalIssuer, claim.Type, claim.Subject, claim.Value,
-					                            claim.ValueType);
-			                            }
-		                            }
-									Logger.InfoFormat("Reply: {0}",requestMessage.Reply);
-	                            }
-								Logger.InfoFormat("Before ProcessSignInRequest");
-                                var responseMessage = FederatedPassiveSecurityTokenServiceOperations.ProcessSignInRequest(requestMessage, new ClaimsPrincipal(User), sts);
-								FederatedAuthentication.SessionAuthenticationModule.DeleteSessionTokenCookie();
-								responseMessage.Write(Response.Output);
-                                Response.Flush();
-                                Response.End();
-                                HttpContext.ApplicationInstance.CompleteRequest();
-                            }
-                            else
-                            {
-                                // user not authenticated yet, look for whr, if not there go to HomeRealmDiscovery page
-								Logger.InfoFormat("User is not authenticated yet, redirecting to given realm.");
-                                CreateFederationContext();
-
-                                if (string.IsNullOrEmpty(Request.QueryString[WSFederationConstants.Parameters.HomeRealm]))
-                                {
-                                    return HomeRealmDiscovery(HttpUtility.ParseQueryString(requestMessage.Context).Get("em"));
-                                }
-	                            return Authenticate();
-                            }
-                        }
-
-                        break;
-                    case WSFederationConstants.Actions.SignOut:
+                        if (User != null && User.Identity != null && User.Identity.IsAuthenticated)
                         {
-                            var requestMessage = (SignOutRequestMessage)WSFederationMessage.CreateFromUri(Request.Url);
-							var replyTo = requestMessage.Reply;
-							if (!string.IsNullOrEmpty(replyTo) && ConfigurationManager.AppSettings.GetBoolSetting("UseRelativeConfiguration"))
-							{
-								var uri = new Uri(replyTo);
-								if (uri.IsAbsoluteUri)
-								{
-									replyTo = "/" + new Uri(uri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(uri);
-								}
-							}
-                            FederatedPassiveSecurityTokenServiceOperations.ProcessSignOutRequest(requestMessage, new ClaimsPrincipal(User), replyTo, HttpContext.ApplicationInstance.Response);
+                            var sts = new MultiProtocolSecurityTokenService(MultiProtocolSecurityTokenServiceConfiguration.Current);
+	                        if (Logger.IsInfoEnabled)
+	                        {
+		                        var user = User.Identity as ClaimsIdentity;
+		                        if (user != null && user.Claims != null)
+		                        {
+			                        foreach (var claim in user.Claims)
+			                        {
+				                        Logger.InfoFormat(
+											"claim, Issuer: {0}, OriginalIssuer: {1}, Type:{2}, Subject:{3}, Value: {4}, ValueType: {5}",
+					                        claim.Issuer, claim.OriginalIssuer, claim.Type, claim.Subject, claim.Value,
+					                        claim.ValueType);
+			                        }
+		                        }
+								Logger.InfoFormat("Reply: {0}",requestMessage.Reply);
+	                        }
+							Logger.InfoFormat("Before ProcessSignInRequest");
+                            var responseMessage = FederatedPassiveSecurityTokenServiceOperations.ProcessSignInRequest(requestMessage, new ClaimsPrincipal(User), sts);
+							FederatedAuthentication.SessionAuthenticationModule.DeleteSessionTokenCookie();
+							responseMessage.Write(Response.Output);
+                            Response.Flush();
+                            Response.End();
+                            HttpContext.ApplicationInstance.CompleteRequest();
                         }
+                        else
+                        {
+                            // user not authenticated yet, look for whr, if not there go to HomeRealmDiscovery page
+							Logger.InfoFormat("User is not authenticated yet, redirecting to given realm.");
+                            CreateFederationContext();
 
-                        break;
-                    default:
-                        Response.AddHeader("X-XRDS-Location",new Uri(Request.Url,Response.ApplyAppPathModifier("~/xrds.aspx")).AbsoluteUri);
-                        return new EmptyResult();
-                }
-            }
-            catch (Exception exception)
-            {
-                throw new Exception("An unexpected error occurred when processing the request. See inner exception for details.", exception);
+                            if (string.IsNullOrEmpty(Request.QueryString[WSFederationConstants.Parameters.HomeRealm]))
+                            {
+                                return HomeRealmDiscovery(HttpUtility.ParseQueryString(requestMessage.Context).Get("em"));
+                            }
+	                        return Authenticate();
+                        }
+                    }
+
+                    break;
+                case WSFederationConstants.Actions.SignOut:
+                    {
+                        var requestMessage = (SignOutRequestMessage)WSFederationMessage.CreateFromUri(Request.Url);
+						var replyTo = requestMessage.Reply;
+						if (!string.IsNullOrEmpty(replyTo) && ConfigurationManager.AppSettings.GetBoolSetting("UseRelativeConfiguration"))
+						{
+							var uri = new Uri(replyTo);
+							if (uri.IsAbsoluteUri)
+							{
+								replyTo = "/" + new Uri(uri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(uri);
+							}
+						}
+                        FederatedPassiveSecurityTokenServiceOperations.ProcessSignOutRequest(requestMessage, new ClaimsPrincipal(User), replyTo, HttpContext.ApplicationInstance.Response);
+                    }
+
+                    break;
+                default:
+                    Response.AddHeader("X-XRDS-Location",new Uri(Request.Url,Response.ApplyAppPathModifier("~/xrds.aspx")).AbsoluteUri);
+                    return new EmptyResult();
             }
 
             return null;
