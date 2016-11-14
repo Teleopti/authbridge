@@ -230,6 +230,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Clients\GoogleOAuthClient.cs" />
+    <Compile Include="Protocols\OAuth\GoogleHandler.cs" />
     <Compile Include="WSFederationConstants.cs" />
     <Compile Include="Clients\AzureAdOAuthClient.cs" />
     <Compile Include="Clients\OpenIdClient.cs" />
