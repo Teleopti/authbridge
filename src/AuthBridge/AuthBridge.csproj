@@ -267,7 +267,6 @@
     <Compile Include="Protocols\OpenId\OpenIdHandler.cs" />
     <Compile Include="Protocols\OAuth\TwitterHandler.cs" />
     <Compile Include="Protocols\OAuth\FacebookHandler.cs" />
-    <Compile Include="Protocols\OpenId\GoogleHandler.cs" />
     <Compile Include="Protocols\OpenId\RelativeOpenIdHandler.cs" />
     <Compile Include="Protocols\Saml\SamlHandler.cs" />
     <Compile Include="Protocols\ProtocolHandlerBase.cs" />
