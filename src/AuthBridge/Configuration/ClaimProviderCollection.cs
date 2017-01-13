@@ -4,17 +4,11 @@
 
     public class ClaimProviderCollection : ConfigurationElementCollection
     {
-        public ClaimProviderElement this[int index]
-        {
-            get { return (ClaimProviderElement)BaseGet(index); }
-        }
+        public ClaimProviderElement this[int index] => (ClaimProviderElement)BaseGet(index);
 
-        public new ClaimProviderElement this[string key]
-        {
-            get { return (ClaimProviderElement)BaseGet(key); }
-        }
+	    public new ClaimProviderElement this[string key] => (ClaimProviderElement)BaseGet(key);
 
-        protected override ConfigurationElement CreateNewElement()
+	    protected override ConfigurationElement CreateNewElement()
         {
             return new ClaimProviderElement();
         }

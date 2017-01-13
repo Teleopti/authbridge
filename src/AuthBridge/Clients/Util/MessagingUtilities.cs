@@ -7,11 +7,10 @@ namespace AuthBridge.Clients.Util
 {
 	public static class MessagingUtilities
 	{
-		private static readonly string[] UriRfc3986CharsToEscape = new[] { "!", "*", "'", "(", ")" };
+		private static readonly string[] UriRfc3986CharsToEscape = { "!", "*", "'", "(", ")" };
 
 		public static void AppendQueryArgs(this UriBuilder builder, IEnumerable<KeyValuePair<string, string>> args)
 		{
-
 			if (args != null && args.Any())
 			{
 				StringBuilder sb = new StringBuilder(50 + (args.Count() * 10));

@@ -20,7 +20,7 @@ namespace ClaimsPolicyEngine
         {
             if (store == null)
             {
-                throw new ArgumentNullException("store");
+                throw new ArgumentNullException(nameof(store));
             }
 
             this.store = store;
@@ -30,10 +30,10 @@ namespace ClaimsPolicyEngine
         {
             if (scope == null)
             {
-                throw new ArgumentNullException("scope");
+                throw new ArgumentNullException(nameof(scope));
             }
 
-            if (inputClaims.Count() == 0)
+            if (!inputClaims.Any())
             {
                 return Enumerable.Empty<Claim>();
             }
@@ -55,7 +55,7 @@ namespace ClaimsPolicyEngine
             foreach (PolicyRule rule in mappingScope.Rules)
             {
                 IEnumerable<Claim> matchingInputClaims = MatchesRule(rule, inputClaims);
-                if (matchingInputClaims != null && matchingInputClaims.Count() > 0)
+                if (matchingInputClaims != null && matchingInputClaims.Any())
                 {
                     foreach (var matchingInputClaim in matchingInputClaims)
                     {
@@ -81,8 +81,7 @@ namespace ClaimsPolicyEngine
                                 }
                                 else
                                 {
-                                    var issuer = mappingScope.Issuers
-                                        .Where(i => i.Uri == matchingInputClaim.Issuer).FirstOrDefault();
+                                    var issuer = mappingScope.Issuers.FirstOrDefault(i => i.Uri == matchingInputClaim.Issuer);
 
                                     outputValue = issuer != null ? issuer.DisplayName : matchingInputClaim.Issuer;
                                 }
@@ -93,8 +92,7 @@ namespace ClaimsPolicyEngine
                             outputValue = rule.OutputClaim.Value;
                         }
 
-                        var originalIssuer = mappingScope.Issuers
-                                         .Where(i => i.Uri == matchingInputClaim.OriginalIssuer).FirstOrDefault();
+                        var originalIssuer = mappingScope.Issuers.FirstOrDefault(i => i.Uri == matchingInputClaim.OriginalIssuer);
 
                         string originalIssuerDisplayName = originalIssuer != null ? originalIssuer.DisplayName : matchingInputClaim.Issuer;
 

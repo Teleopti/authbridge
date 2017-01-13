@@ -24,7 +24,7 @@ namespace ClaimsPolicyEngine
         {
             if (string.IsNullOrEmpty(storeName))
             {
-                throw new ArgumentException(string.Empty, "storeName");
+                throw new ArgumentException(string.Empty, nameof(storeName));
             }
 
             this.storeName = storeName;
@@ -33,7 +33,7 @@ namespace ClaimsPolicyEngine
 
         public void AddPolicyRule(Uri scopeUri, PolicyRule rule)
         {
-            var scopes = this.RetrieveScopes() as IList<PolicyScope>;
+            var scopes = RetrieveScopes() as IList<PolicyScope>;
             var policyScope = (from s in scopes
                                where s.Uri.ToString() == scopeUri.ToString()
                                select s).FirstOrDefault();
@@ -45,12 +45,12 @@ namespace ClaimsPolicyEngine
 
             policyScope.AddRule(rule);
 
-            this.SaveScopes(scopes);
+            SaveScopes(scopes);
         }
 
         public void RemovePolicyRule(Uri scopeUri, PolicyRule rule)
         {
-            var scopes = this.RetrieveScopes() as IList<PolicyScope>;
+            var scopes = RetrieveScopes() as IList<PolicyScope>;
             var policyScope = (from s in scopes
                                where s.Uri.ToString() == scopeUri.ToString()
                                select s).FirstOrDefault();
@@ -65,7 +65,7 @@ namespace ClaimsPolicyEngine
                 policyScope.RemoveRule(rule);
             }
 
-            this.SaveScopes(scopes);
+            SaveScopes(scopes);
         }
 
         public IEnumerable<PolicyScope> RetrieveScopes()

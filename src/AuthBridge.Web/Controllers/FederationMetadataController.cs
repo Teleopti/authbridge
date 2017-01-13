@@ -30,14 +30,12 @@ namespace AuthBridge.Web.Controllers
         [AcceptVerbs(HttpVerbs.Get)]
         public ActionResult FederationMetadata(string organizationAlias)
         {
-            var appRoot = this.HttpContext.GetRealAppRoot();
+            var appRoot = HttpContext.GetRealAppRoot();
+			var signInUrl = new Uri(appRoot, Url.RouteUrl("Process Request"));
 
-            var federationMetadataUrl = new Uri(appRoot, this.Url.RouteUrl("FederationMetadata"));
-            var signInUrl = new Uri(appRoot, this.Url.RouteUrl("Process Request"));
+            var serviceProperties = configuration.MultiProtocolIssuer;
 
-            var serviceProperties = this.configuration.MultiProtocolIssuer;
-
-            return this.File(this.GetFederationMetadata(signInUrl, serviceProperties.Identifier, serviceProperties.SigningCertificate), "text/xml");
+            return File(GetFederationMetadata(signInUrl, serviceProperties.Identifier, serviceProperties.SigningCertificate), "text/xml");
         }
 
         public byte[] GetFederationMetadata(Uri passiveSignInUrl, Uri identifier, X509Certificate2 signingCertificate)

@@ -40,15 +40,9 @@ namespace ClaimsPolicyEngine.Model
             get; private set; 
         }
 
-        public bool CopyFromInput
-        {
-            get
-            {
-                return !string.IsNullOrEmpty(this.CopyFrom);
-            }
-        }
+        public bool CopyFromInput => !string.IsNullOrEmpty(this.CopyFrom);
 
-        public override bool Equals(object obj)
+	    public override bool Equals(object obj)
         {
             var other = obj as OutputPolicyClaim;
             if (other == null)

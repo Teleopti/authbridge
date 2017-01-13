@@ -5,8 +5,6 @@ namespace AuthBridge.Clients.Util
 {
 	public static class JsonHelper
 	{
-		#region Public Methods and Operators
-
 		/// <summary>
 		/// The deserialize.
 		/// </summary>
@@ -19,12 +17,8 @@ namespace AuthBridge.Clients.Util
 		/// </returns>
 		public static T Deserialize<T>(Stream stream) where T : class
 		{
-
-
 			var serializer = new DataContractJsonSerializer(typeof(T));
 			return (T)serializer.ReadObject(stream);
 		}
-
-		#endregion
 	}
 }

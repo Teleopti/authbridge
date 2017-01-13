@@ -134,11 +134,18 @@ namespace AuthBridge.Web.Controllers
 			Logger.Info("ProcessResponse!");
 			if (string.IsNullOrEmpty(federationContext.IssuerName))
 			{
-				Logger.ErrorFormat("The context cookie was not found. Try to sign in again.");
+				Logger.WarnFormat("The context cookie was not found. Try to sign in again.");
 				throw new InvalidOperationException("The context cookie was not found. Try to sign in again.");
 			}
-			Logger.InfoFormat("ProcessResponse! federationContext.IssuerName: {0}", federationContext.IssuerName);
-			Logger.InfoFormat("ProcessResponse! federationContext.OriginalUrl: {0}", federationContext.OriginalUrl);
+			if (Logger.IsInfoEnabled)
+			{
+				Logger.InfoFormat("ProcessResponse! federationContext.IssuerName: {0}", federationContext.IssuerName);
+				Logger.InfoFormat("ProcessResponse! federationContext.OriginalUrl: {0}", federationContext.OriginalUrl);
+			}
+
+			Response.Cache.SetCacheability(HttpCacheability.NoCache);
+			Response.Cache.SetExpires(DateTime.Today.AddYears(-10));
+			Response.Cache.SetNoStore();
 
 			ProcessResponse(federationContext.IssuerName, federationContext.OriginalUrl);
 

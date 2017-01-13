@@ -156,7 +156,7 @@ namespace ClaimsPolicyEngine.Model
                     var slashIndex = auxFullName.LastIndexOf("/", StringComparison.OrdinalIgnoreCase);
 
                     displayName += auxFullName.Substring(slashIndex + 1);
-                    unique = !this.ClaimTypes.Any(ct => ct.DisplayName == displayName);
+                    unique = this.ClaimTypes.All(ct => ct.DisplayName != displayName);
                     auxFullName = auxFullName.Remove(slashIndex);
                 }
 

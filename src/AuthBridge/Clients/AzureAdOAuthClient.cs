@@ -51,8 +51,8 @@ namespace AuthBridge.Clients
 		protected override IDictionary<string, string> GetUserData(string accessToken)
 		{
 			AzureAdUserData graph;
-			var request = WebRequest.Create(string.Format("{0}/me?api-version={1}", _graphApiEndpoint, _graphApiVersion));
-			request.Headers.Add(HttpRequestHeader.Authorization.ToString(), string.Format("Bearer {0}", accessToken));
+			var request = WebRequest.Create($"{_graphApiEndpoint}/me?api-version={_graphApiVersion}");
+			request.Headers.Add(HttpRequestHeader.Authorization.ToString(), $"Bearer {accessToken}");
 			using (var response = request.GetResponse())
 			{
 				using (var responseStream = response.GetResponseStream())

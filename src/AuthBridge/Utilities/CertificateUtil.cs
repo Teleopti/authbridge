@@ -25,7 +25,8 @@
                     {
                         if (result != null)
                         {
-                            throw new ApplicationException(string.Format("There are multiple certificates for subject Name {0}", subjectName));
+                            throw new ApplicationException(
+	                            $"There are multiple certificates for subject Name {subjectName}");
                         }
 
                         result = new X509Certificate2(cert);
@@ -34,7 +35,7 @@
 
                 if (result == null)
                 {
-                    throw new ApplicationException(string.Format("No certificate was found for subject Name {0}", subjectName));
+                    throw new ApplicationException($"No certificate was found for subject Name {subjectName}");
                 }
 
                 return result;

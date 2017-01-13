@@ -7,7 +7,7 @@
     {
         public XDocument Load(string name)
         {
-            XDocument document = null;
+            XDocument document;
             using (XmlReader xmlReader = XmlReader.Create(name))
             {
                 document = XDocument.Load(xmlReader);

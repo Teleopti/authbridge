@@ -4,12 +4,9 @@
 
     public class AllowedClaimProviderCollection : ConfigurationElementCollection
     {
-        public AllowedClaimProviderElement this[int index]
-        {
-            get { return (AllowedClaimProviderElement)BaseGet(index); }
-        }
+        public AllowedClaimProviderElement this[int index] => (AllowedClaimProviderElement)BaseGet(index);
 
-        protected override ConfigurationElement CreateNewElement()
+	    protected override ConfigurationElement CreateNewElement()
         {
             return new AllowedClaimProviderElement();
         }

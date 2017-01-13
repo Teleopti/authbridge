@@ -22,14 +22,14 @@
                 throw new ArgumentException("unitySection");
             }
 
-            this.container = new UnityContainer();
+            container = new UnityContainer();
             
-            unitySection.Configure(this.container);
+            unitySection.Configure(container);
         }
 
         public IProtocolHandler RetrieveProtocolHandler(ClaimProvider issuer)
         {
-			return this.container.Resolve<IProtocolHandler>(
+			return container.Resolve<IProtocolHandler>(
                               issuer.Protocol,
                               new ParameterOverride("issuer", issuer));
         }
