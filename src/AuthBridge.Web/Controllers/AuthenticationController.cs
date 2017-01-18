@@ -164,7 +164,7 @@ namespace AuthBridge.Web.Controllers
 				Response.End();
 				return;
 			}
-			var relayState = Request.Form["RelayState"];
+			var relayState = Request["RelayState"];
 			var returnUrl = string.IsNullOrWhiteSpace(relayState) ? "" : relayState;
 
 			var originalUrl = $"?wa=wsignin1.0&wtrealm={Uri.EscapeDataString(scope.Identifier)}&wctx={"ru=" + returnUrl}&whr={Uri.EscapeDataString(protocolIdentifier)}";
