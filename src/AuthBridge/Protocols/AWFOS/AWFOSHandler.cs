@@ -16,8 +16,7 @@ namespace AuthBridge.Protocols.AWFOS
 	{
 		private readonly string _identityProviderSSOURL;
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(AWFOSHandler));
-
-
+		
 		public AWFOSHandler(ClaimProvider issuer)
 			: base(issuer)
 		{
@@ -49,16 +48,22 @@ namespace AuthBridge.Protocols.AWFOS
 			}
 
 			var tokenResponse = (HttpWebResponse)tokenRequest.GetResponse();
+			Logger.DebugFormat("tokenResponse.StatusCode {0}", tokenResponse);
 			if (tokenResponse.StatusCode == HttpStatusCode.OK)
 			{
 				using (var responseStream = tokenResponse.GetResponseStream())
 				{
 					var tokenData = JsonHelper.Deserialize<AWFOSAccessTokenData>(responseStream);
-					if (tokenData?.Code == 2000)
+					if (Logger.IsDebugEnabled)
+					{
+						Logger.DebugFormat("tokenData.Code {0}", tokenData.code);
+						Logger.DebugFormat("tokenData.UserEmailId {0}", tokenData.userEmailId);
+					}
+					if (tokenData?.code == 2000)
 					{
 						var claims = new List<Claim>
 						{
-							new Claim(ClaimTypes.NameIdentifier, tokenData.UserEmailId)
+							new Claim(ClaimTypes.NameIdentifier, tokenData.userEmailId)
 						};
 						return new ClaimsIdentity(claims, "AWFOS");
 					}
@@ -71,7 +76,7 @@ namespace AuthBridge.Protocols.AWFOS
 
 	public class AWFOSAccessTokenData
 	{
-		public int Code { get; set; }
-		public string UserEmailId { get; set; }
+		public int code { get; set; }
+		public string userEmailId { get; set; }
 	}
 }
