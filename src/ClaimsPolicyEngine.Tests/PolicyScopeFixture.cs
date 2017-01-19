@@ -1,21 +1,19 @@
-﻿namespace ClaimsPolicyEngine.Tests
+﻿using NUnit.Framework;
+
+namespace ClaimsPolicyEngine.Tests
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using ClaimsPolicyEngine;
-    using ClaimsPolicyEngine.Exceptions;
-    using ClaimsPolicyEngine.Model;
-    using ClaimsPolicyEngine.Tests.Mocks;
+    using Exceptions;
+    using Model;
 
-    [TestClass]
-    public class PolicyScopeFixture
+	public class PolicyScopeFixture
     {
-        private static ClaimType sampleClaimType = new ClaimType("http://tests/sampleclaimtype/", "sampleclaimtype");
-        private static Issuer sampleIssuer = new Issuer("http://sampleissuer", "SampleIssuer");
+        private static readonly ClaimType sampleClaimType = new ClaimType("http://tests/sampleclaimtype/", "sampleclaimtype");
+        private static readonly Issuer sampleIssuer = new Issuer("http://sampleissuer", "SampleIssuer");
 
-        [TestMethod]
+        [Test]
         public void AddRuleShouldAddNewPolicyRuleToTheScope()
         {
             var scope = RetrievePolicyScope();
@@ -29,7 +27,7 @@
             Assert.AreSame(rule, scope.Rules[0]);
         }
 
-        [TestMethod]
+        [Test]
         public void AddRuleShouldAddClaimTypeIfDoesNotExists()
         {
             var scope = RetrievePolicyScope();
@@ -49,7 +47,7 @@
             Assert.AreEqual("newsampleclaimtype", result.DisplayName);
         }
 
-        [TestMethod]
+        [Test]
         public void AddRuleShouldSetTheRightClaimTypeDisplayName()
         {
             var scope = RetrievePolicyScope();
@@ -67,7 +65,7 @@
             Assert.AreEqual(1, scope.ClaimTypes.Count);
         }
 
-        [TestMethod]
+        [Test]
         public void AddRuleShouldAddClaimTypeIfDoesNotExistsWithAnUniqueDisplayName()
         {
             var scope = RetrievePolicyScope();
@@ -89,8 +87,7 @@
             Assert.AreEqual("newsampleclaimtype", result.DisplayName);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(PolicyScopeException), "The issuer 'http://newsampleissuer' was not found on the issuers section of the scope.")]
+        [Test]
         public void AddRuleThrowsIfIssuerOfInputClaimDoesNotExists()
         {
             var scope = RetrievePolicyScope();
@@ -98,21 +95,20 @@
             var inputClaim = new InputPolicyClaim(newIssuer, sampleClaimType, "sample value");
             var rule = new PolicyRule(AssertionsMatch.Any, new List<InputPolicyClaim> { inputClaim }, GetSampleOutputClaim());
 
-            scope.AddRule(rule);
+            Assert.Throws<PolicyScopeException>(()=>scope.AddRule(rule), "The issuer 'http://newsampleissuer' was not found on the issuers section of the scope.");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException), "The Issuer property of the Claim cannot be null.")]
+        [Test]
         public void AddRuleThrowsIfIssuerOfInputClaimIsNull()
-        {
-            var scope = RetrievePolicyScope();
-            var inputClaim = new InputPolicyClaim(null, sampleClaimType, "sample value");
-            var rule = new PolicyRule(AssertionsMatch.Any, new List<InputPolicyClaim> { inputClaim }, GetSampleOutputClaim());
+		{
+			var scope = RetrievePolicyScope();
+			var inputClaim = new InputPolicyClaim(null, sampleClaimType, "sample value");
+			var rule = new PolicyRule(AssertionsMatch.Any, new List<InputPolicyClaim> { inputClaim }, GetSampleOutputClaim());
 
-            scope.AddRule(rule);
+			Assert.Throws<ArgumentException>(() => scope.AddRule(rule), "The Issuer property of the Claim cannot be null.");
         }
 
-        [TestMethod]
+        [Test]
         public void AddRuleDoesNotAddPolicyRuleIfAlreadyExists()
         {
             var scope = RetrievePolicyScope();

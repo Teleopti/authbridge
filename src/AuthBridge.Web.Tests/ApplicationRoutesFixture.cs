@@ -1,16 +1,14 @@
-﻿namespace AuthBridge.Web.Tests
+﻿using NUnit.Framework;
+
+namespace AuthBridge.Web.Tests
 {
     using System.Web;
     using System.Web.Routing;
-
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-
     using Moq;
-
-    [TestClass]
+	
     public class ApplicationRoutesFixture
     {
-        [TestMethod]
+        [Test]
         public void ShouldRouteToTheAuthenticationAction()
         {
             var routes = new RouteCollection();
@@ -26,7 +24,7 @@
             Assert.AreEqual("ProcessFederationRequest", routeData.Values["Action"]);
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldRouteToTheAuthenticateAction()
         {
             var routes = new RouteCollection();
@@ -42,7 +40,7 @@
             Assert.AreEqual("Authenticate", routeData.Values["Action"]);
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldRouteToTheProcessResponseAction()
         {
             var routes = new RouteCollection();

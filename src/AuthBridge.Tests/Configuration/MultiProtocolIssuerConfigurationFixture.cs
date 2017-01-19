@@ -1,13 +1,13 @@
-﻿namespace AuthBridge.Tests.Configuration
+﻿using NUnit.Framework;
+
+namespace AuthBridge.Tests.Configuration
 {
     using System.Configuration;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
     using AuthBridge.Configuration;
-
-    [TestClass]
+	
     public class MultiProtocolIssuerConfigurationFixture
     {
-        [TestMethod]
+        [Test]
         public void ShouldGetMultiProtocolIssuerattributes()
         {
             var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
@@ -16,7 +16,7 @@
             Assert.AreEqual("https://response-endpoint", configuration.ResponseEndpoint);
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldReadClaimProviders()
         {
             var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
@@ -32,7 +32,7 @@
             Assert.AreEqual("protocolHandler1", configuration.ClaimProviders[1].ProtocolHandler);
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldReadScopes()
         {
             var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
@@ -43,21 +43,21 @@
             Assert.AreEqual("https://relyingpartyidentifier/theurl", configuration.Scopes[0].Uri);
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldGetAScopebyItsUri()
         {
             var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
             Assert.IsNotNull(configuration.Scopes["https://relyingpartyidentifier/"]);
         }
         
-        [TestMethod]
+        [Test]
         public void ShouldGetAnIssuerbyItsName()
         {
             var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
             Assert.IsNotNull(configuration.ClaimProviders["provider0"]);
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldReadClaimRequirementsInsideAGivenScope()
         {
             var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
@@ -82,7 +82,7 @@
             Assert.AreEqual("Request", claimRequirements[3].DemandLevel);
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldReadAllowedIssuersInsideAGivenScope()
         {
             var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
@@ -94,7 +94,7 @@
             Assert.AreEqual("name1", issuers[1].Name);
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldReadClaimProviderParameters()
         {
             var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;

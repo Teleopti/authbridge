@@ -1,40 +1,36 @@
 ﻿using System.Security.Claims;
+using NUnit.Framework;
 
 namespace ClaimsPolicyEngine.Tests
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
     using ClaimsPolicyEngine;
     using Exceptions;
     using Model;
-
-    [TestClass]
+	
     public class ClaimsPolicyEvaluatorFixture
     {
         private readonly ClaimType inputClaimType = new ClaimType("http://myInputClaimType");
         private readonly ClaimType outputClaimType = new ClaimType("http://myOutputClaimType");
         private readonly Issuer issuer = new Issuer("http://myInputClaimIssuer", "6f7051ece706096ac5a05ecb1860e2151c11b491");
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
+        [Test]
         public void ShoudThrowIfInvalidStore()
         {
-            new ClaimsPolicyEvaluator(null);
+            Assert.Throws<ArgumentNullException>(() => new ClaimsPolicyEvaluator(null));
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
+        [Test]
         public void ShouldThrowIfInvalidScope()
         {
             ClaimsPolicyEvaluator evaluator = new ClaimsPolicyEvaluator(new MockPolicyStore());
 
-            evaluator.Evaluate(null, new[] { new Claim("http://myInputClaimType", "myInputClaim") });
+            Assert.Throws<ArgumentNullException>(()=> evaluator.Evaluate(null, new[] { new Claim("http://myInputClaimType", "myInputClaim") }));
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ClaimsPolicyEvaluationException))]
+        [Test]
         public void ShouldThrowIfScopeIsNotFoundOnStore()
         {
             var store = new MockPolicyStore();
@@ -49,10 +45,10 @@ namespace ClaimsPolicyEngine.Tests
                 };
             ClaimsPolicyEvaluator evaluator = new ClaimsPolicyEvaluator(store);
 
-            evaluator.Evaluate(new Uri("http://unmappedScope"), new[] { new Claim("http://myInputClaimType", "myInputClaim") });
+            Assert.Throws<ClaimsPolicyEvaluationException>(()=> evaluator.Evaluate(new Uri("http://unmappedScope"), new[] { new Claim("http://myInputClaimType", "myInputClaim") }));
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldReturnEmptyOutputCollectionIfInputCollectionIsEmpty()
         {
             ClaimsPolicyEvaluator evaluator = new ClaimsPolicyEvaluator(new MockPolicyStore());
@@ -63,7 +59,7 @@ namespace ClaimsPolicyEngine.Tests
             Assert.AreEqual(0, outputClaims.Count());
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldMatchInputClaim()
         {
             var store = new MockPolicyStore();
@@ -87,7 +83,7 @@ namespace ClaimsPolicyEngine.Tests
             Assert.AreEqual("OriginalIssuer", evaluatedOutputClaims.ElementAt(0).OriginalIssuer);
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldMatchInputClaimWithWildcardOnValue()
         {
             var store = new MockPolicyStore();
@@ -106,7 +102,7 @@ namespace ClaimsPolicyEngine.Tests
             Assert.AreEqual("myOutputClaimValue", evaluatedOutputClaims.ElementAt(0).Value);
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldMatchInputClaimValueInCaseInsensitiveFashion()
         {
             var store = new MockPolicyStore();
@@ -132,7 +128,7 @@ namespace ClaimsPolicyEngine.Tests
             Assert.AreEqual(outputClaimValue, evaluatedOutputClaims.ElementAt(0).Value);
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldMatchInputClaimAndCopyInputValueToOutputValueWithWildcard()
         {
             var store = new MockPolicyStore();
@@ -155,7 +151,7 @@ namespace ClaimsPolicyEngine.Tests
             Assert.AreEqual("myInputClaimValue", evaluatedOutputClaims.ElementAt(0).Value);
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldMatchInputClaimAndCopyInputValueToOutputValue()
         {
             var store = new MockPolicyStore();
@@ -178,7 +174,7 @@ namespace ClaimsPolicyEngine.Tests
             Assert.AreEqual("myInputClaimValue", evaluatedOutputClaims.ElementAt(0).Value);
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldMatchInputClaimAndCopyInputIssuerToOutputValue()
         {
             var store = new MockPolicyStore();
@@ -201,7 +197,7 @@ namespace ClaimsPolicyEngine.Tests
             Assert.AreEqual("http://myInputClaimIssuer", evaluatedOutputClaims.ElementAt(0).Value);
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldNotMatchInputClaimWithDifferentClaimType()
         {
             var store = new MockPolicyStore();
@@ -218,7 +214,7 @@ namespace ClaimsPolicyEngine.Tests
             Assert.AreEqual(0, evaluatedOutputClaims.Count());
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldNotMatchInputClaimWithDifferentIssuer()
         {
             var store = new MockPolicyStore();
@@ -235,7 +231,7 @@ namespace ClaimsPolicyEngine.Tests
             Assert.AreEqual(0, evaluatedOutputClaims.Count());
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldNotMatchInputClaimWithDifferentValue()
         {
             var store = new MockPolicyStore();
@@ -252,7 +248,7 @@ namespace ClaimsPolicyEngine.Tests
             Assert.AreEqual(0, evaluatedOutputClaims.Count());
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldOutputCorrectInputValue()
         {
             var store = new MockPolicyStore();
@@ -283,7 +279,7 @@ namespace ClaimsPolicyEngine.Tests
             Assert.AreEqual("inputClaimValue", outputClaim2.Value);
         }
 
-        [TestMethod]
+        [Test]
         public void ShoudMatchInputClaimWithAssertionMatchAll()
         {
             var store = new MockPolicyStore();

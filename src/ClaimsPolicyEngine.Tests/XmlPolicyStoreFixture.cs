@@ -1,22 +1,21 @@
-﻿namespace ClaimsPolicyEngine.Tests
+﻿using NUnit.Framework;
+
+namespace ClaimsPolicyEngine.Tests
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
     using ClaimsPolicyEngine;
-    using ClaimsPolicyEngine.Exceptions;
-    using ClaimsPolicyEngine.Model;
-    using ClaimsPolicyEngine.Tests.Mocks;
-
-    [TestClass]
+    using Exceptions;
+    using Model;
+    using Mocks;
+	
     public class XmlPolicyStoreFixture
     {
-        [TestMethod]
-        [DeploymentItem(@"content\claimMappings-PassingTest2.xml", "content")]
+        [Test]
         public void AddPolicyRuleShouldPassIfExistingScope()
         {
-            XmlPolicyStore store = new XmlPolicyStore("My Xml Store Path", new MockXmlRepository(@".\content\claimMappings-PassingTest2.xml"));
+            XmlPolicyStore store = new XmlPolicyStore("My Xml Store Path", new MockXmlRepository(@"..\..\content\claimMappings-PassingTest2.xml"));
 
             int initialScopeCount = store.RetrieveScopes().Count();
 
@@ -30,53 +29,45 @@
 
             int expectedScopeCount = initialScopeCount;
             Assert.AreEqual(expectedScopeCount, store.RetrieveScopes().Count());
-            Assert.AreEqual(2, store.RetrieveScopes().ElementAt(0).Rules.Count());
+            Assert.AreEqual(2, store.RetrieveScopes().ElementAt(0).Rules.Count);
         }
 
-        [TestMethod]
-        [DeploymentItem(@"content\claimMappings-PassingTest4.xml", "content")]
+        [Test]
         public void RemovePolicyRuleShouldPassIfExistingScope()
         {
-            XmlPolicyStore store = new XmlPolicyStore("My Xml Store Path", new MockXmlRepository(@".\content\claimMappings-PassingTest4.xml"));
+            XmlPolicyStore store = new XmlPolicyStore("My Xml Store Path", new MockXmlRepository(@"..\..\content\claimMappings-PassingTest4.xml"));
 
-            Assert.AreEqual(1, store.RetrieveScopes().ElementAt(0).Rules.Count());
+            Assert.AreEqual(1, store.RetrieveScopes().ElementAt(0).Rules.Count);
 
             var rule = store.RetrieveScopes().ElementAt(0).Rules.ElementAt(0);
 
             store.RemovePolicyRule(new Uri("http://localhost/1"), rule);
 
-            Assert.AreEqual(0, store.RetrieveScopes().ElementAt(0).Rules.Count());
+            Assert.AreEqual(0, store.RetrieveScopes().ElementAt(0).Rules.Count);
         }
 
-        [TestMethod]
-        [DeploymentItem(@"content\claimMappings-PassingTest4.xml", "content")]
+        [Test]
         public void RemoveIssuerShouldPass()
         {
-            XmlPolicyStore store = new XmlPolicyStore("My Xml Store Path", new MockXmlRepository(@".\content\claimMappings-PassingTest4.xml"));
+            XmlPolicyStore store = new XmlPolicyStore("My Xml Store Path", new MockXmlRepository(@"..\..\content\claimMappings-PassingTest4.xml"));
 
             store.RemoveIssuer(new Uri("http://localhost/1"), new Issuer("http://myIssuer21"));
 
-            Assert.AreEqual(1, store.RetrieveScopes().ElementAt(0).Issuers.Count());
+            Assert.AreEqual(1, store.RetrieveScopes().ElementAt(0).Issuers.Count);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(PolicyScopeException))]
-        [DeploymentItem(@"content\claimMappings-FailingTest12.xml", "content")]
+        [Test]
         public void RemoveIssuerShouldThrowIsThereAreRulesForIssuer()
         {
-            XmlPolicyStore store = new XmlPolicyStore("My Xml Store Path", new MockXmlRepository(@".\content\claimMappings-FailingTest12.xml"));
+            XmlPolicyStore store = new XmlPolicyStore("My Xml Store Path", new MockXmlRepository(@"..\..\content\claimMappings-FailingTest12.xml"));
 
-            store.RemoveIssuer(new Uri("http://localhost/1"), new Issuer("http://myIssuer1"));
-
-            Assert.AreEqual(1, store.RetrieveScopes().ElementAt(0).Issuers.Count());
+            Assert.Throws<PolicyScopeException>(()=>store.RemoveIssuer(new Uri("http://localhost/1"), new Issuer("http://myIssuer1")));
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(PolicyScopeException))]
-        [DeploymentItem(@"content\claimMappings-PassingTest2.xml", "content")]
+        [Test]
         public void AddPolicyRuleShouldThrowIfNotExistingScope()
         {
-            XmlPolicyStore store = new XmlPolicyStore("My Xml Store Path", new MockXmlRepository(@".\content\claimMappings-PassingTest2.xml"));
+            XmlPolicyStore store = new XmlPolicyStore("My Xml Store Path", new MockXmlRepository(@"..\..\content\claimMappings-PassingTest2.xml"));
             
             IList<InputPolicyClaim> inputClaims = new List<InputPolicyClaim>();
             Issuer issuer = new Issuer("http://myIssuer1");
@@ -84,14 +75,13 @@
             inputClaims.Add(new InputPolicyClaim(issuer, claimType, "nicolas"));
             PolicyRule newRule = new PolicyRule(AssertionsMatch.Any, inputClaims, new OutputPolicyClaim(claimType, string.Empty, CopyFromConstants.InputValue));
 
-            store.AddPolicyRule(new Uri("http://notExistingScope/1"), newRule);
+            Assert.Throws<PolicyScopeException>(()=>store.AddPolicyRule(new Uri("http://notExistingScope/1"), newRule));
         }
 
-        [TestMethod]
-        [DeploymentItem(@"content\claimMappings-PassingTest3.xml", "content")]
+        [Test]
         public void AddPolicyRuleShouldAddNewOutputClaimTypeIfDoesNotExists()
         {
-            XmlPolicyStore store = new XmlPolicyStore("My Xml Store Path", new MockXmlRepository(@".\content\claimMappings-PassingTest3.xml"));
+            XmlPolicyStore store = new XmlPolicyStore("My Xml Store Path", new MockXmlRepository(@"..\..\content\claimMappings-PassingTest3.xml"));
             var scopeUri = new Uri("http://localhost/1");
 
             IList<InputPolicyClaim> inputClaims = new List<InputPolicyClaim>();
@@ -112,11 +102,10 @@
             Assert.AreEqual(newClaimType.DisplayName, scope.ClaimTypes.ElementAt(1).DisplayName);
         }
 
-        [TestMethod]
-        [DeploymentItem(@"content\claimMappings-PassingTest3.xml", "content")]
+        [Test]
         public void AddPolicyRuleShouldAddNewInputClaimTypeIfDoesNotExists()
         {
-            XmlPolicyStore store = new XmlPolicyStore("My Xml Store Path", new MockXmlRepository(@".\content\claimMappings-PassingTest3.xml"));
+            XmlPolicyStore store = new XmlPolicyStore("My Xml Store Path", new MockXmlRepository(@"..\..\content\claimMappings-PassingTest3.xml"));
             var scopeUri = new Uri("http://localhost/1");
 
             IList<InputPolicyClaim> inputClaims = new List<InputPolicyClaim>();
@@ -137,7 +126,7 @@
             Assert.AreEqual(newClaimType.DisplayName, scope.ClaimTypes.ElementAt(1).DisplayName);
         }
 
-        [TestMethod]
+        [Test]
         public void PolicyStoreCtorShouldThrowIfInvalidStoreName()
         {
             bool exceptionThrown = false;
@@ -165,76 +154,62 @@
             Assert.IsTrue(exceptionThrown);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(PolicyClaimException))]
-        [DeploymentItem(@"content\claimMappings-FailingTest1.xml", "content")]
+        [Test]
         public void RetrieveScopesShouldThrowIfInvalidInputClaimType()
         {
-            XmlPolicyStore store = new XmlPolicyStore(@".\content\claimMappings-FailingTest1.xml", new FileXmlRepository());
+            XmlPolicyStore store = new XmlPolicyStore(TestContext.CurrentContext.TestDirectory + @"..\..\..\content\claimMappings-FailingTest1.xml", new FileXmlRepository());
 
-            store.RetrieveScopes();
+            Assert.Throws<PolicyClaimException>(()=>store.RetrieveScopes());
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(PolicyClaimException))]
-        [DeploymentItem(@"content\claimMappings-FailingTest2.xml", "content")]
+        [Test]
         public void RetrieveScopesShouldThrowIfInvalidOutputClaimType()
         {
-            XmlPolicyStore store = new XmlPolicyStore(@".\content\claimMappings-FailingTest2.xml", new FileXmlRepository());
+            XmlPolicyStore store = new XmlPolicyStore(TestContext.CurrentContext.TestDirectory + @"..\..\..\content\claimMappings-FailingTest2.xml", new FileXmlRepository());
 
-            store.RetrieveScopes();
+            Assert.Throws<PolicyClaimException>(()=>store.RetrieveScopes());
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(PolicyClaimException))]
-        [DeploymentItem(@"content\claimMappings-FailingTest3.xml", "content")]
+        [Test]
         public void RetrieveScopesShouldThrowIfInvalidInputIssuer()
         {
-            XmlPolicyStore store = new XmlPolicyStore(@".\content\claimMappings-FailingTest3.xml", new FileXmlRepository());
+            XmlPolicyStore store = new XmlPolicyStore(TestContext.CurrentContext.TestDirectory + @"..\..\..\content\claimMappings-FailingTest3.xml", new FileXmlRepository());
 
-            store.RetrieveScopes();
+            Assert.Throws<PolicyClaimException>(()=>store.RetrieveScopes());
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(PolicyClaimException))]
-        [DeploymentItem(@"content\claimMappings-FailingTest4.xml", "content")]
+        [Test]
         public void RetrieveScopesShouldThrowIfWildcardOnOutputClaim()
         {
-            XmlPolicyStore store = new XmlPolicyStore(@".\content\claimMappings-FailingTest4.xml", new FileXmlRepository());
+            XmlPolicyStore store = new XmlPolicyStore(TestContext.CurrentContext.TestDirectory + @"..\..\..\content\claimMappings-FailingTest4.xml", new FileXmlRepository());
 
-            store.RetrieveScopes();
+            Assert.Throws<PolicyClaimException>(()=>store.RetrieveScopes());
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(PolicyRuleException))]
-        [DeploymentItem(@"content\claimMappings-FailingTest5.xml", "content")]
+        [Test]
         public void RetrieveScopesShouldThrowIfCopyFromInputWithMultipleInputClaims()
         {
-            XmlPolicyStore store = new XmlPolicyStore(@".\content\claimMappings-FailingTest5.xml", new FileXmlRepository());
+            XmlPolicyStore store = new XmlPolicyStore(TestContext.CurrentContext.TestDirectory + @"..\..\..\content\claimMappings-FailingTest5.xml", new FileXmlRepository());
 
-            store.RetrieveScopes();
+            Assert.Throws<PolicyRuleException>(()=>store.RetrieveScopes());
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(PolicyClaimException))]
-        [DeploymentItem(@"content\claimMappings-FailingTest6.xml", "content")]
+        [Test]
         public void RetrieveScopesShouldThrowIfCopyFromInputWithOutputValue()
         {
-            XmlPolicyStore store = new XmlPolicyStore(@".\content\claimMappings-FailingTest6.xml", new FileXmlRepository());
+            XmlPolicyStore store = new XmlPolicyStore(TestContext.CurrentContext.TestDirectory + @"..\..\..\content\claimMappings-FailingTest6.xml", new FileXmlRepository());
 
-            store.RetrieveScopes();
+            Assert.Throws<PolicyClaimException>(()=> store.RetrieveScopes());
         }
 
-        [TestMethod]
-        [DeploymentItem(@"content\claimMappings-FailingTest10.xml", "content")]
-        [DeploymentItem(@"content\claimMappings-FailingTest11.xml", "content")]
+        [Test]
         public void ValueOnOutputClaimShouldBePresentIfCopyFromInputIsFalseOrAbsent()
         {
             bool exceptionThrown = false;
 
             try
             {
-                XmlPolicyStore store = new XmlPolicyStore(@".\content\claimMappings-FailingTest10.xml", new FileXmlRepository());
+                XmlPolicyStore store = new XmlPolicyStore(TestContext.CurrentContext.TestDirectory + @"..\..\..\content\claimMappings-FailingTest10.xml", new FileXmlRepository());
                 store.RetrieveScopes();
             }
             catch (PolicyClaimException)
@@ -247,7 +222,7 @@
             exceptionThrown = false;
             try
             {
-                XmlPolicyStore store = new XmlPolicyStore(@".\content\claimMappings-FailingTest11.xml", new FileXmlRepository());
+                XmlPolicyStore store = new XmlPolicyStore(TestContext.CurrentContext.TestDirectory + @"..\..\..\content\claimMappings-FailingTest11.xml", new FileXmlRepository());
                 store.RetrieveScopes();
             }
             catch (PolicyClaimException)
@@ -258,38 +233,31 @@
             Assert.IsTrue(exceptionThrown);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(PolicyScopeException))]
-        [DeploymentItem(@"content\claimMappings-FailingTest7.xml", "content")]
+        [Test]
         public void RetrieveScopesShouldThrowIfDuplicatedUrisScope()
         {
-            XmlPolicyStore store = new XmlPolicyStore(@".\content\claimMappings-FailingTest7.xml", new FileXmlRepository());
-            store.RetrieveScopes();
+            XmlPolicyStore store = new XmlPolicyStore(TestContext.CurrentContext.TestDirectory + @"..\..\..\content\claimMappings-FailingTest7.xml", new FileXmlRepository());
+            Assert.Throws<PolicyScopeException>(()=> store.RetrieveScopes());
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(PolicyClaimException))]
-        [DeploymentItem(@"content\claimMappings-FailingTest8.xml", "content")]
+        [Test]
         public void RetrieveScopesShouldThrowIfClaimTypeDeclaredOnDifferentScope()
         {
-            XmlPolicyStore store = new XmlPolicyStore(@".\content\claimMappings-FailingTest8.xml", new FileXmlRepository());
-            store.RetrieveScopes();
+            XmlPolicyStore store = new XmlPolicyStore(TestContext.CurrentContext.TestDirectory + @"..\..\..\content\claimMappings-FailingTest8.xml", new FileXmlRepository());
+            Assert.Throws<PolicyClaimException>(()=> store.RetrieveScopes());
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(PolicyClaimException))]
-        [DeploymentItem(@"content\claimMappings-FailingTest9.xml", "content")]
+        [Test]
         public void RetrieveScopesShouldThrowIfIssuerDeclaredOnDifferentScope()
         {
-            XmlPolicyStore store = new XmlPolicyStore(@".\content\claimMappings-FailingTest9.xml", new FileXmlRepository());
-            store.RetrieveScopes();
+            XmlPolicyStore store = new XmlPolicyStore(TestContext.CurrentContext.TestDirectory + @"..\..\..\content\claimMappings-FailingTest9.xml", new FileXmlRepository());
+            Assert.Throws<PolicyClaimException>(()=> store.RetrieveScopes());
         }
 
-        [TestMethod]
-        [DeploymentItem(@"content\claimMappings-PassingTest1.xml", "content")]
+        [Test]
         public void ShouldRetrieveClaimsPolicies()
         {
-            XmlPolicyStore store = new XmlPolicyStore(@".\content\claimMappings-PassingTest1.xml", new FileXmlRepository());
+            XmlPolicyStore store = new XmlPolicyStore(TestContext.CurrentContext.TestDirectory + @"..\..\..\content\claimMappings-PassingTest1.xml", new FileXmlRepository());
             
             IEnumerable<PolicyScope> policyScopes = store.RetrieveScopes();
 
@@ -331,10 +299,10 @@
             Assert.IsFalse(policyScopes.ElementAt(1).Rules.ElementAt(0).OutputClaim.CopyFromInput);
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldRetrieveExistingIssuerByDisplayName()
         {
-            XmlPolicyStore store = new XmlPolicyStore(@".\content\claimMappings-PassingTest1.xml", new FileXmlRepository());
+            XmlPolicyStore store = new XmlPolicyStore(TestContext.CurrentContext.TestDirectory + @"..\..\..\content\claimMappings-PassingTest1.xml", new FileXmlRepository());
 
             var issuer = store.RetrieveIssuer(new Uri("http://localhost/1"), "myIssuer1");
 
@@ -342,20 +310,20 @@
             Assert.AreEqual("myIssuer1", issuer.DisplayName);
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldRetrieveNullIfIssuerDoesNotExists()
         {
-            XmlPolicyStore store = new XmlPolicyStore(@".\content\claimMappings-PassingTest1.xml", new FileXmlRepository());
+            XmlPolicyStore store = new XmlPolicyStore(TestContext.CurrentContext.TestDirectory + @"..\..\..\content\claimMappings-PassingTest1.xml", new FileXmlRepository());
 
             var issuer = store.RetrieveIssuer(new Uri("http://localhost/1"), "Inexisting Issuer");
 
             Assert.IsNull(issuer);
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldSearchForIssuerUsingCaseInsensitiveName()
         {
-            XmlPolicyStore store = new XmlPolicyStore(@".\content\claimMappings-PassingTest1.xml", new FileXmlRepository());
+            XmlPolicyStore store = new XmlPolicyStore(TestContext.CurrentContext.TestDirectory + @"..\..\..\content\claimMappings-PassingTest1.xml", new FileXmlRepository());
 
             var issuer = store.RetrieveIssuer(new Uri("http://localhost/1"), "myissuer1");
             Assert.IsNotNull(issuer);
@@ -366,23 +334,22 @@
             Assert.AreEqual("myIssuer1", issuer.DisplayName);
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldNotRetrieveIssuersFromOtherScopes()
         {
-            XmlPolicyStore store = new XmlPolicyStore(@".\content\claimMappings-PassingTest1.xml", new FileXmlRepository());
+            XmlPolicyStore store = new XmlPolicyStore(TestContext.CurrentContext.TestDirectory + @"..\..\..\content\claimMappings-PassingTest1.xml", new FileXmlRepository());
 
             var issuer = store.RetrieveIssuer(new Uri("http://localhost/1"), "myIssuer3");
 
             Assert.IsNull(issuer);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(PolicyScopeException))]
+        [Test]
         public void ShouldThrowIfScopeNotFoundOnIssuerRetrieval()
         {
-            XmlPolicyStore store = new XmlPolicyStore(@".\content\claimMappings-PassingTest1.xml", new FileXmlRepository());
+            XmlPolicyStore store = new XmlPolicyStore(TestContext.CurrentContext.TestDirectory + @"..\..\..\content\claimMappings-PassingTest1.xml", new FileXmlRepository());
 
-            store.RetrieveIssuer(new Uri("http://inexistentScope/"), "myIssuer1");
+            Assert.Throws<PolicyScopeException>(()=> store.RetrieveIssuer(new Uri("http://inexistentScope/"), "myIssuer1"));
         }
     }
 }

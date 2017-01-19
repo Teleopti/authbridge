@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using NUnit.Framework;
 
 namespace ClaimsPolicyEngine.Tests
 {
@@ -6,37 +7,34 @@ namespace ClaimsPolicyEngine.Tests
     using System.Collections.Generic;
     using System.Linq;
     using System.ServiceModel;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
     using ClaimsPolicyEngine;
     using Model;
     using Mocks;
-
-    [TestClass]
+	
     public class IntegrationFixture
     {
         private static ServiceHost host;
 
-        [TestInitialize]
+        [SetUp]
         public void InitializaFixture()
         {
-            var store = new XmlPolicyStore("My Xml Store Path", new MockXmlRepository(@"content\integrationTest3.xml"));
+            var store = new XmlPolicyStore("My Xml Store Path", new MockXmlRepository(@"..\..\content\integrationTest3.xml"));
             host = new ServiceHost(store, new[] { new Uri("http://localhost:3333") });
             host.AddServiceEndpoint(typeof(IPolicyStore), new BasicHttpBinding(), "policystore");
             host.Open();
         }
 
-        [TestCleanup]
+        [TearDown]
         public void Cleanup()
         {
             if (host != null && host.State.Equals(CommunicationState.Opened))
                 host.Close();
         }
 
-        [TestMethod]
-        [DeploymentItem(@"content\integrationTest1.xml", "content")]
+        [Test]
         public void ShouldPassEvaluateRuleIfFixedOutputValue()
         {
-            var store = new XmlPolicyStore("My Xml Store Path", new MockXmlRepository(@"content\integrationTest1.xml"));
+            var store = new XmlPolicyStore("My Xml Store Path", new MockXmlRepository(@"..\..\content\integrationTest1.xml"));
             ClaimsPolicyEvaluator evaluator = new ClaimsPolicyEvaluator(store);
             Claim inputClaim = new Claim("http://myInputClaimType1", "myInputClaim", string.Empty, "http://myIssuer1");
             IEnumerable<Claim> evaluatedOutputClaims = evaluator.Evaluate(new Uri("http://localhost/1"), new[] { inputClaim });
@@ -47,11 +45,10 @@ namespace ClaimsPolicyEngine.Tests
             Assert.AreEqual("myOutputClaimValue", evaluatedOutputClaims.ElementAt(0).Value);
         }
 
-        [TestMethod]
-        [DeploymentItem(@"content\integrationTest2.xml", "content")]
+        [Test]
         public void ShouldPassEvaluateRuleIfCopyOutputValueFromInputValue()
         {
-            var store = new XmlPolicyStore("My Xml Store Path", new MockXmlRepository(@"content\integrationTest2.xml"));
+            var store = new XmlPolicyStore("My Xml Store Path", new MockXmlRepository(@"..\..\content\integrationTest2.xml"));
 
             PolicyScope scope = store.RetrieveScope(new Uri("http://localhost/1"));
             var issuer = scope.Issuers.ElementAt(0);
@@ -73,11 +70,10 @@ namespace ClaimsPolicyEngine.Tests
             Assert.AreEqual(claimValue, evaluatedOutputClaims.ElementAt(0).Value);
         }
 
-        [TestMethod]
-        [DeploymentItem(@"content\integrationTest2.xml", "content")]
+        [Test]
         public void ShouldPassEvaluateRuleIfCopyOutputValueFromInputIssuer()
         {
-            var store = new XmlPolicyStore("My Xml Store Path", new MockXmlRepository(@"content\integrationTest2.xml"));
+            var store = new XmlPolicyStore("My Xml Store Path", new MockXmlRepository(@"..\..\content\integrationTest2.xml"));
 
             PolicyScope scope = store.RetrieveScope(new Uri("http://localhost/1"));
             var issuer = scope.Issuers.ElementAt(0);
@@ -97,8 +93,7 @@ namespace ClaimsPolicyEngine.Tests
             Assert.AreEqual("http://myClaimType", evaluatedOutputClaims.ElementAt(0).Type);
         }
 
-        [TestMethod]
-        [DeploymentItem(@"content\integrationTest3.xml", "content")]
+        [Test]
         public void ShouldRetriveScopeViaWCF()
         {
             ChannelFactory<IPolicyStore> factory = new ChannelFactory<IPolicyStore>(new BasicHttpBinding(), new EndpointAddress("http://localhost:3333/policystore"));
@@ -108,8 +103,7 @@ namespace ClaimsPolicyEngine.Tests
             Assert.AreEqual(2, scopes.ElementAt(0).Rules.Count);
         }
 
-        [TestMethod]
-        [DeploymentItem(@"content\integrationTest3.xml", "content")]
+        [Test]
         public void ShouldAddRuleViaWCF()
         {
             ChannelFactory<IPolicyStore> factory = new ChannelFactory<IPolicyStore>(new BasicHttpBinding(), new EndpointAddress("http://localhost:3333/policystore"));

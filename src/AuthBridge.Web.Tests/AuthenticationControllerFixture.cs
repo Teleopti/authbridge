@@ -1,26 +1,22 @@
-﻿namespace AuthBridge.Web.Tests
+﻿using NUnit.Framework;
+
+namespace AuthBridge.Web.Tests
 {
     using System;
-    using System.Collections.Specialized;
     using System.Web;
     using System.Web.Mvc;
-    using System.Web.Routing;
-
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-
     using Moq;
 
-    using AuthBridge.Web.Controllers;
-    using AuthBridge.Web.Services;
+    using Controllers;
+    using Services;
 
-    using AuthBridge.Configuration;
-    using AuthBridge.Model;
-    using AuthBridge.Protocols;
-
-    [TestClass]
+    using Configuration;
+    using Model;
+    using Protocols;
+	
     public class AuthenticationControllerFixture
     {
-        [TestMethod]
+        [Test]
         public void ShouldRenderTheIdentityProviderSelectorViewWhenNoIdentityProviderIdentifierProvided()
         {
             var protocolHandler = new Mock<IProtocolHandler>();
@@ -42,10 +38,10 @@
             protocolHandler.Verify(p => p.ProcessSignInRequest(It.IsAny<Scope>(), It.IsAny<HttpContextBase>()), Times.Never());
             Assert.IsNotNull(result);
             Assert.AreEqual("Authenticate", ((ViewResult)result).ViewName);
-            Assert.IsInstanceOfType(((ViewResult)result).Model, typeof(HrdViewModel));
+            Assert.IsInstanceOf<HrdViewModel>(((ViewResult)result).Model);
         }
 
-        [TestMethod]
+        [Test]
         public void ShouldProcessSignInRequestWhenIdentityProviderIsProvided()
         {
             var protocolHandler = new Mock<IProtocolHandler>();

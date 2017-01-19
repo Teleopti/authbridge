@@ -1,4 +1,6 @@
-﻿namespace ClaimsPolicyEngine.Tests.Mocks
+﻿using NUnit.Framework;
+
+namespace ClaimsPolicyEngine.Tests.Mocks
 {
     using System.Xml;
     using System.Xml.Linq;
@@ -9,7 +11,7 @@
 
         public MockXmlRepository(string xmlDocumentPath)
         {
-            using (XmlReader xmlReader = XmlReader.Create(xmlDocumentPath))
+            using (XmlReader xmlReader = XmlReader.Create(TestContext.CurrentContext.TestDirectory + "..\\" + xmlDocumentPath))
             {
                 this.returnedXDocument = XDocument.Load(xmlReader);
             }
