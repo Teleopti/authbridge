@@ -1,14 +1,15 @@
-﻿namespace ClaimsPolicyEngine.Tests
+﻿using System.Security.Claims;
+
+namespace ClaimsPolicyEngine.Tests
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.ServiceModel;
-    using Microsoft.IdentityModel.Claims;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using ClaimsPolicyEngine;
-    using ClaimsPolicyEngine.Model;
-    using ClaimsPolicyEngine.Tests.Mocks;
+    using Model;
+    using Mocks;
 
     [TestClass]
     public class IntegrationFixture
@@ -42,7 +43,7 @@
 
             Assert.IsNotNull(evaluatedOutputClaims);
             Assert.AreEqual(1, evaluatedOutputClaims.Count());
-            Assert.AreEqual("http://myOutputClaimType1", evaluatedOutputClaims.ElementAt(0).ClaimType);
+            Assert.AreEqual("http://myOutputClaimType1", evaluatedOutputClaims.ElementAt(0).Type);
             Assert.AreEqual("myOutputClaimValue", evaluatedOutputClaims.ElementAt(0).Value);
         }
 
@@ -68,7 +69,7 @@
 
             Assert.IsNotNull(evaluatedOutputClaims);
             Assert.AreEqual(1, evaluatedOutputClaims.Count());
-            Assert.AreEqual("http://myClaimType", evaluatedOutputClaims.ElementAt(0).ClaimType);
+            Assert.AreEqual("http://myClaimType", evaluatedOutputClaims.ElementAt(0).Type);
             Assert.AreEqual(claimValue, evaluatedOutputClaims.ElementAt(0).Value);
         }
 
@@ -93,7 +94,7 @@
             IEnumerable<Claim> evaluatedOutputClaims = evaluator.Evaluate(new Uri("http://localhost/1"), new[] { inputClaim });
 
             Assert.IsNotNull(evaluatedOutputClaims);
-            Assert.AreEqual("http://myClaimType", evaluatedOutputClaims.ElementAt(0).ClaimType);
+            Assert.AreEqual("http://myClaimType", evaluatedOutputClaims.ElementAt(0).Type);
         }
 
         [TestMethod]
@@ -104,7 +105,7 @@
             IPolicyStore store = factory.CreateChannel();
             var scopes = store.RetrieveScopes();
             Assert.AreEqual(1, scopes.Count());
-            Assert.AreEqual(2, scopes.ElementAt(0).Rules.Count());
+            Assert.AreEqual(2, scopes.ElementAt(0).Rules.Count);
         }
 
         [TestMethod]
@@ -124,7 +125,7 @@
             
             var updatedScope = store.RetrieveScopes().ElementAt(0);
 
-            Assert.AreEqual(3, updatedScope.Rules.Count());
+            Assert.AreEqual(3, updatedScope.Rules.Count);
         }
     }
 }

@@ -1,12 +1,9 @@
-﻿namespace SampleRP.Library
+﻿using System.IdentityModel.Services;
+
+namespace SampleRP.Library
 {
     using System;
-    using System.Globalization;
-    using System.Text;
     using System.Web.Mvc;
-    using System.Web.Routing;
-    using Microsoft.IdentityModel.Protocols.WSFederation;
-    using Microsoft.IdentityModel.Web;
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     public sealed class AuthenticateAndAuthorizeAttribute : FilterAttribute, IAuthorizationFilter

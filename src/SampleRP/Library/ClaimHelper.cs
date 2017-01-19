@@ -1,10 +1,11 @@
-﻿namespace SampleRP.Library
+﻿using System.Security.Claims;
+
+namespace SampleRP.Library
 {
     using System;
     using System.Linq;
     using System.Security.Principal;
     using System.Threading;
-    using Microsoft.IdentityModel.Claims;
 
     public static class ClaimHelper
     {
@@ -17,34 +18,34 @@
         {
             if (principal == null)
             {
-                throw new ArgumentNullException("principal");
+                throw new ArgumentNullException(nameof(principal));
             }
 
-            IClaimsPrincipal claimsPrincipal = principal as IClaimsPrincipal;
+            ClaimsPrincipal claimsPrincipal = principal as ClaimsPrincipal;
 
             if (claimsPrincipal == null)
             {
-                throw new ArgumentException("Cannot convert principal to IClaimsPrincipal.", "principal");
+                throw new ArgumentException("Cannot convert principal to IClaimsPrincipal.", nameof(principal));
             }
 
-            return GetClaimFromIdentity(claimsPrincipal.Identities[0], claimType);
+            return GetClaimFromIdentity(claimsPrincipal.Identities.First(), claimType);
         }
 
         public static Claim GetClaimFromIdentity(IIdentity identity, string claimType)
         {
             if (identity == null)
             {
-                throw new ArgumentNullException("identity");
+                throw new ArgumentNullException(nameof(identity));
             }
 
-            IClaimsIdentity claimsIdentity = identity as IClaimsIdentity;
+            ClaimsIdentity claimsIdentity = identity as ClaimsIdentity;
 
             if (claimsIdentity == null)
             {
-                throw new ArgumentException("Cannot convert identity to IClaimsIdentity", "identity");
+                throw new ArgumentException("Cannot convert identity to IClaimsIdentity", nameof(identity));
             }
 
-            return claimsIdentity.Claims.SingleOrDefault(c => c.ClaimType == claimType);
+            return claimsIdentity.Claims.SingleOrDefault(c => c.Type == claimType);
         }
     }
 }

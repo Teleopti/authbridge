@@ -23,8 +23,7 @@ namespace AuthBridge.Protocols.Saml
 		private readonly string _requestedAuthnContextComparisonMethod;
 		private readonly List<string> _authnContextClassRefs;
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(SamlHandler));
-
-
+		
 		public SamlHandler(ClaimProvider issuer)
 			: base(issuer)
 		{
@@ -44,7 +43,7 @@ namespace AuthBridge.Protocols.Saml
 			var samlRequest = new AuthRequest(MultiProtocolIssuer.ReplyUrl.ToString(), _issuer, _audienceRestriction, _requestedAuthnContextComparisonMethod, _authnContextClassRefs);
 			var preparedRequest = samlRequest.GetRequest(AuthRequest.AuthRequestFormat.Base64 | AuthRequest.AuthRequestFormat.Compressed | AuthRequest.AuthRequestFormat.UrlEncode);
 			var returnUrl = GetReturnUrlQueryParameterFromUrl(httpContext.Request.Url.AbsoluteUri);
-			httpContext.Response.Redirect(string.Format("{0}?SAMLRequest={1}&RelayState={2}", _identityProviderSSOURL, preparedRequest, returnUrl));
+			httpContext.Response.Redirect($"{_identityProviderSSOURL}?SAMLRequest={preparedRequest}&RelayState={returnUrl}");
 
 			httpContext.Response.End();
 		}
@@ -79,7 +78,7 @@ namespace AuthBridge.Protocols.Saml
 
 			if (!VerifyAllowedDateTimeRange(information))
 			{
-				ThrowAndLog("This SAML response is not valid any longer.");
+				ThrowAndLogWarn("This SAML response is not valid any longer.");
 			}
 			Logger.Info("Verified allowed date time range successfully");
 
@@ -91,6 +90,12 @@ namespace AuthBridge.Protocols.Saml
 				new Claim(ClaimTypes.NameIdentifier, information.SubjectNameId)
 			};
 			return new ClaimsIdentity(claims, issuerIdentifier);
+		}
+
+		private static void ThrowAndLogWarn(string message)
+		{
+			Logger.Warn(message);
+			throw new InvalidOperationException(message);
 		}
 
 		private static void ThrowAndLog(string message)
@@ -119,7 +124,7 @@ namespace AuthBridge.Protocols.Saml
 			var notBefore = detail.NotBefore.TruncateTo(DateTimeUtils.DateTruncate.Second);
 			var notOnOrAfter = detail.NotOnOrAfter.TruncateTo(DateTimeUtils.DateTruncate.Second);
 			var notBeforeSubtract5Second = notBefore.Subtract(TimeSpan.FromSeconds(5));
-			Logger.InfoFormat("utcnow: {0}, notBefore: {1}, notOnOrAfter: {2}, notBeforeSubtract5Second <= utcnow: {3}, utcnow < notOnOrAfter: {4}", utcnow, notBefore, notOnOrAfter, notBeforeSubtract5Second <= utcnow, utcnow < notOnOrAfter);
+			Logger.InfoFormat($"utcnow: {utcnow}, notBefore: {notBefore}, notOnOrAfter: {notOnOrAfter}, notBeforeSubtract5Second <= utcnow: {notBeforeSubtract5Second <= utcnow}, utcnow < notOnOrAfter: {utcnow < notOnOrAfter}");
 			return notBeforeSubtract5Second <= utcnow && utcnow < notOnOrAfter;
 		}
 

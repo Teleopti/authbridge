@@ -34,15 +34,15 @@
             var controller = new AuthenticationController(defaultProtocolDiscovery.Object, federationContext.Object, configuration.Object);
 
             controller.SetFakeControllerContext();
-            controller.Request.SetupRequestUrl("https://somedomain.com/?wa=wsignin1.0&wtrealm=blah");
+            controller.Request.SetupRequestUrl("https://somedomain.com/?wa=wsignin1.0&wtrealm=blah&wctx=em");
             controller.HttpContext.SetAnonymousUser();
 
             var result = controller.ProcessFederationRequest();
 
             protocolHandler.Verify(p => p.ProcessSignInRequest(It.IsAny<Scope>(), It.IsAny<HttpContextBase>()), Times.Never());
             Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result, typeof(RedirectToRouteResult));
-            Assert.AreEqual("HomeRealmDiscovery", (((RedirectToRouteResult)result)).RouteValues["action"]);
+            Assert.AreEqual("Authenticate", ((ViewResult)result).ViewName);
+            Assert.IsInstanceOfType(((ViewResult)result).Model, typeof(HrdViewModel));
         }
 
         [TestMethod]

@@ -1,8 +1,9 @@
-﻿namespace SampleRP.Controllers
+﻿using System.IdentityModel.Services;
+using System.Security.Claims;
+
+namespace SampleRP.Controllers
 {
     using System.Web.Mvc;
-    using Microsoft.IdentityModel.Claims;
-    using Microsoft.IdentityModel.Web;
 
     using SampleRP.Library;
 
@@ -14,10 +15,10 @@
             return View();
         }
 
-        [AuthenticateAndAuthorize()]
+        [AuthenticateAndAuthorize]
         public ActionResult MyClaims()
         {
-            ViewData["Claims"] = ((IClaimsIdentity)User.Identity).Claims;
+            ViewData["Claims"] = ((ClaimsIdentity)User.Identity).Claims;
 
             return View("Secure");
         }

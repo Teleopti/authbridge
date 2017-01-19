@@ -1,13 +1,12 @@
-﻿namespace SampleRP
+﻿using System.IdentityModel.Services;
+
+namespace SampleRP
 {
     using System.Web.Mvc;
     using System.Web.Routing;
-    using Microsoft.IdentityModel.Web;
-    using Microsoft.IdentityModel.Protocols.WSFederation;
     using System.Web;
-    using System;
 
-    public class MvcApplication : System.Web.HttpApplication
+	public class MvcApplication : HttpApplication
     {
         public static void RegisterRoutes(RouteCollection routes)
         {
@@ -25,12 +24,12 @@
         {
             RegisterRoutes(RouteTable.Routes);
 
-            FederatedAuthentication.WSFederationAuthenticationModule.SignedIn += new System.EventHandler(WSFederationAuthenticationModule_SignedIn);
+            FederatedAuthentication.WSFederationAuthenticationModule.SignedIn += WSFederationAuthenticationModule_SignedIn;
         }
 
         void WSFederationAuthenticationModule_SignedIn(object sender, System.EventArgs e)
         {
-            WSFederationMessage wsFederationMessage = WSFederationMessage.CreateFromFormPost(HttpContext.Current.Request);
+            WSFederationMessage wsFederationMessage = WSFederationMessage.CreateFromFormPost(new HttpRequestWrapper(HttpContext.Current.Request));
             if (wsFederationMessage.Context != null)
             {
                 var wctx = HttpUtility.ParseQueryString(wsFederationMessage.Context);

@@ -1,13 +1,14 @@
-﻿namespace ClaimsPolicyEngine.Tests
+﻿using System.Security.Claims;
+
+namespace ClaimsPolicyEngine.Tests
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Microsoft.IdentityModel.Claims;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using ClaimsPolicyEngine;
-    using ClaimsPolicyEngine.Exceptions;
-    using ClaimsPolicyEngine.Model;
+    using Exceptions;
+    using Model;
 
     [TestClass]
     public class ClaimsPolicyEvaluatorFixture
@@ -80,7 +81,7 @@
 
             Assert.IsNotNull(evaluatedOutputClaims);
             Assert.AreEqual(1, evaluatedOutputClaims.Count());
-            Assert.AreEqual("http://myOutputClaimType", evaluatedOutputClaims.ElementAt(0).ClaimType);
+            Assert.AreEqual("http://myOutputClaimType", evaluatedOutputClaims.ElementAt(0).Type);
             Assert.AreEqual("myOutputClaimValue", evaluatedOutputClaims.ElementAt(0).Value);
             Assert.AreEqual("http://myInputClaimIssuer", evaluatedOutputClaims.ElementAt(0).Issuer);
             Assert.AreEqual("OriginalIssuer", evaluatedOutputClaims.ElementAt(0).OriginalIssuer);
@@ -101,7 +102,7 @@
 
             Assert.IsNotNull(evaluatedOutputClaims);
             Assert.AreEqual(1, evaluatedOutputClaims.Count());
-            Assert.AreEqual("http://myOutputClaimType", evaluatedOutputClaims.ElementAt(0).ClaimType);
+            Assert.AreEqual("http://myOutputClaimType", evaluatedOutputClaims.ElementAt(0).Type);
             Assert.AreEqual("myOutputClaimValue", evaluatedOutputClaims.ElementAt(0).Value);
         }
 
@@ -150,7 +151,7 @@
 
             Assert.IsNotNull(evaluatedOutputClaims);
             Assert.AreEqual(1, evaluatedOutputClaims.Count());
-            Assert.AreEqual("http://myOutputClaimType", evaluatedOutputClaims.ElementAt(0).ClaimType);
+            Assert.AreEqual("http://myOutputClaimType", evaluatedOutputClaims.ElementAt(0).Type);
             Assert.AreEqual("myInputClaimValue", evaluatedOutputClaims.ElementAt(0).Value);
         }
 
@@ -173,7 +174,7 @@
 
             Assert.IsNotNull(evaluatedOutputClaims);
             Assert.AreEqual(1, evaluatedOutputClaims.Count());
-            Assert.AreEqual("http://myOutputClaimType", evaluatedOutputClaims.ElementAt(0).ClaimType);
+            Assert.AreEqual("http://myOutputClaimType", evaluatedOutputClaims.ElementAt(0).Type);
             Assert.AreEqual("myInputClaimValue", evaluatedOutputClaims.ElementAt(0).Value);
         }
 
@@ -196,7 +197,7 @@
 
             Assert.IsNotNull(evaluatedOutputClaims);
             Assert.AreEqual(1, evaluatedOutputClaims.Count());
-            Assert.AreEqual("http://myOutputClaimType", evaluatedOutputClaims.ElementAt(0).ClaimType);
+            Assert.AreEqual("http://myOutputClaimType", evaluatedOutputClaims.ElementAt(0).Type);
             Assert.AreEqual("http://myInputClaimIssuer", evaluatedOutputClaims.ElementAt(0).Value);
         }
 
@@ -274,10 +275,10 @@
 
             Assert.IsNotNull(evaluatedOutputClaims);
             Assert.AreEqual(2, evaluatedOutputClaims.Count());
-            var outputClaim1 = evaluatedOutputClaims.FirstOrDefault(c => c.ClaimType == "http://myOutputClaimType1");
+            var outputClaim1 = evaluatedOutputClaims.FirstOrDefault(c => c.Type == "http://myOutputClaimType1");
             Assert.IsNotNull(outputClaim1);
             Assert.AreEqual("myOutputClaimValue", outputClaim1.Value);
-            var outputClaim2 = evaluatedOutputClaims.FirstOrDefault(c => c.ClaimType == "http://myOutputClaimType2");
+            var outputClaim2 = evaluatedOutputClaims.FirstOrDefault(c => c.Type == "http://myOutputClaimType2");
             Assert.IsNotNull(outputClaim2);
             Assert.AreEqual("inputClaimValue", outputClaim2.Value);
         }
@@ -297,7 +298,7 @@
 
             Assert.IsNotNull(evaluatedOutputClaims);
             Assert.AreEqual(1, evaluatedOutputClaims.Count());
-            Assert.AreEqual("http://myOutputClaimType", evaluatedOutputClaims.ElementAt(0).ClaimType);
+            Assert.AreEqual("http://myOutputClaimType", evaluatedOutputClaims.ElementAt(0).Type);
             Assert.AreEqual("myOutputClaimValue", evaluatedOutputClaims.ElementAt(0).Value);
         }
 
