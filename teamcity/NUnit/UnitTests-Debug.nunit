@@ -1,0 +1,8 @@
+<NUnitProject>
+<Settings activeconfig="active" appbase="..\..\"/>
+	<Config name="active">
+		<assembly path=".\AuthBridge.Tests\bin\Debug\AuthBridge.Tests.dll"/>
+		<assembly path=".\AuthBridge.Web.Tests\bin\Debug\AuthBridge.Web.Tests.dll"/>
+		<assembly path=".\ClaimsPolicyEngine.Tests\bin\Debug\ClaimsPolicyEngine.Tests.dll"/>
+	</Config>
+</NUnitProject>
