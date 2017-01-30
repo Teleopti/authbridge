@@ -1,8 +1,8 @@
 <NUnitProject>
 <Settings activeconfig="active" appbase="..\..\"/>
 	<Config name="active">
-		<assembly path=".\AuthBridge.Tests\bin\Release\AuthBridge.Tests.dll"/>
-		<assembly path=".\AuthBridge.Web.Tests\bin\Release\AuthBridge.Web.Tests.dll"/>
-		<assembly path=".\ClaimsPolicyEngine.Tests\bin\Release\ClaimsPolicyEngine.Tests.dll"/>
+		<assembly path=".\src\AuthBridge.Tests\bin\Release\AuthBridge.Tests.dll"/>
+		<assembly path=".\src\AuthBridge.Web.Tests\bin\Release\AuthBridge.Web.Tests.dll"/>
+		<assembly path=".\src\ClaimsPolicyEngine.Tests\bin\Release\ClaimsPolicyEngine.Tests.dll"/>
 	</Config>
 </NUnitProject>
