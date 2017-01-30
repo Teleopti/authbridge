@@ -1,5 +1,5 @@
 ﻿<%@ Page Language="C#" MasterPageFile="~/Views/Shared/Site.Master" Inherits="System.Web.Mvc.ViewPage<System.Web.Mvc.HandleErrorInfo>" %>
-<%@ Import Namespace="System.IdentityModel.Services.Configuration" %>
+<%@ Import Namespace="AuthBridge.Web.Controllers" %>
 
 
 <script runat="server">
@@ -12,33 +12,24 @@
         exMessage.Text = ex.Message;
         exTrace.Text = ex.StackTrace;
 
-        returnToScopeApplication(ex);
+        ReturnToScopeApplication(ex);
     }
 
-    private void returnToScopeApplication(Exception exception)
+    private void ReturnToScopeApplication(Exception exception)
     {
-        var identityModelServicesSection = ConfigurationManager.GetSection("system.identityModel.services") as SystemIdentityModelServicesSection ;
-        if (identityModelServicesSection != null)
+        var defaultRedirectUrl = DefaultRedirectUrlProvider.Get();
+        if (defaultRedirectUrl != null)
         {
-            var service = identityModelServicesSection.FederationConfigurationElements.OfType<FederationConfigurationElement>().FirstOrDefault();
-            if (service != null)
-            {
-                var wsFederation = service.WsFederation;
-                if (wsFederation != null)
-                {
-                    clearFederationContext();
-                    Response.Redirect(wsFederation.Issuer + "?wa=wsignin1.0&wtrealm=" + wsFederation.Realm + "&wctx=ru%3d" + wsFederation.SignOutReply +"%26em%3d" + HttpUtility.UrlEncode(exception.Message), true);
-                }
-            }
+            ClearFederationContext();
+            Response.Redirect(defaultRedirectUrl + (string.IsNullOrEmpty(exception.Message) ? "" : "%26em%3d" + HttpUtility.UrlEncode(exception.Message)), true);
         }
     }
 
-    private void clearFederationContext()
+    private void ClearFederationContext()
     {
         if (Request.Cookies["FederationContext"] != null)
         {
-            HttpCookie myCookie = new HttpCookie("FederationContext");
-            myCookie.Expires = DateTime.Now.AddDays(-1d);
+            var myCookie = new HttpCookie("FederationContext") {Expires = DateTime.Now.AddDays(-1d)};
             Response.Cookies.Add(myCookie);
         }
     }

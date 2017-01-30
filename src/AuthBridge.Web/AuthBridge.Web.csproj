@@ -119,6 +119,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controllers\AuthenticationController.cs" />
+    <Compile Include="Controllers\DefaultRedirectUrlProvider.cs" />
     <Compile Include="Controllers\FederationMetadataController.cs" />
     <Compile Include="Controllers\ProviderViewModel.cs" />
     <Compile Include="Controllers\RequestUtilities.cs" />
