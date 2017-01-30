@@ -135,7 +135,7 @@ namespace AuthBridge.Web.Controllers
 			if (string.IsNullOrEmpty(federationContext.IssuerName))
 			{
 				Logger.WarnFormat("The context cookie was not found. Try to sign in again.");
-				throw new InvalidOperationException();
+				throw new InvalidOperationException("");
 			}
 			if (Logger.IsInfoEnabled)
 			{
