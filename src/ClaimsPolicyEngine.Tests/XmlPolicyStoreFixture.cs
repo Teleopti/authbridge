@@ -9,8 +9,9 @@ namespace ClaimsPolicyEngine.Tests
     using Exceptions;
     using Model;
     using Mocks;
-	
-    public class XmlPolicyStoreFixture
+
+	[TestFixture]
+	public class XmlPolicyStoreFixture
     {
         [Test]
         public void AddPolicyRuleShouldPassIfExistingScope()

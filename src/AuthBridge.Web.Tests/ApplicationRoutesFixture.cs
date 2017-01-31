@@ -5,8 +5,9 @@ namespace AuthBridge.Web.Tests
     using System.Web;
     using System.Web.Routing;
     using Moq;
-	
-    public class ApplicationRoutesFixture
+
+	[TestFixture]
+	public class ApplicationRoutesFixture
     {
         [Test]
         public void ShouldRouteToTheAuthenticationAction()

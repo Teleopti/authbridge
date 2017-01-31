@@ -11,6 +11,7 @@ namespace ClaimsPolicyEngine.Tests
     using Model;
     using Mocks;
 	
+	[TestFixture]
     public class IntegrationFixture
     {
         private static ServiceHost host;

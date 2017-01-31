@@ -8,6 +8,7 @@ namespace ClaimsPolicyEngine.Tests
     using Exceptions;
     using Model;
 
+	[TestFixture]
 	public class PolicyScopeFixture
     {
         private static readonly ClaimType sampleClaimType = new ClaimType("http://tests/sampleclaimtype/", "sampleclaimtype");

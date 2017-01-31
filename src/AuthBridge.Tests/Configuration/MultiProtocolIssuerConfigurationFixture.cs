@@ -4,8 +4,9 @@ namespace AuthBridge.Tests.Configuration
 {
     using System.Configuration;
     using AuthBridge.Configuration;
-	
-    public class MultiProtocolIssuerConfigurationFixture
+
+	[TestFixture]
+	public class MultiProtocolIssuerConfigurationFixture
     {
         [Test]
         public void ShouldGetMultiProtocolIssuerattributes()

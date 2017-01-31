@@ -9,8 +9,9 @@ namespace ClaimsPolicyEngine.Tests
     using ClaimsPolicyEngine;
     using Exceptions;
     using Model;
-	
-    public class ClaimsPolicyEvaluatorFixture
+
+	[TestFixture]
+	public class ClaimsPolicyEvaluatorFixture
     {
         private readonly ClaimType inputClaimType = new ClaimType("http://myInputClaimType");
         private readonly ClaimType outputClaimType = new ClaimType("http://myOutputClaimType");

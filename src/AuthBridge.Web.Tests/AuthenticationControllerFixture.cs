@@ -13,8 +13,9 @@ namespace AuthBridge.Web.Tests
     using Configuration;
     using Model;
     using Protocols;
-	
-    public class AuthenticationControllerFixture
+
+	[TestFixture]
+	public class AuthenticationControllerFixture
     {
         [Test]
         public void ShouldRenderTheIdentityProviderSelectorViewWhenNoIdentityProviderIdentifierProvided()
