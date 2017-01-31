@@ -1,7 +1,7 @@
 <%@ Page Title="" Language="C#" MasterPageFile="~/Views/Shared/Site.Master" Inherits="System.Web.Mvc.ViewPage" %>
 <%@ Import Namespace="SampleRP.Library" %>
 <%@ Import Namespace="System.IdentityModel" %>
-<%@ Import Namespace="Microsoft.IdentityModel.Claims" %>
+<%@ Import Namespace="System.IdentityModel.Claims" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="TitleContent" runat="server">
 </asp:Content>

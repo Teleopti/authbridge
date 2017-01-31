@@ -24,7 +24,11 @@ namespace SampleRP
         {
             RegisterRoutes(RouteTable.Routes);
 
-            FederatedAuthentication.WSFederationAuthenticationModule.SignedIn += WSFederationAuthenticationModule_SignedIn;
+			FederatedAuthentication.FederationConfigurationCreated += (sender, e) =>
+			{
+				FederatedAuthentication.WSFederationAuthenticationModule.SignedIn += WSFederationAuthenticationModule_SignedIn;
+			};
+			
         }
 
         void WSFederationAuthenticationModule_SignedIn(object sender, System.EventArgs e)
