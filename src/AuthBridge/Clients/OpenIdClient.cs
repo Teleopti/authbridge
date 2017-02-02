@@ -40,7 +40,7 @@ namespace AuthBridge.Clients
 			{
 				var extraData = new Dictionary<string, string>();
 				extraData.AddItemIfNotEmpty(ClaimTypes.IsPersistent, fetchResponse.GetAttributeValue(ClaimTypes.IsPersistent));
-
+				extraData.AddItemIfNotEmpty(ClaimTypes.AuthenticationMethod, fetchResponse.GetAttributeValue(ClaimTypes.AuthenticationMethod));
 				return extraData;
 			}
 			return null;

@@ -83,13 +83,13 @@ namespace AuthBridge.SecurityTokenService
         {
             if (null == principal)
             {
-                throw new ArgumentNullException("principal");
+                throw new ArgumentNullException(nameof(principal));
             }
 
             var outputIdentity = new ClaimsIdentity();
             IEnumerable<Claim> outputClaims;
 
-            if (this.scopeModel.UseClaimsPolicyEngine)
+            if (scopeModel.UseClaimsPolicyEngine)
             {
                 IClaimsPolicyEvaluator evaluator = new ClaimsPolicyEvaluator(PolicyStoreFactory.Instance);
                 outputClaims = evaluator.Evaluate(new Uri(scope.AppliesToAddress), ((ClaimsIdentity)principal.Identity).Claims);
@@ -100,30 +100,38 @@ namespace AuthBridge.SecurityTokenService
             }
 
             outputIdentity.AddClaims(outputClaims);
-            if (outputIdentity.Name == null && outputIdentity.Claims.SingleOrDefault(c => c.Type == ClaimTypes.NameIdentifier) != null)
-                outputIdentity.AddClaim(new Claim(ClaimTypes.Name, outputIdentity.Claims.SingleOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value));
-
-	        var isPersistent =
-				((ClaimsIdentity)principal.Identity).Claims.SingleOrDefault(c => c.Type == ClaimTypes.IsPersistent);
-	        if (isPersistent != null)
+	        var nameIdentifierClaim = outputIdentity.Claims.SingleOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+	        if (outputIdentity.Name == null && nameIdentifierClaim != null)
 	        {
-				outputIdentity.AddClaim(new Claim(ClaimTypes.IsPersistent, isPersistent.Value));
+		        outputIdentity.AddClaim(new Claim(ClaimTypes.Name, nameIdentifierClaim.Value));
 	        }
 
-            return outputIdentity;
+	        var isPersistentClaim = ((ClaimsIdentity)principal.Identity).Claims.SingleOrDefault(c => c.Type == ClaimTypes.IsPersistent);
+	        if (isPersistentClaim != null)
+	        {
+				outputIdentity.AddClaim(new Claim(ClaimTypes.IsPersistent, isPersistentClaim.Value));
+	        }
+
+			var authenticationMethodClaim = ((ClaimsIdentity)principal.Identity).Claims.SingleOrDefault(c => c.Type == ClaimTypes.AuthenticationMethod);
+			if (authenticationMethodClaim != null)
+			{
+				outputIdentity.AddClaim(new Claim(ClaimTypes.AuthenticationMethod, authenticationMethodClaim.Value));
+			}
+
+			return outputIdentity;
         }
 
         private Model.Scope ValidateAppliesTo(EndpointAddress appliesTo)
         {
             if (appliesTo == null)
             {
-                throw new ArgumentNullException("appliesTo");
+                throw new ArgumentNullException(nameof(appliesTo));
             }
 
             var scope = this.multiProtocolConfiguration.RetrieveScope(appliesTo.Uri);
             if (scope == null)
             {
-                throw new InvalidRequestException(String.Format("The relying party '{0}' was not found.", appliesTo.Uri.OriginalString));
+                throw new InvalidRequestException($"The relying party '{appliesTo.Uri.OriginalString}' was not found.");
             }
 
             return scope;
