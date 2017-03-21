@@ -19,11 +19,11 @@ namespace AuthBridge.Protocols.OAuth
         public LiveIdHandler(ClaimProvider issuer) : base(issuer)
         {
             if (issuer == null)
-                throw new ArgumentNullException("issuer");
+                throw new ArgumentNullException(nameof(issuer));
 
             this.issuer = issuer;
-            this.appId = this.issuer.Parameters["wll_appid"];
-            this.secretKey = this.issuer.Parameters["wll_secret"];
+            appId = this.issuer.Parameters["wll_appid"];
+            secretKey = this.issuer.Parameters["wll_secret"];
         }
 
         public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)

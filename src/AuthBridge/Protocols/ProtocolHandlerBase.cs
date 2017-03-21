@@ -20,9 +20,9 @@ namespace AuthBridge.Protocols
 			if (configuration == null)
 				throw new ArgumentNullException(nameof(configuration));
 
-			this.Issuer = issuer;
-			this.Configuration = configuration;
-			this.MultiProtocolIssuer = this.Configuration.MultiProtocolIssuer;              
+			Issuer = issuer;
+			Configuration = configuration;
+			MultiProtocolIssuer = this.Configuration.MultiProtocolIssuer;              
 		}
 
 		protected ClaimProvider Issuer { get; set; }
