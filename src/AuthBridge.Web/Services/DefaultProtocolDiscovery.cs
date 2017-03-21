@@ -19,7 +19,7 @@
 
             if (unitySection == null)
             {
-                throw new ArgumentException("unitySection");
+                throw new ArgumentException(nameof(unitySection));
             }
 
             container = new UnityContainer();

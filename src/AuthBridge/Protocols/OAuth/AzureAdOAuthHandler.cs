@@ -23,7 +23,7 @@ namespace AuthBridge.Protocols.OAuth
 		public AzureAdOAuthHandler(ClaimProvider issuer) : base(issuer)
         {
             if (issuer == null)
-                throw new ArgumentNullException("issuer");
+                throw new ArgumentNullException(nameof(issuer));
 
             this.issuer = issuer;
 			_appId = this.issuer.Parameters["clientId"];

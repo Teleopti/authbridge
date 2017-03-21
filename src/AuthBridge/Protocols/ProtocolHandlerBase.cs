@@ -15,10 +15,10 @@ namespace AuthBridge.Protocols
 		protected ProtocolHandlerBase(ClaimProvider issuer, IConfigurationRepository configuration)
 		{
 			if (issuer == null)
-				throw new ArgumentNullException("issuer");
+				throw new ArgumentNullException(nameof(issuer));
 
 			if (configuration == null)
-				throw new ArgumentNullException("configuration");
+				throw new ArgumentNullException(nameof(configuration));
 
 			this.Issuer = issuer;
 			this.Configuration = configuration;

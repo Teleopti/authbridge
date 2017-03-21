@@ -136,7 +136,7 @@
         public static void SetupRequestUrl(this HttpRequestBase request, string url)
         {
             if (url == null)
-                throw new ArgumentNullException("url");
+                throw new ArgumentNullException(nameof(url));
             
             var headers = new NameValueCollection();
             headers.Add("HOST", new Uri(url).Host);
