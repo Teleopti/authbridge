@@ -46,7 +46,7 @@ namespace AuthBridge.Protocols.OAuth
             AuthenticationResult result;
             try
             {
-                result = client.VerifyAuthentication(httpContext, this.MultiProtocolIssuer.ReplyUrl);
+                result = client.VerifyAuthentication(httpContext, MultiProtocolIssuer.ReplyUrl);
             }
             catch (WebException wex)
             {

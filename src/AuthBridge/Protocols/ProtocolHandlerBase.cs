@@ -22,7 +22,7 @@ namespace AuthBridge.Protocols
 
 			Issuer = issuer;
 			Configuration = configuration;
-			MultiProtocolIssuer = this.Configuration.MultiProtocolIssuer;              
+			MultiProtocolIssuer = Configuration.MultiProtocolIssuer;              
 		}
 
 		protected ClaimProvider Issuer { get; set; }
