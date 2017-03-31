@@ -112,18 +112,6 @@ namespace AuthBridge.SecurityTokenService
 				outputIdentity.AddClaim(new Claim(ClaimTypes.IsPersistent, isPersistentClaim.Value));
 	        }
 
-			var authenticationMethodClaim = ((ClaimsIdentity)principal.Identity).Claims.SingleOrDefault(c => c.Type == ClaimTypes.AuthenticationMethod);
-			if (authenticationMethodClaim != null)
-			{
-				outputIdentity.AddClaim(new Claim(ClaimTypes.AuthenticationMethod, authenticationMethodClaim.Value));
-			}
-
-			var authenticationInstant = ((ClaimsIdentity)principal.Identity).Claims.SingleOrDefault(c => c.Type == ClaimTypes.AuthenticationInstant);
-			if (authenticationInstant != null)
-			{
-				outputIdentity.AddClaim(new Claim(ClaimTypes.AuthenticationInstant, authenticationInstant.Value));
-			}
-
 			return outputIdentity;
         }
 
