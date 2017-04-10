@@ -48,13 +48,13 @@ namespace AuthBridge.Protocols.AWFOS
 					if (Logger.IsDebugEnabled)
 					{
 						Logger.DebugFormat("tokenData.Code {0}", tokenData.code);
-						Logger.DebugFormat("tokenData.UserEmailId {0}", tokenData.userEmailId);
+						Logger.DebugFormat("tokenData.Username {0}", tokenData.username);
 					}
 					if (tokenData?.code == 2000 || tokenData?.code == 2010)
 					{
 						var claims = new List<Claim>
 						{
-							new Claim(ClaimTypes.NameIdentifier, tokenData.userEmailId)
+							new Claim(ClaimTypes.NameIdentifier, tokenData.username)
 						};
 						return new ClaimsIdentity(claims, "AWFOS");
 					}
@@ -68,6 +68,7 @@ namespace AuthBridge.Protocols.AWFOS
 	public class AWFOSAccessTokenData
 	{
 		public int code { get; set; }
-		public string userEmailId { get; set; }
+		public string username { get; set; }
+		public string tenant { get; set; }
 	}
 }
