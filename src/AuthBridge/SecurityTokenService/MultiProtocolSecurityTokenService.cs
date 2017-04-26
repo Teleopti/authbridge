@@ -14,7 +14,7 @@ namespace AuthBridge.SecurityTokenService
     using System.ServiceModel;
 
     using ClaimsPolicyEngine;
-    using AuthBridge.Configuration;
+    using Configuration;
     using System.Linq;
 
     public class MultiProtocolSecurityTokenService : System.IdentityModel.SecurityTokenService
@@ -89,14 +89,27 @@ namespace AuthBridge.SecurityTokenService
             var outputIdentity = new ClaimsIdentity();
             IEnumerable<Claim> outputClaims;
 
-            if (scopeModel.UseClaimsPolicyEngine)
-            {
-                IClaimsPolicyEvaluator evaluator = new ClaimsPolicyEvaluator(PolicyStoreFactory.Instance);
-                outputClaims = evaluator.Evaluate(new Uri(scope.AppliesToAddress), ((ClaimsIdentity)principal.Identity).Claims);
-            }
+	        var inputClaims = ((ClaimsIdentity)principal.Identity).Claims.ToArray();
+	        if (scopeModel.UseClaimsPolicyEngine)
+			{
+				if (Logger.IsDebugEnabled)
+				{
+					Logger.DebugFormat("Mapping of claims. All values before are: {0}", String.Join(",", inputClaims.Select(i => i.ToString())));
+				}
+				IClaimsPolicyEvaluator evaluator = new ClaimsPolicyEvaluator(PolicyStoreFactory.Instance);
+                outputClaims = evaluator.Evaluate(new Uri(scope.AppliesToAddress), inputClaims);
+				if (Logger.IsDebugEnabled)
+				{
+					Logger.DebugFormat("Mapping of claims. All values after are: {0}", String.Join(",", outputClaims.Select(i => i.ToString())));
+				}
+			}
             else
             {
-                outputClaims = ((ClaimsIdentity)principal.Identity).Claims;
+	            if (Logger.IsDebugEnabled)
+	            {
+		            Logger.DebugFormat("No mapping of claims. All values are: {0}", String.Join(",",inputClaims.Select(i => i.ToString())));
+	            }
+                outputClaims = inputClaims;
             }
 
             outputIdentity.AddClaims(outputClaims);
@@ -106,7 +119,7 @@ namespace AuthBridge.SecurityTokenService
 		        outputIdentity.AddClaim(new Claim(ClaimTypes.Name, nameIdentifierClaim.Value));
 	        }
 
-	        var isPersistentClaim = ((ClaimsIdentity)principal.Identity).Claims.SingleOrDefault(c => c.Type == ClaimTypes.IsPersistent);
+	        var isPersistentClaim = inputClaims.SingleOrDefault(c => c.Type == ClaimTypes.IsPersistent);
 	        if (isPersistentClaim != null)
 	        {
 				outputIdentity.AddClaim(new Claim(ClaimTypes.IsPersistent, isPersistentClaim.Value));
