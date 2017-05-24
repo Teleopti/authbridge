@@ -7,12 +7,14 @@ using AuthBridge.Clients.Util;
 using DotNetOpenAuth.OpenId;
 using DotNetOpenAuth.OpenId.Extensions.AttributeExchange;
 using DotNetOpenAuth.OpenId.RelyingParty;
+using log4net;
 
 namespace AuthBridge.Clients
 {
 	public class OpenIdClient : DotNetOpenAuth.AspNet.Clients.OpenIdClient
 	{
-	    private readonly Uri _realmUri;
+		private static readonly ILog Logger = LogManager.GetLogger(typeof(OpenIdClient));
+		private readonly Uri _realmUri;
 
 	    public OpenIdClient(Uri url, Uri realmUri)
 			: base("Windows", url)
@@ -30,8 +32,19 @@ namespace AuthBridge.Clients
             Realm realm = new Realm(_realmUri ?? new Uri(returnUrl.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)));
             IAuthenticationRequest authenticationRequest = relyingParty.CreateRequest((Identifier) providerIdentifierField.GetValue(this), realm, returnUrl);
             this.OnBeforeSendingAuthenticationRequest(authenticationRequest);
-            authenticationRequest.RedirectToProvider();
-	    }
+		    try
+		    {
+				authenticationRequest.RedirectToProvider();
+			}
+			catch (HttpException ex)
+			{
+				// ignore remote host closed the connection exception
+				if (ex.ErrorCode == -2147467259)
+					Logger.Warn("remote host closed the connection exception", ex);
+			    else
+				    throw;
+			}
+		}
 
 		protected override Dictionary<string, string> GetExtraData(IAuthenticationResponse response)
 		{

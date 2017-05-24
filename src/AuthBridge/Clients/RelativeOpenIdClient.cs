@@ -52,13 +52,23 @@ namespace AuthBridge.Clients
 
 				Logger.InfoFormat("Request {0}; userSupplied {1}", request, userSuppliedIdentifier);
 				property.SetValue(authenticationRequest.DiscoveryResult, providerEndPointUriRequestMachine, BindingFlags.SetProperty, null, null, CultureInfo.CurrentCulture);
-				
-				authenticationRequest.RedirectToProvider();
 			}
 			catch (Exception ex)
 			{
 				Logger.Error("Error in discovery modification", ex);
 				throw;
+			}
+			try
+			{
+				authenticationRequest.RedirectToProvider();
+			}
+			catch (HttpException ex)
+			{
+				// ignore remote host closed the connection exception
+				if (ex.ErrorCode == -2147467259)
+					Logger.Warn("remote host closed the connection exception", ex);
+				else
+					throw;
 			}
 		}
 
