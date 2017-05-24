@@ -31,7 +31,7 @@ namespace AuthBridge.Protocols.OpenID
 			var identifierUrl = new Uri(site,
 				new Uri(MultiProtocolIssuer.Identifier.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(MultiProtocolIssuer.Identifier));
 
-			Logger.Debug(string.Format("ProcessSignInRequest, Issuer.Url {0}, ReplyUrl {1}, Identifier {2}", issuerUrl, replyUrl, identifierUrl));
+			Logger.Debug($"ProcessSignInRequest, Issuer.Url {issuerUrl}, ReplyUrl {replyUrl}, Identifier {identifierUrl}");
 			var client = new Clients.RelativeOpenIdClient(issuerUrl, identifierUrl);
 
 
@@ -60,7 +60,7 @@ namespace AuthBridge.Protocols.OpenID
 			try
 			{
 				result = client.VerifyAuthentication(httpContext);
-				Logger.Debug(string.Format("ProviderUserId {0}", result.ProviderUserId));
+				Logger.Debug($"ProviderUserId {result.ProviderUserId}");
 			}
 			catch (WebException wex)
 			{
