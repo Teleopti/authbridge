@@ -203,8 +203,8 @@ namespace AuthBridge.Web.Controllers
 										}
 									}
 									Logger.InfoFormat("Reply: {0}", requestMessage.Reply);
+									Logger.InfoFormat("Before ProcessSignInRequest");
 								}
-								Logger.InfoFormat("Before ProcessSignInRequest");
 								var responseMessage = FederatedPassiveSecurityTokenServiceOperations.ProcessSignInRequest(requestMessage, new ClaimsPrincipal(User), sts);
 								responseMessage.Write(Response.Output);
 							}
