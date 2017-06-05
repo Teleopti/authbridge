@@ -11,25 +11,33 @@
 
     public class DefaultProtocolDiscovery : IProtocolDiscovery
     {
-        private readonly IUnityContainer container;
+        private static IUnityContainer _container;
 
-        public DefaultProtocolDiscovery()
+	    private DefaultProtocolDiscovery()
+	    {
+	    }
+
+	    public static IProtocolDiscovery Instance
+	    {
+		    get
+		    {
+			    if (_container == null)
+			    {
+					var unitySection = ConfigurationManager.GetSection("unity") as UnityConfigurationSection;
+					if (unitySection == null)
+					{
+						throw new ArgumentException(nameof(unitySection));
+					}
+					_container = new UnityContainer();
+					unitySection.Configure(_container);
+				}
+			    return new DefaultProtocolDiscovery();
+			}
+		}
+
+	    public IProtocolHandler RetrieveProtocolHandler(ClaimProvider issuer)
         {
-            var unitySection = ConfigurationManager.GetSection("unity") as UnityConfigurationSection;
-
-            if (unitySection == null)
-            {
-                throw new ArgumentException(nameof(unitySection));
-            }
-
-            container = new UnityContainer();
-            
-            unitySection.Configure(container);
-        }
-
-        public IProtocolHandler RetrieveProtocolHandler(ClaimProvider issuer)
-        {
-			return container.Resolve<IProtocolHandler>(
+			return _container.Resolve<IProtocolHandler>(
                               issuer.Protocol,
                               new ParameterOverride("issuer", issuer));
         }

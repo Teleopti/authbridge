@@ -1,39 +1,80 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IdentityModel.Metadata;
 using System.Web;
 using AuthBridge.Model;
 using log4net;
 using System.IdentityModel.Selectors;
 using System.IdentityModel.Services;
 using System.IdentityModel.Tokens;
+using System.Linq;
+using System.Net;
 using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
+using System.ServiceModel.Security;
+using System.Xml;
 
 namespace AuthBridge.Protocols.WSFed
 {
     public class WSFedHandler : ProtocolHandlerBase
     {
-        private readonly string _signingKeyThumbprint;
-		private readonly string _wsfedEndpoint;
+        private string _signingKeyThumbprint;
+		private string _wsfedEndpoint;
 
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(WSFedHandler));
 
 	    public WSFedHandler(ClaimProvider issuer)
             : base(issuer)
-        {
-            _signingKeyThumbprint = issuer.Parameters["signingKeyThumbprint"];
-			_wsfedEndpoint = issuer.Parameters["wsfedEndpoint"];
+		{
+			if (!string.IsNullOrEmpty(issuer.Parameters["metadataUrl"]))
+			{
+				ParseMetadata(issuer);
+			}
+			else
+			{
+				_signingKeyThumbprint = issuer.Parameters["signingKeyThumbprint"];
+				_wsfedEndpoint = issuer.Parameters["wsfedEndpoint"];
+			}
         }
 
+	    private void ParseMetadata(ClaimProvider issuer)
+	    {
+		    var serializer = new MetadataSerializer();
+		    if ("true".Equals(issuer.Parameters["ignoreSsl"], StringComparison.InvariantCultureIgnoreCase))
+		    {
+			    ServicePointManager.ServerCertificateValidationCallback += (s, ce, ch, ssl) => true;
+			    serializer.CertificateValidationMode = X509CertificateValidationMode.None;
+		    }
+		    var metadata = serializer.ReadMetadata(XmlReader.Create(issuer.Parameters["metadataUrl"]));
+		    var entityDescriptor = (EntityDescriptor) metadata;
+		    var stsd = entityDescriptor.RoleDescriptors.OfType<SecurityTokenServiceDescriptor>().First();
+		    if (stsd == null)
+		    {
+			    throw new InvalidOperationException("Missing SecurityTokenServiceDescriptor!");
+		    }
+		    Logger.Info($"Got SecurityTokenServiceDescriptor from metadata.");
+		    _wsfedEndpoint = stsd.PassiveRequestorEndpoints.First().Uri.ToString();
+		    Logger.Info($"First PassiveRequestorEndpoint in SecurityTokenServiceDescriptor from metadata: {_wsfedEndpoint}");
+		    var x509DataClauses = stsd.Keys.Where(key => key.KeyInfo != null && key.Use == KeyType.Signing)
+			    .Select(key => key.KeyInfo.OfType<X509RawDataKeyIdentifierClause>().First());
+		    var tokens = new List<X509SecurityToken>();
+		    tokens.AddRange(x509DataClauses.Select(token => new X509SecurityToken(new X509Certificate2(token.GetX509RawData()))));
+		    Logger.Info($"Get signing keys: {tokens.Count}");
+		    _signingKeyThumbprint = tokens.First().Certificate.Thumbprint;
+		    Logger.Info($"first signing key thumbprint: {_signingKeyThumbprint}");
+	    }
 
-        public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
+
+	    public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
         {
-			Logger.Info(string.Format("process signin request! Identifier: {0}, ReplyUrl: {1}", MultiProtocolIssuer.Identifier, MultiProtocolIssuer.ReplyUrl));
+			Logger.Info($"process signin request! Identifier: {MultiProtocolIssuer.Identifier}, ReplyUrl: {MultiProtocolIssuer.ReplyUrl}");
 	        var identityProviderUrl = string.IsNullOrEmpty(_wsfedEndpoint) ? Issuer.Url.ToString() : _wsfedEndpoint;
 	        RequestAuthentication(httpContext, identityProviderUrl, MultiProtocolIssuer.Identifier.ToString(), MultiProtocolIssuer.ReplyUrl.ToString());
 		}
 
         public override ClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
         {
-			Logger.Info(string.Format("ProcessSignInResponse! realm: {0}, originalUrl: {1}", realm, originalUrl));
+			Logger.Info($"ProcessSignInResponse! realm: {realm}, originalUrl: {originalUrl}");
 
 			var token = FederatedAuthentication.WSFederationAuthenticationModule.GetSecurityToken(httpContext.Request);
 
@@ -54,7 +95,7 @@ namespace AuthBridge.Protocols.WSFed
             };
 
             var redirectUrl = signIn.WriteQueryString();
-			Logger.Info(string.Format("RequestAuthentication! redirectUrl: {0}", redirectUrl));
+			Logger.Info($"RequestAuthentication! redirectUrl: {redirectUrl}");
 
             httpContext.Response.Redirect(redirectUrl, false);
 			httpContext.ApplicationInstance.CompleteRequest();
@@ -71,11 +112,11 @@ namespace AuthBridge.Protocols.WSFed
 
             public override string GetIssuerName(SecurityToken securityToken)
             {
-				Logger.Info(string.Format("GetIssuerName!"));
+				Logger.Info("GetIssuerName!");
                 var x509 = securityToken as X509SecurityToken;
                 if (x509 != null)
                 {
-	                Logger.Info(string.Format("Thumbprint! {0}", x509.Certificate.Thumbprint));
+	                Logger.Info($"Thumbprint! {x509.Certificate.Thumbprint}");
                     if (x509.Certificate.Thumbprint != null && x509.Certificate.Thumbprint.Equals(_trustedThumbprint, StringComparison.InvariantCultureIgnoreCase))
                     {
                         return x509.Certificate.Subject;

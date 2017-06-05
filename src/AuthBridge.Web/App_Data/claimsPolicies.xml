@@ -45,6 +45,7 @@
 	  <issuer uri="urn:Teleopti" thumbprint="" displayName="Teleopti"/>
 	  <issuer uri="urn:AzureAd" thumbprint="" displayName="AzureAd"/>
 	  <issuer uri="urn:Saml" thumbprint="" displayName="Saml"/>
+	  <issuer uri="urn:ADFS3" thumbprint="" displayName="ADFS3"/>
     </issuers>
     <rules>
 		
@@ -159,6 +160,12 @@
         </input>
         <output type="nameidentifier" copyFrom="INPUT_VALUE"/>
       </rule>
+		<rule assertionsMatch="any">
+			<input>
+				<claim type="nameidentifier" issuer="ADFS3" value="*"/>
+			</input>
+			<output type="nameidentifier" copyFrom="INPUT_VALUE"/>
+		</rule>
       <rule assertionsMatch="any">
         <input>
           <claim type="email" issuer="IdentityServer" value="*"/>
