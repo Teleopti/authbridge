@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Metadata;
+using System.IdentityModel.Tokens;
 using System.Linq;
+using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
+using System.ServiceModel.Security;
 using System.Text;
 using System.Web;
 using System.Xml;
@@ -16,9 +20,9 @@ namespace AuthBridge.Protocols.Saml
 {
 	public class SamlHandler : ProtocolHandlerBase
 	{
-		private readonly string _signingKeyThumbprint;
+		private string _signingKeyThumbprint;
 		private readonly string _issuer;
-		private readonly string _identityProviderSSOURL;
+		private string _identityProviderSSOURL;
 		private readonly string _audienceRestriction;
 		private readonly string _requestedAuthnContextComparisonMethod;
 		private readonly List<string> _authnContextClassRefs;
@@ -27,15 +31,75 @@ namespace AuthBridge.Protocols.Saml
 		public SamlHandler(ClaimProvider issuer)
 			: base(issuer)
 		{
-			_signingKeyThumbprint = issuer.Parameters["signingKeyThumbprint"];
-			_issuer = issuer.Parameters["issuer"];
-			_identityProviderSSOURL = issuer.Parameters["identityProviderSSOURL"];
-			_audienceRestriction = issuer.Parameters["audienceRestriction"];
-			_requestedAuthnContextComparisonMethod = issuer.Parameters["requestedAuthnContextComparisonMethod"];
-			var authnContextClassRefs = issuer.Parameters["authnContextClassRefs"];
-			_authnContextClassRefs = !string.IsNullOrWhiteSpace(authnContextClassRefs)
-				? authnContextClassRefs.Split(',').ToList()
-				: new List<string>();
+			_issuer = string.IsNullOrEmpty(issuer.Parameters["issuer"]) ? MultiProtocolIssuer.Identifier.ToString() : issuer.Parameters["issuer"];
+			if (!string.IsNullOrEmpty(issuer.Parameters["metadataUrl"]))
+			{
+				ParseMetadata(issuer);
+			}
+			else
+			{
+				_signingKeyThumbprint = issuer.Parameters["signingKeyThumbprint"];
+				_identityProviderSSOURL = issuer.Parameters["identityProviderSSOURL"];
+				_audienceRestriction = issuer.Parameters["audienceRestriction"];
+				_requestedAuthnContextComparisonMethod = issuer.Parameters["requestedAuthnContextComparisonMethod"];
+				var authnContextClassRefs = issuer.Parameters["authnContextClassRefs"];
+				_authnContextClassRefs = !string.IsNullOrWhiteSpace(authnContextClassRefs)
+					? authnContextClassRefs.Split(',').ToList()
+					: new List<string>();
+			}
+		}
+
+		private void ParseMetadata(ClaimProvider issuer)
+		{
+			var serializer = new MetadataSerializer();
+			if ("true".Equals(issuer.Parameters["ignoreSsl"], StringComparison.InvariantCultureIgnoreCase))
+			{
+				ServicePointManager.ServerCertificateValidationCallback += (s, ce, ch, ssl) => true;
+				serializer.CertificateValidationMode = X509CertificateValidationMode.None;
+			}
+			var metadata = serializer.ReadMetadata(XmlReader.Create(issuer.Parameters["metadataUrl"]));
+			var entityDescriptor = (EntityDescriptor) metadata;
+			if ("sp".Equals(issuer.Parameters["initiator"], StringComparison.InvariantCultureIgnoreCase))
+			{
+				var ssod = entityDescriptor.RoleDescriptors.OfType<ServiceProviderSingleSignOnDescriptor>().First();
+				if (ssod == null)
+				{
+					throw new InvalidOperationException("Missing ServiceProviderSingleSignOnDescriptor!");
+				}
+				Logger.Info("Got ServiceProviderSingleSignOnDescriptor from metadata.");
+				_identityProviderSSOURL =
+					ssod.AssertionConsumerServices.Single(
+							x => x.Value.Binding.ToString() == "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect")
+						.Value.Location.ToString();
+				Logger.Info($"_identityProviderSSOURL: {_identityProviderSSOURL}");
+				_signingKeyThumbprint = GetSigningKeyThumbprint(ssod);
+				Logger.Info($"first signing key thumbprint: {_signingKeyThumbprint}");
+			}
+			else
+			{
+				var ssod = entityDescriptor.RoleDescriptors.OfType<IdentityProviderSingleSignOnDescriptor>().First();
+				if (ssod == null)
+				{
+					throw new InvalidOperationException("Missing IdentityProviderSingleSignOnDescriptor!");
+				}
+				Logger.Info("Got IdentityProviderSingleSignOnDescriptor from metadata.");
+				_identityProviderSSOURL =
+					ssod.SingleSignOnServices.Single(
+						x => x.Binding.ToString() == "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect").Location.ToString();
+				Logger.Info($"_identityProviderSSOURL: {_identityProviderSSOURL}");
+				_signingKeyThumbprint = GetSigningKeyThumbprint(ssod);
+				Logger.Info($"first signing key thumbprint: {_signingKeyThumbprint}");
+			}
+		}
+
+		private static string GetSigningKeyThumbprint(RoleDescriptor ssod)
+		{
+			var x509DataClauses = ssod.Keys.Where(key => key.KeyInfo != null && key.Use == KeyType.Signing)
+				.Select(key => key.KeyInfo.OfType<X509RawDataKeyIdentifierClause>().First());
+			var tokens = new List<X509SecurityToken>();
+			tokens.AddRange(x509DataClauses.Select(token => new X509SecurityToken(new X509Certificate2(token.GetX509RawData()))));
+			Logger.Info($"Get signing keys: {tokens.Count}");
+			return tokens.First().Certificate.Thumbprint;
 		}
 
 		public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
