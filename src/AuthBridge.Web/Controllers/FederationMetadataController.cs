@@ -48,9 +48,11 @@ namespace AuthBridge.Web.Controllers
 
             // Create metadata document for relying party
             var entity = new EntityDescriptor(new EntityId(realm.Uri.AbsoluteUri));
-            var sts = CreateSecurityTokenServiceDescriptor(credentials, passiveEndpoint);
+            var securityTokenServiceDescriptor = CreateSecurityTokenServiceDescriptor(credentials, passiveEndpoint);
+	        var applicationServiceDescriptor = CreateApplicationServiceDescriptor();
 
-	        entity.RoleDescriptors.Add(sts);
+	        entity.RoleDescriptors.Add(securityTokenServiceDescriptor);
+	        entity.RoleDescriptors.Add(applicationServiceDescriptor);
 			// Set credentials with which to sign the metadata
 			entity.SigningCredentials = credentials;
 
@@ -62,6 +64,14 @@ namespace AuthBridge.Web.Controllers
 
             return stream.ToArray();
         }
+
+	    private ApplicationServiceDescriptor CreateApplicationServiceDescriptor()
+	    {
+		    var applicationServiceDescriptor = new ApplicationServiceDescriptor();
+			applicationServiceDescriptor.ProtocolsSupported.Add(new Uri(WSFederationConstants.Namespace));
+			applicationServiceDescriptor.PassiveRequestorEndpoints.Add(new EndpointReference(_configuration.MultiProtocolIssuer.ReplyUrl.AbsoluteUri));
+		    return applicationServiceDescriptor;
+	    }
 
 	    private static SecurityTokenServiceDescriptor CreateSecurityTokenServiceDescriptor(X509SigningCredentials credentials,
 		    EndpointReference passiveEndpoint)
