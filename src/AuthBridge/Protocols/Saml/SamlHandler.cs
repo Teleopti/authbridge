@@ -59,37 +59,19 @@ namespace AuthBridge.Protocols.Saml
 			}
 			var metadata = serializer.ReadMetadata(XmlReader.Create(issuer.Parameters["metadataUrl"]));
 			var entityDescriptor = (EntityDescriptor) metadata;
-			if ("sp".Equals(issuer.Parameters["initiator"], StringComparison.InvariantCultureIgnoreCase))
+			
+			var ssod = entityDescriptor.RoleDescriptors.OfType<IdentityProviderSingleSignOnDescriptor>().First();
+			if (ssod == null)
 			{
-				var ssod = entityDescriptor.RoleDescriptors.OfType<ServiceProviderSingleSignOnDescriptor>().First();
-				if (ssod == null)
-				{
-					throw new InvalidOperationException("Missing ServiceProviderSingleSignOnDescriptor!");
-				}
-				Logger.Info("Got ServiceProviderSingleSignOnDescriptor from metadata.");
-				_identityProviderSSOURL =
-					ssod.AssertionConsumerServices.Single(
-							x => x.Value.Binding.ToString() == "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect")
-						.Value.Location.ToString();
-				Logger.Info($"_identityProviderSSOURL: {_identityProviderSSOURL}");
-				_signingKeyThumbprint = GetSigningKeyThumbprint(ssod);
-				Logger.Info($"first signing key thumbprint: {_signingKeyThumbprint}");
+				throw new InvalidOperationException("Missing IdentityProviderSingleSignOnDescriptor!");
 			}
-			else
-			{
-				var ssod = entityDescriptor.RoleDescriptors.OfType<IdentityProviderSingleSignOnDescriptor>().First();
-				if (ssod == null)
-				{
-					throw new InvalidOperationException("Missing IdentityProviderSingleSignOnDescriptor!");
-				}
-				Logger.Info("Got IdentityProviderSingleSignOnDescriptor from metadata.");
-				_identityProviderSSOURL =
-					ssod.SingleSignOnServices.Single(
-						x => x.Binding.ToString() == "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect").Location.ToString();
-				Logger.Info($"_identityProviderSSOURL: {_identityProviderSSOURL}");
-				_signingKeyThumbprint = GetSigningKeyThumbprint(ssod);
-				Logger.Info($"first signing key thumbprint: {_signingKeyThumbprint}");
-			}
+			Logger.Info("Got IdentityProviderSingleSignOnDescriptor from metadata.");
+			_identityProviderSSOURL =
+				ssod.SingleSignOnServices.Single(
+					x => x.Binding.ToString() == "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect").Location.ToString();
+			Logger.Info($"_identityProviderSSOURL: {_identityProviderSSOURL}");
+			_signingKeyThumbprint = GetSigningKeyThumbprint(ssod);
+			Logger.Info($"first signing key thumbprint: {_signingKeyThumbprint}");
 		}
 
 		private static string GetSigningKeyThumbprint(RoleDescriptor ssod)
