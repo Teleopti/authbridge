@@ -2,6 +2,7 @@
 using System.IdentityModel.Protocols.WSTrust;
 using System.IdentityModel.Tokens;
 using System.Security.Claims;
+using AuthBridge.Protocols.Saml;
 
 namespace AuthBridge.Web.Controllers
 {
@@ -50,9 +51,11 @@ namespace AuthBridge.Web.Controllers
             var entity = new EntityDescriptor(new EntityId(realm.Uri.AbsoluteUri));
             var securityTokenServiceDescriptor = CreateSecurityTokenServiceDescriptor(credentials, passiveEndpoint);
 	        var applicationServiceDescriptor = CreateApplicationServiceDescriptor();
+	        var serviceProviderSingleSignOnDescriptor = CreateServiceProviderSingleSignOnDescriptor();
 
 	        entity.RoleDescriptors.Add(securityTokenServiceDescriptor);
 	        entity.RoleDescriptors.Add(applicationServiceDescriptor);
+	        entity.RoleDescriptors.Add(serviceProviderSingleSignOnDescriptor);
 			// Set credentials with which to sign the metadata
 			entity.SigningCredentials = credentials;
 
@@ -64,6 +67,20 @@ namespace AuthBridge.Web.Controllers
 
             return stream.ToArray();
         }
+
+	    private ServiceProviderSingleSignOnDescriptor CreateServiceProviderSingleSignOnDescriptor()
+	    {
+		    var indexedProtocolEndpointDictionary = new IndexedProtocolEndpointDictionary();
+		    var indexedProtocolEndpoint = new IndexedProtocolEndpoint(0,
+			    new Uri("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"),
+			    new Uri(_configuration.MultiProtocolIssuer.ReplyUrl.AbsoluteUri)) {IsDefault = true};
+		    indexedProtocolEndpointDictionary.Add(0, indexedProtocolEndpoint);
+		    var serviceProviderSingleSignOnDescriptor = new ServiceProviderSingleSignOnDescriptor(indexedProtocolEndpointDictionary);
+			serviceProviderSingleSignOnDescriptor.ProtocolsSupported.Add(new Uri(Saml2Constants.Protocol));
+		    serviceProviderSingleSignOnDescriptor.WantAssertionsSigned = true;
+		    serviceProviderSingleSignOnDescriptor.AuthenticationRequestsSigned = false;
+			return serviceProviderSingleSignOnDescriptor;
+	    }
 
 	    private ApplicationServiceDescriptor CreateApplicationServiceDescriptor()
 	    {

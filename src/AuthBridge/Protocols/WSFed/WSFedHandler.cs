@@ -40,7 +40,7 @@ namespace AuthBridge.Protocols.WSFed
 	    private void ParseMetadata(ClaimProvider issuer)
 	    {
 		    var serializer = new MetadataSerializer();
-		    if ("true".Equals(issuer.Parameters["ignoreSsl"], StringComparison.InvariantCultureIgnoreCase))
+		    if ("true".Equals(issuer.Parameters["ignoreSslError"], StringComparison.InvariantCultureIgnoreCase))
 		    {
 			    ServicePointManager.ServerCertificateValidationCallback += (s, ce, ch, ssl) => true;
 			    serializer.CertificateValidationMode = X509CertificateValidationMode.None;

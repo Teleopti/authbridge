@@ -24,6 +24,13 @@ namespace AuthBridge.Protocols.Saml
 		}
 	}
 
+	public static class Saml2Constants
+	{
+		public const string Protocol = "urn:oasis:names:tc:SAML:2.0:protocol";
+		public const string Assertion = "urn:oasis:names:tc:SAML:2.0:assertion";
+		public const string PostBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST";
+	}
+
 	public class AuthRequest
 	{
 		public string Id;
@@ -61,46 +68,46 @@ namespace AuthBridge.Protocols.Saml
 
 		public string GetRequest(AuthRequestFormat format)
 		{
-			const string protocol = "urn:oasis:names:tc:SAML:2.0:protocol";
-			const string assertion = "urn:oasis:names:tc:SAML:2.0:assertion";
+			
+
 			using (var sw = new StringWriter())
 			{
 				var xws = new XmlWriterSettings {OmitXmlDeclaration = true};
 				using (var xw = XmlWriter.Create(sw, xws))
 				{
-					xw.WriteStartElement("samlp", "AuthnRequest", protocol);
+					xw.WriteStartElement("samlp", "AuthnRequest", Saml2Constants.Protocol);
 					xw.WriteAttributeString("ID", Id);
 					xw.WriteAttributeString("Version", "2.0");
 					xw.WriteAttributeString("IssueInstant", _issueInstant);
-					xw.WriteAttributeString("ProtocolBinding", "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST");
+					xw.WriteAttributeString("ProtocolBinding", Saml2Constants.PostBinding);
 					xw.WriteAttributeString("AssertionConsumerServiceURL", _assertionConsumerServiceUrl);
 
-					xw.WriteStartElement("saml", "Issuer", assertion);
+					xw.WriteStartElement("saml", "Issuer", Saml2Constants.Assertion);
 					xw.WriteString(_issuer);
 					xw.WriteEndElement();
 
-					xw.WriteStartElement("samlp", "NameIDPolicy", protocol);
+					xw.WriteStartElement("samlp", "NameIDPolicy", Saml2Constants.Protocol);
 					xw.WriteAttributeString("Format", "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified");
 					xw.WriteAttributeString("AllowCreate", "true");
 					xw.WriteEndElement();
 
 					if (!string.IsNullOrEmpty(_audienceRestriction))
 					{
-						xw.WriteStartElement("saml", "Conditions", assertion);
-						xw.WriteStartElement("saml", "AudienceRestriction", assertion);
-						xw.WriteStartElement("saml", "Audience", assertion);
+						xw.WriteStartElement("saml", "Conditions", Saml2Constants.Assertion);
+						xw.WriteStartElement("saml", "AudienceRestriction", Saml2Constants.Assertion);
+						xw.WriteStartElement("saml", "Audience", Saml2Constants.Assertion);
 						xw.WriteString(_audienceRestriction);
 						xw.WriteEndElement();
 						xw.WriteEndElement();
 						xw.WriteEndElement();
 					}
 
-					xw.WriteStartElement("samlp", "RequestedAuthnContext", protocol);
+					xw.WriteStartElement("samlp", "RequestedAuthnContext", Saml2Constants.Protocol);
 					xw.WriteAttributeString("Comparison", _requestedAuthnContextComparisonMethod);
 
 					foreach (var authnContextClassRef in _authnContextClassRefs)
 					{
-						xw.WriteStartElement("saml", "AuthnContextClassRef", assertion);
+						xw.WriteStartElement("saml", "AuthnContextClassRef", Saml2Constants.Assertion);
 						xw.WriteString(authnContextClassRef);
 						xw.WriteEndElement();
 					}
