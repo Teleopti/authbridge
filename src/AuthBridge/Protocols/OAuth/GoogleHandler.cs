@@ -46,7 +46,7 @@ namespace AuthBridge.Protocols.OAuth
 
 			var claims = new List<Claim>
 			{
-				new Claim(System.IdentityModel.Claims.ClaimTypes.NameIdentifier, result.ExtraData["email"])
+				new Claim(ClaimTypes.NameIdentifier, result.ExtraData["email"])
 			};
 
 			return new ClaimsIdentity(claims, "Google");

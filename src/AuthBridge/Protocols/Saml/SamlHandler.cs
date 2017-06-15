@@ -52,6 +52,7 @@ namespace AuthBridge.Protocols.Saml
 		private void ParseMetadata(ClaimProvider issuer)
 		{
 			var serializer = new MetadataSerializer();
+			ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
 			if ("true".Equals(issuer.Parameters["ignoreSslError"], StringComparison.InvariantCultureIgnoreCase))
 			{
 				ServicePointManager.ServerCertificateValidationCallback += (s, ce, ch, ssl) => true;
