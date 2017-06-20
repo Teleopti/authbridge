@@ -55,7 +55,7 @@ namespace AuthBridge.Protocols.OAuth
 
             var claims = new List<Claim>
                 {
-                    new Claim(System.IdentityModel.Claims.ClaimTypes.NameIdentifier, result.ExtraData["id"])
+                    new Claim(ClaimTypes.NameIdentifier, result.ExtraData["id"])
                 };
 
 			return new ClaimsIdentity(claims, "AzureAd");
