@@ -72,7 +72,7 @@ namespace AuthBridge.Web.Controllers
 	    {
 		    var indexedProtocolEndpointDictionary = new IndexedProtocolEndpointDictionary();
 		    var indexedProtocolEndpoint = new IndexedProtocolEndpoint(0,
-			    new Uri("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"),
+			    new Uri(Saml2Constants.PostBinding),
 			    new Uri(_configuration.MultiProtocolIssuer.ReplyUrl.AbsoluteUri)) {IsDefault = true};
 		    indexedProtocolEndpointDictionary.Add(0, indexedProtocolEndpoint);
 		    var serviceProviderSingleSignOnDescriptor = new ServiceProviderSingleSignOnDescriptor(indexedProtocolEndpointDictionary);

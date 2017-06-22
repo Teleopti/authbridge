@@ -29,6 +29,7 @@ namespace AuthBridge.Protocols.Saml
 		public const string Protocol = "urn:oasis:names:tc:SAML:2.0:protocol";
 		public const string Assertion = "urn:oasis:names:tc:SAML:2.0:assertion";
 		public const string PostBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST";
+		public const string RedirectBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect";
 	}
 
 	public class AuthRequest
