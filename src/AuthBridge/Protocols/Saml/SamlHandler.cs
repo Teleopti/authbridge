@@ -89,8 +89,11 @@ namespace AuthBridge.Protocols.Saml
 			var samlRequest = new AuthRequest(MultiProtocolIssuer.ReplyUrl.ToString(), _issuer, _audienceRestriction, _requestedAuthnContextComparisonMethod, _authnContextClassRefs);
 			var preparedRequest = samlRequest.GetRequest(AuthRequest.AuthRequestFormat.Base64 | AuthRequest.AuthRequestFormat.Compressed | AuthRequest.AuthRequestFormat.UrlEncode);
 			var returnUrl = GetReturnUrlQueryParameterFromUrl(httpContext.Request.Url.AbsoluteUri);
-			httpContext.Response.Redirect($"{_identityProviderSSOURL}?SAMLRequest={preparedRequest}&RelayState={returnUrl}");
+			var redirectUrl = _identityProviderSSOURL.Contains("?")
+				? $"{_identityProviderSSOURL}&SAMLRequest={preparedRequest}&RelayState={returnUrl}"
+				: $"{_identityProviderSSOURL}?SAMLRequest={preparedRequest}&RelayState={returnUrl}";
 
+			httpContext.Response.Redirect(redirectUrl);
 			httpContext.Response.End();
 		}
 		
