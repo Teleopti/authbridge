@@ -224,7 +224,7 @@ namespace AuthBridge.Web.Controllers
 
                             if (string.IsNullOrEmpty(Request.QueryString[WSFederationConstants.Parameters.HomeRealm]))
                             {
-                                return HomeRealmDiscovery(HttpUtility.ParseQueryString(requestMessage.Context).Get("em"));
+                                return HomeRealmDiscovery(HttpUtility.HtmlEncode(HttpUtility.ParseQueryString(requestMessage.Context).Get("em")));
                             }
 	                        return Authenticate();
                         }
