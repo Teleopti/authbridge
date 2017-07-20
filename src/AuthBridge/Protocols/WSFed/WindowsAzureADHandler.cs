@@ -19,10 +19,10 @@ namespace AuthBridge.Protocols.WSFed
         public WindowsAzureADHandler(ClaimProvider issuer)
             : base(issuer)
         {
-            this.signingKeyThumbprint = issuer.Parameters["signingKeyThumbprint"];
-            this.tenantId = issuer.Parameters["tenantId"];
-            this.appPrincipalId = issuer.Parameters["appPrincipalId"];
-            this.realmFormat = issuer.Parameters["realmFormat"];
+            signingKeyThumbprint = issuer.Parameters["signingKeyThumbprint"];
+            tenantId = issuer.Parameters["tenantId"];
+            appPrincipalId = issuer.Parameters["appPrincipalId"];
+            realmFormat = issuer.Parameters["realmFormat"];
         }
 
 
@@ -71,7 +71,7 @@ namespace AuthBridge.Protocols.WSFed
 
             public SimpleIssuerNameRegistry(string trustedThumbprint)
             {
-                this.trustedThumbrpint = trustedThumbprint;
+                trustedThumbrpint = trustedThumbprint;
             }
 
             public override string GetIssuerName(SecurityToken securityToken)

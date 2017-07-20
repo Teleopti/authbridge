@@ -18,9 +18,9 @@ namespace AuthBridge.Protocols.WSFed
 {
     public class WSFedHandler : ProtocolHandlerBase
     {
-        private string _signingKeyThumbprint;
+        private string[] _signingKeyThumbprints;
 		private string _wsfedEndpoint;
-
+		
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(WSFedHandler));
 
 	    public WSFedHandler(ClaimProvider issuer)
@@ -32,7 +32,7 @@ namespace AuthBridge.Protocols.WSFed
 			}
 			else
 			{
-				_signingKeyThumbprint = issuer.Parameters["signingKeyThumbprint"];
+				_signingKeyThumbprints = new [] { issuer.Parameters["signingKeyThumbprint"].ToLowerInvariant() };
 				_wsfedEndpoint = issuer.Parameters["wsfedEndpoint"];
 			}
         }
@@ -60,8 +60,9 @@ namespace AuthBridge.Protocols.WSFed
 		    var tokens = new List<X509SecurityToken>();
 		    tokens.AddRange(x509DataClauses.Select(token => new X509SecurityToken(new X509Certificate2(token.GetX509RawData()))));
 		    Logger.Info($"Get signing keys: {tokens.Count}");
-		    _signingKeyThumbprint = tokens.First().Certificate.Thumbprint;
-		    Logger.Info($"first signing key thumbprint: {_signingKeyThumbprint}");
+		    _signingKeyThumbprints = tokens.Select(t => t.Certificate.Thumbprint.ToLowerInvariant()).ToArray();
+			if (Logger.IsInfoEnabled)
+				Logger.Info($"signing key thumbprints: {string.Join(", ",_signingKeyThumbprints)}");
 	    }
 
 
@@ -80,7 +81,7 @@ namespace AuthBridge.Protocols.WSFed
 
 			FederatedAuthentication.FederationConfiguration.IdentityConfiguration.AudienceRestriction.AllowedAudienceUris.Add(MultiProtocolIssuer.Identifier);
 			FederatedAuthentication.FederationConfiguration.IdentityConfiguration.SecurityTokenHandlers.Configuration.CertificateValidator = X509CertificateValidator.None;
-			FederatedAuthentication.FederationConfiguration.IdentityConfiguration.SecurityTokenHandlers.Configuration.IssuerNameRegistry = new SimpleIssuerNameRegistry(this._signingKeyThumbprint);
+			FederatedAuthentication.FederationConfiguration.IdentityConfiguration.SecurityTokenHandlers.Configuration.IssuerNameRegistry = new SimpleIssuerNameRegistry(_signingKeyThumbprints);
             var identities = FederatedAuthentication.FederationConfiguration.IdentityConfiguration.SecurityTokenHandlers.ValidateToken(token);
 
             return identities[0];            
@@ -103,11 +104,11 @@ namespace AuthBridge.Protocols.WSFed
 
 		private class SimpleIssuerNameRegistry : IssuerNameRegistry
         {
-            private readonly string _trustedThumbprint;
+            private readonly string[] _trustedThumbprints;
 
-            public SimpleIssuerNameRegistry(string trustedThumbprint)
+            public SimpleIssuerNameRegistry(string[] trustedThumbprints)
             {
-                _trustedThumbprint = trustedThumbprint;
+                _trustedThumbprints = trustedThumbprints;
             }
 
             public override string GetIssuerName(SecurityToken securityToken)
@@ -117,7 +118,7 @@ namespace AuthBridge.Protocols.WSFed
                 if (x509 != null)
                 {
 	                Logger.Info($"Thumbprint! {x509.Certificate.Thumbprint}");
-                    if (x509.Certificate.Thumbprint != null && x509.Certificate.Thumbprint.Equals(_trustedThumbprint, StringComparison.InvariantCultureIgnoreCase))
+                    if (x509.Certificate.Thumbprint != null && Array.IndexOf(_trustedThumbprints, x509.Certificate.Thumbprint.ToLowerInvariant()) > -1)
                     {
                         return x509.Certificate.Subject;
                     }
