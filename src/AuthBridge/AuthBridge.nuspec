@@ -9,16 +9,36 @@
 		<description>AuthBridge</description>
 		<copyright>Teleopti</copyright>
 		<dependencies>
+			<dependency id="CommonServiceLocator" version="1.0" />
+			<dependency id="DotNetOpenAuth" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.AspNet" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.Core" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.Core.UI" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.InfoCard" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.InfoCard.UI" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.OAuth.Common" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.OAuth.Consumer" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.OAuth.Core" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.OAuth.ServiceProvider" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.OAuth2.AuthorizationServer" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.OAuth2.Client" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.OAuth2.Client.UI" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.OAuth2.ClientAuthorization" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.OAuth2.Core" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.OAuth2.ResourceServer" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.OpenId.Core" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.OpenId.Core.UI" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.OpenId.Provider" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.OpenId.Provider.UI" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.OpenId.RelyingParty" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.OpenId.RelyingParty.UI" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.OpenIdInfoCard.UI" version="4.3.4.13329" />
+			<dependency id="DotNetOpenAuth.OpenIdOAuth" version="4.3.4.13329" />
 			<dependency id="log4net" version="2.0.3" />
-			<dependency id="Microsoft.AspNet.Mvc" version="5.2.3" />
-			<dependency id="Microsoft.AspNet.WebApi.Client" version="5.2.3" />
-			<dependency id="Validation" version="2.4.15" />
-			<dependency id="Newtonsoft.Json" version="10.0.2" />
-			<dependency id="System.Net.Http" version="4.3.2" />
-			<dependency id="System.Security.Cryptography.Algorithms" version="4.3.0" />
-			<dependency id="System.Security.Cryptography.Encoding" version="4.3.0" />
-			<dependency id="System.Security.Cryptography.Primitives" version="4.3.0" />
-			<dependency id="System.Security.Cryptography.X509Certificates" version="4.3.0" />
+			<dependency id="Microsoft.AspNet.WebApi.Client" version="4.0.20505.0" />
+			<dependency id="Microsoft.Net.Http" version="2.0.20710.0" />
+			<dependency id="Newtonsoft.Json" version="4.5.7" />
+			<dependency id="Unity" version="2.1.505.0" />
 		</dependencies>
 	</metadata>
 	<files>
