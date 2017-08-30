@@ -8,5 +8,5 @@ packages
 *.suo
 *.nupkg
 src/backup/**.*
-src/.vs/*
+src/.vs/config/applicationhost.config
 *.user
