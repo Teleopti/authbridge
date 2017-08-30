@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using AuthBridge.Clients.Util;
 using DotNetOpenAuth.AspNet.Clients;
+using DotNetOpenAuth.Messaging;
 
 namespace AuthBridge.Clients
 {
