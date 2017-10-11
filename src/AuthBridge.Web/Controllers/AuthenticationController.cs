@@ -165,7 +165,13 @@ namespace AuthBridge.Web.Controllers
 				return;
 			}
 			var relayState = Request["RelayState"];
+			var relayHashState = Request["RelayHashState"];
 			var returnUrl = string.IsNullOrWhiteSpace(relayState) ? "" : relayState;
+
+			if (!string.IsNullOrEmpty(relayHashState))
+			{
+				HttpContext.Response.Cookies.Add(new HttpCookie("returnHash",relayHashState));
+			}
 
 			var originalUrl = $"?wa=wsignin1.0&wtrealm={Uri.EscapeDataString(scope.Identifier)}&wctx={"ru=" + returnUrl}&whr={Uri.EscapeDataString(protocolIdentifier)}";
 			ProcessResponse(protocolIdentifier, originalUrl);
