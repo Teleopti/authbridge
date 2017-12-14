@@ -74,14 +74,15 @@ namespace AuthBridge.Web.Controllers
             }
 
 			federationContext.IssuerName = issuer.Identifier.ToString();
-	        if (string.IsNullOrEmpty(federationContext.Realm))
+	        var realm = federationContext.Realm;
+	        if (string.IsNullOrEmpty(realm))
 	        {
-                CreateFederationContextFromConfiguration();
+                realm = CreateFederationContextFromConfiguration();
             }
-            var scope = configuration.RetrieveScope(new Uri(federationContext.Realm));
+            var scope = configuration.RetrieveScope(new Uri(realm));
             if (scope == null)
             {
-                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "The scope '{0}' was not found in the configuration", federationContext.Realm));
+                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "The scope '{0}' was not found in the configuration", realm));
             }
 
             handler.ProcessSignInRequest(scope, HttpContext);
@@ -287,13 +288,14 @@ namespace AuthBridge.Web.Controllers
             federationContext.Context = Request.QueryString[WSFederationConstants.Parameters.Context];
         }
 
-        private void CreateFederationContextFromConfiguration()
+        private string CreateFederationContextFromConfiguration()
         {
             var realm = FederatedAuthentication.FederationConfiguration.WsFederationConfiguration.Realm;
             var returnUrl = FederatedAuthentication.FederationConfiguration.WsFederationConfiguration.SignOutReply;
             federationContext.OriginalUrl = FederatedAuthentication.FederationConfiguration.WsFederationConfiguration.Issuer + "?wa=wsignin1.0&wtrealm=" + HttpUtility.UrlEncode(realm)+ "&wctx=ru%3d" + HttpUtility.UrlEncode(returnUrl);
             federationContext.Realm = realm;
             federationContext.Context = "ru%3d" + returnUrl;
+	        return realm;
         }
     }
 
