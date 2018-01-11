@@ -112,7 +112,7 @@ namespace AuthBridge.Protocols.Saml
 
 			if (!VerifyStatus(doc))
 			{
-				ThrowAndLog("The SAML response status was not 'status:Success'");
+				ThrowAndLogWarn("The SAML response status was not 'status:Success'");
 			}
 			Logger.Info("Verified status successfully");
 
