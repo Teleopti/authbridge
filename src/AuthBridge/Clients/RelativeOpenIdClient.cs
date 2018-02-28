@@ -58,17 +58,19 @@ namespace AuthBridge.Clients
 				Logger.Error("Error in discovery modification", ex);
 				throw;
 			}
+
 			try
 			{
 				authenticationRequest.RedirectToProvider();
 			}
-			catch (HttpException ex)
+			catch (HttpException ex) when (ex.ErrorCode == -2147467259)
 			{
 				// ignore remote host closed the connection exception
-				if (ex.ErrorCode == -2147467259)
-					Logger.Warn("remote host closed the connection exception", ex);
-				else
-					throw;
+				Logger.Warn("remote host closed the connection exception", ex);
+			}
+			catch (Exception ex) when (HttpContext.Current.Response.HeadersWritten)
+			{
+				Logger.Error("exception while redirect to provider", ex);
 			}
 		}
 

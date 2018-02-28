@@ -93,8 +93,15 @@ namespace AuthBridge.Protocols.Saml
 				? $"{_identityProviderSSOURL}&SAMLRequest={preparedRequest}&RelayState={returnUrl}"
 				: $"{_identityProviderSSOURL}?SAMLRequest={preparedRequest}&RelayState={returnUrl}";
 
-			httpContext.Response.Redirect(redirectUrl);
-			httpContext.Response.End();
+			try
+			{
+				httpContext.Response.Redirect(redirectUrl);
+				httpContext.Response.End();
+			}
+			catch (Exception ex) when (HttpContext.Current.Response.HeadersWritten)
+			{
+				Logger.Error("exception while redirect to provider", ex);
+			}
 		}
 		
 		public override ClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)

@@ -98,8 +98,15 @@ namespace AuthBridge.Protocols.WSFed
             var redirectUrl = signIn.WriteQueryString();
 			Logger.Info($"RequestAuthentication! redirectUrl: {redirectUrl}");
 
-            httpContext.Response.Redirect(redirectUrl, false);
-			httpContext.ApplicationInstance.CompleteRequest();
+	        try
+	        {
+				httpContext.Response.Redirect(redirectUrl, false);
+		        httpContext.ApplicationInstance.CompleteRequest();
+			}
+	        catch (Exception ex) when (HttpContext.Current.Response.HeadersWritten)
+	        {
+		        Logger.Error("exception while redirect to provider", ex);
+	        }
         }
 
 		private class SimpleIssuerNameRegistry : IssuerNameRegistry

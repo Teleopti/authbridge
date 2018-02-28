@@ -22,27 +22,30 @@ namespace AuthBridge.Clients
 		    _realmUri = realmUri;
 		}
 
-	    public override void RequestAuthentication(HttpContextBase context, Uri returnUrl)
-	    {
-	        var relyingPartyField = typeof (DotNetOpenAuth.AspNet.Clients.OpenIdClient).GetField("RelyingParty",
-	            BindingFlags.Static | BindingFlags.NonPublic);
-	        var providerIdentifierField = typeof (DotNetOpenAuth.AspNet.Clients.OpenIdClient).GetField(
-	            "providerIdentifier", BindingFlags.NonPublic | BindingFlags.Instance);
-	        var relyingParty = (OpenIdRelyingParty)relyingPartyField.GetValue(this);
-            Realm realm = new Realm(_realmUri ?? new Uri(returnUrl.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)));
-            IAuthenticationRequest authenticationRequest = relyingParty.CreateRequest((Identifier) providerIdentifierField.GetValue(this), realm, returnUrl);
-            this.OnBeforeSendingAuthenticationRequest(authenticationRequest);
-		    try
-		    {
+		public override void RequestAuthentication(HttpContextBase context, Uri returnUrl)
+		{
+			var relyingPartyField = typeof(DotNetOpenAuth.AspNet.Clients.OpenIdClient).GetField("RelyingParty",
+				BindingFlags.Static | BindingFlags.NonPublic);
+			var providerIdentifierField = typeof(DotNetOpenAuth.AspNet.Clients.OpenIdClient).GetField(
+				"providerIdentifier", BindingFlags.NonPublic | BindingFlags.Instance);
+			var relyingParty = (OpenIdRelyingParty) relyingPartyField.GetValue(this);
+			Realm realm =
+				new Realm(_realmUri ?? new Uri(returnUrl.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)));
+			IAuthenticationRequest authenticationRequest =
+				relyingParty.CreateRequest((Identifier) providerIdentifierField.GetValue(this), realm, returnUrl);
+			this.OnBeforeSendingAuthenticationRequest(authenticationRequest);
+			try
+			{
 				authenticationRequest.RedirectToProvider();
 			}
-			catch (HttpException ex)
+			catch (HttpException ex) when (ex.ErrorCode == -2147467259)
 			{
 				// ignore remote host closed the connection exception
-				if (ex.ErrorCode == -2147467259)
-					Logger.Warn("remote host closed the connection exception", ex);
-			    else
-				    throw;
+				Logger.Warn("remote host closed the connection exception", ex);
+			}
+			catch (Exception ex) when (HttpContext.Current.Response.HeadersWritten)
+			{
+				Logger.Error("exception while redirect to provider", ex);
 			}
 		}
 
