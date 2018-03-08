@@ -111,7 +111,10 @@ namespace AuthBridge.Protocols.Saml
 			Logger.InfoFormat("SAMLResponse: {0}", response);
 			var doc = new XmlDocument();
 			doc.LoadXml(response);
-			VerifySignatures(doc);
+			if (!VerifySignatures(doc))
+			{
+				ThrowAndLog("The thumbprint doesn't match the white list values.");
+			}
 			Logger.Info("Verified signature successfully");
 
 			if (!VerifyStatus(doc))
@@ -210,40 +213,25 @@ namespace AuthBridge.Protocols.Saml
 			return detail;
 		}
 
-		private void VerifySignatures(XmlDocument xmlDoc)
+		private bool VerifySignatures(XmlDocument xmlDoc)
 		{
-			var isThumbprintCorrect = false;
-			foreach (XmlElement item in xmlDoc.SelectNodes("//*[local-name()='Signature']"))
+			foreach (XmlElement node in xmlDoc.SelectNodes("//*[local-name()='Signature']"))
 			{
-				var node = item;
-				if (node.ParentNode != xmlDoc.DocumentElement)
-				{
-					var doc = new XmlDocument();
-					var parentNode = doc.ImportNode(item.ParentNode, true);
-					doc.AppendChild(parentNode);
-					node = (XmlElement)parentNode.SelectSingleNode("*[local-name()='Signature']");
-				}
-				var signedXml = new SignedXml((XmlElement)node.ParentNode);
+				var doc = new XmlDocument();
+				doc.LoadXml(node.ParentNode.OuterXml);
+
+				var signedXml = new SignedXml(node.ParentNode as XmlElement);
 				signedXml.LoadXml(node);
 				if (!signedXml.CheckSignature())
-				{
-					ThrowAndLogWarn($"Verify {node.ParentNode.Name} signature failed.");
-					return;
-				}
+					return false;
 
 				var x509Data = signedXml.Signature.KeyInfo.OfType<KeyInfoX509Data>().First();
 				var cert = x509Data.Certificates.OfType<X509Certificate2>().First();
 
 				if (cert.Thumbprint != null && cert.Thumbprint.Equals(_signingKeyThumbprint, StringComparison.InvariantCultureIgnoreCase))
-				{
-					isThumbprintCorrect = true;
-				}
+					return true;
 			}
-
-			if (!isThumbprintCorrect)
-			{
-				ThrowAndLog("The thumbprint doesn't match the white list values.");
-			}
+			return false;
 		}
 
 		private static bool VerifyStatus(XmlDocument doc)
