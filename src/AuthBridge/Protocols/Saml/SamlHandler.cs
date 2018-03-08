@@ -222,12 +222,9 @@ namespace AuthBridge.Protocols.Saml
 
 				var signedXml = new SignedXml(node.ParentNode as XmlElement);
 				signedXml.LoadXml(node);
-				if (!signedXml.CheckSignature())
-					return false;
 
 				var x509Data = signedXml.Signature.KeyInfo.OfType<KeyInfoX509Data>().First();
 				var cert = x509Data.Certificates.OfType<X509Certificate2>().First();
-
 				if (cert.Thumbprint != null && cert.Thumbprint.Equals(_signingKeyThumbprint, StringComparison.InvariantCultureIgnoreCase))
 					return true;
 			}
