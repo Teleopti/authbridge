@@ -10,7 +10,8 @@ namespace AuthBridge.Utilities
 
 		public static Uri UrlConsideringLoadBalancerHeaders(this HttpRequestBase request)
 		{
-			var uri = request.Url;
+			var uri = request?.Url;
+			if (uri == null) return null;
 			if (uri.IsTransportSecure()) return uri;
 
 			var headers = request.Headers;
@@ -19,7 +20,8 @@ namespace AuthBridge.Utilities
 
 		public static Uri UrlConsideringLoadBalancerHeaders(this HttpRequest request)
 		{
-			var uri = request.Url;
+			var uri = request?.Url;
+			if (uri == null) return null;
 			if (uri.IsTransportSecure()) return uri;
 
 			var headers = request.Headers;
