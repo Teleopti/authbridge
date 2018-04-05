@@ -35,6 +35,7 @@ namespace AuthBridge.Utilities
 
 		private static Uri considerLoadBalancerHeadersForScheme(NameValueCollection headers, Uri uri)
 		{
+			if (headers == null) return uri;
 			var forwardedProto = headers["X-Forwarded-Proto"];
 			var frontEndHttps = headers["Front-End-Https"];
 			if (SecureScheme.Equals(forwardedProto, StringComparison.OrdinalIgnoreCase) ||
