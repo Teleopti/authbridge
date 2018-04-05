@@ -5,6 +5,7 @@ using System.IdentityModel.Protocols.WSTrust;
 using System.Security.Claims;
 using System.Web;
 using AuthBridge.Clients.Util;
+using AuthBridge.Utilities;
 using log4net;
 
 namespace AuthBridge.SecurityTokenService
@@ -55,7 +56,7 @@ namespace AuthBridge.SecurityTokenService
 	            {
 		            replyTo =
 			            new Uri(
-				            new Uri(HttpContext.Current.Request.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)),
+				            new Uri(HttpContext.Current.Request.UrlConsideringLoadBalancerHeaders().GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)),
 				            new Uri(scopeModel.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped))
 					            .MakeRelativeUri
 					            (

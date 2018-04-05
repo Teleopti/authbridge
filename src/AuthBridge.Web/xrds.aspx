@@ -1,7 +1,9 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="xrds.aspx.cs" Inherits="AuthBridge.Web.xrds" %>
+<%@ Import Namespace="AuthBridge.Utilities" %>
 <%
-	var uri = new Uri(Request.Url, Response.ApplyAppPathModifier("~/response"));
-	var baseuri = new Uri(Request.Url, Response.ApplyAppPathModifier("~/"));
+    var baseUri = Request.UrlConsideringLoadBalancerHeaders();
+    var uri = new Uri(baseUri, Response.ApplyAppPathModifier("~/response"));
+	var baseuri = new Uri(baseUri, Response.ApplyAppPathModifier("~/"));
  %><?xml version="1.0" encoding="UTF-8"?>
 <xrds:XRDS
 	xmlns:xrds="xri://$xrds"

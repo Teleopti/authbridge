@@ -1,4 +1,6 @@
-﻿namespace AuthBridge.Web.Controllers
+﻿using AuthBridge.Utilities;
+
+namespace AuthBridge.Web.Controllers
 {
     using System;
     using System.Web;
@@ -8,7 +10,7 @@
         public static Uri GetRequestUrl(this HttpContextBase context)
         {
             var realHost = context.Request.Headers["HOST"];
-            string url = context.Request.Url.Scheme + "://" + realHost + context.Request.RawUrl;
+            string url = context.Request.UrlConsideringLoadBalancerHeaders().Scheme + "://" + realHost + context.Request.RawUrl;
 
             return new Uri(url);            
         }
@@ -16,7 +18,7 @@
         public static Uri GetRealAppRoot(this HttpContextBase context)
         {
             var realHost = context.Request.Headers["HOST"];
-            var requestUrl = context.Request.Url;
+            var requestUrl = context.Request.UrlConsideringLoadBalancerHeaders();
             Uri appRoot;
 
             if (realHost.Contains(":"))

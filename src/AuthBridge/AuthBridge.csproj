@@ -211,6 +211,7 @@
     <Compile Include="Clients\GoogleOAuthClient.cs" />
     <Compile Include="Protocols\AWFOS\AWFOSHandler.cs" />
     <Compile Include="Protocols\OAuth\GoogleHandler.cs" />
+    <Compile Include="Utilities\UriExtension.cs" />
     <Compile Include="WSFederationConstants.cs" />
     <Compile Include="Clients\AzureAdOAuthClient.cs" />
     <Compile Include="Clients\OpenIdClient.cs" />

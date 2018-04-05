@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Security.Claims;
 using System.Web;
 using AuthBridge.Clients.Util;
+using AuthBridge.Utilities;
 using DotNetOpenAuth.OpenId;
 using DotNetOpenAuth.OpenId.Extensions.AttributeExchange;
 using DotNetOpenAuth.OpenId.RelyingParty;
@@ -47,7 +48,7 @@ namespace AuthBridge.Clients
 				var property = authenticationRequest.DiscoveryResult.GetType().GetProperty("ProviderEndpoint");
 				var providerEndPointUri = (Uri)property.GetValue(authenticationRequest.DiscoveryResult, null);
 
-				var providerEndPointUriRequestMachine = new Uri(new Uri(context.Request.Url.GetComponents(UriComponents.SchemeAndServer,UriFormat.Unescaped)),
+				var providerEndPointUriRequestMachine = new Uri(new Uri(context.Request.UrlConsideringLoadBalancerHeaders().GetComponents(UriComponents.SchemeAndServer,UriFormat.Unescaped)),
 					new Uri(providerEndPointUri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(providerEndPointUri));
 
 				Logger.InfoFormat("Request {0}; userSupplied {1}", request, userSuppliedIdentifier);

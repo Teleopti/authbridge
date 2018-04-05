@@ -6,6 +6,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Web;
 using AuthBridge.Model;
+using AuthBridge.Utilities;
 using DotNetOpenAuth.AspNet;
 using log4net;
 
@@ -21,7 +22,7 @@ namespace AuthBridge.Protocols.OpenID
 
 		public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
 		{
-			var site = new Uri(httpContext.Request.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped));
+			var site = new Uri(httpContext.Request.UrlConsideringLoadBalancerHeaders().GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped));
 			var issuerUrl = new Uri(site,
 				new Uri(Issuer.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(Issuer.Url));
 
@@ -44,7 +45,7 @@ namespace AuthBridge.Protocols.OpenID
 
 		public override ClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
 		{
-			var site = new Uri(httpContext.Request.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped));
+			var site = new Uri(httpContext.Request.UrlConsideringLoadBalancerHeaders().GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped));
 			var issuerUrl = new Uri(site,
 				new Uri(Issuer.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)).MakeRelativeUri(Issuer.Url));
 
