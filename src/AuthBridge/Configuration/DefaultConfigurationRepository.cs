@@ -1,7 +1,6 @@
-﻿using System.Linq;
-
-namespace AuthBridge.Configuration
+﻿namespace AuthBridge.Configuration
 {
+	using System.Linq;
     using System;
     using System.Configuration;
     using Model;
@@ -11,7 +10,6 @@ namespace AuthBridge.Configuration
 
     public class DefaultConfigurationRepository : IConfigurationRepository
     {
-
 		public static readonly DefaultConfigurationRepository Instance = new DefaultConfigurationRepository();
 
 	    private DefaultConfigurationRepository()
@@ -81,6 +79,6 @@ namespace AuthBridge.Configuration
 			return configuration.Scopes.OfType<ScopeElement>().FirstOrDefault();
 		}
 
-	    public MultiProtocolIssuer MultiProtocolIssuer { get; private set; }
+	    public MultiProtocolIssuer MultiProtocolIssuer { get; }
     }
 }

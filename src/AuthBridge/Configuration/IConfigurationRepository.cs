@@ -1,7 +1,7 @@
 ﻿namespace AuthBridge.Configuration
 {
     using System;
-    using AuthBridge.Model;
+    using Model;
 
     public interface IConfigurationRepository
     {

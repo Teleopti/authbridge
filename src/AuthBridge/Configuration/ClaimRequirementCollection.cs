@@ -4,12 +4,9 @@
 
     public class ClaimRequirementCollection : ConfigurationElementCollection
     {
-        public ClaimRequirementElement this[int index]
-        {
-            get { return (ClaimRequirementElement)BaseGet(index); }
-        }
+        public ClaimRequirementElement this[int index] => (ClaimRequirementElement)BaseGet(index);
 
-        protected override ConfigurationElement CreateNewElement()
+	    protected override ConfigurationElement CreateNewElement()
         {
             return new ClaimRequirementElement();
         }

@@ -10,3 +10,4 @@ packages
 src/backup/**.*
 src/.vs/config/applicationhost.config
 *.user
+src/.vs/**.*
