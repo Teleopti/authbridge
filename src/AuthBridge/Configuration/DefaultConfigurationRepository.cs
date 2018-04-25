@@ -10,7 +10,7 @@
 
 	public class DefaultConfigurationRepository : IConfigurationRepository
     {
-	    private DefaultConfigurationRepository()
+	    public DefaultConfigurationRepository()
 	    {
 			MultiProtocolIssuer = RetrieveMultiProtocolIssuer();
 	    }
