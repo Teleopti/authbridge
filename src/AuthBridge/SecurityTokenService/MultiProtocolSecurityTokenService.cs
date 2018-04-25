@@ -128,7 +128,7 @@ namespace AuthBridge.SecurityTokenService
                 throw new ArgumentNullException(nameof(appliesTo));
             }
 
-            var scope = this.multiProtocolConfiguration.RetrieveScope(appliesTo.Uri);
+            var scope = this.multiProtocolConfiguration.RetrieveScope(HttpContext.Current.Request.UrlConsideringLoadBalancerHeaders() ,appliesTo.Uri);
             if (scope == null)
             {
                 throw new InvalidRequestException($"The relying party '{appliesTo.Uri.OriginalString}' was not found.");

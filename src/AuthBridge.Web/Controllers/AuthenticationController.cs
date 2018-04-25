@@ -49,7 +49,7 @@ namespace AuthBridge.Web.Controllers
 		public ActionResult HomeRealmDiscovery(string errorMessage = "")
 		{
 			Logger.Info("HomeRealmDiscovery!");
-			var vms = configuration.RetrieveIssuers().Where(x => !x.IdpInitiatedOnly).Select(x => new ProviderViewModel
+			var vms = configuration.RetrieveIssuers(Request.UrlConsideringLoadBalancerHeaders()).Where(x => !x.IdpInitiatedOnly).Select(x => new ProviderViewModel
 			{
 				Identifier = x.Identifier.ToString(),
 				DisplayName = x.DisplayName
@@ -62,7 +62,8 @@ namespace AuthBridge.Web.Controllers
 			Logger.Info("Authenticate!");
             var identifier = new Uri(Request.QueryString[WSFederationConstants.Parameters.HomeRealm]);
 
-            ClaimProvider issuer = configuration.RetrieveIssuer(identifier);
+	        var requestUrl = Request.UrlConsideringLoadBalancerHeaders();
+	        ClaimProvider issuer = configuration.RetrieveIssuer(requestUrl, identifier);
             if (issuer == null)
             {
                 return HomeRealmDiscovery();
@@ -80,7 +81,7 @@ namespace AuthBridge.Web.Controllers
 	        {
                 realm = CreateFederationContextFromConfiguration();
             }
-            var scope = configuration.RetrieveScope(new Uri(realm));
+            var scope = configuration.RetrieveScope(requestUrl, new Uri(realm));
             if (scope == null)
             {
                 throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "The scope '{0}' was not found in the configuration", realm));
@@ -91,9 +92,9 @@ namespace AuthBridge.Web.Controllers
             return new EmptyResult();
         }
 
-	    private void ProcessResponse(string issuerName, string originalUrl)
+	    private void processResponse(Uri host, string issuerName, string originalUrl)
 		{
-			var issuer = configuration.RetrieveIssuer(new Uri(issuerName));
+			var issuer = configuration.RetrieveIssuer(host, new Uri(issuerName));
 		    if (issuer == null)
 				throw new InvalidOperationException("Error: no claim provider configured for " + issuerName);
 			Logger.InfoFormat("ProcessResponse! issuer: {0}", issuer.DisplayName);
@@ -149,7 +150,7 @@ namespace AuthBridge.Web.Controllers
 			Response.Cache.SetExpires(DateTime.Today.AddYears(-10));
 			Response.Cache.SetNoStore();
 
-			ProcessResponse(federationContext.IssuerName, federationContext.OriginalUrl);
+			processResponse(Request.UrlConsideringLoadBalancerHeaders(), federationContext.IssuerName, federationContext.OriginalUrl);
 
 			federationContext.Destroy();
 			HttpContext.ApplicationInstance.CompleteRequest();
@@ -159,7 +160,8 @@ namespace AuthBridge.Web.Controllers
 		{
 			var protocolIdentifier = "urn:" + protocol;
 
-			var scope = configuration.RetrieveDefaultScope();
+			var requestUrl = Request.UrlConsideringLoadBalancerHeaders();
+			var scope = configuration.RetrieveDefaultScope(requestUrl);
 			if (scope == null)
 			{
 				Response.Write(protocol + " IdP initiated failed.");
@@ -176,7 +178,7 @@ namespace AuthBridge.Web.Controllers
 			}
 
 			var originalUrl = $"?wa=wsignin1.0&wtrealm={Uri.EscapeDataString(scope.Identifier)}&wctx={"ru=" + returnUrl}&whr={Uri.EscapeDataString(protocolIdentifier)}";
-			ProcessResponse(protocolIdentifier, originalUrl);
+			processResponse(requestUrl,protocolIdentifier, originalUrl);
 			HttpContext.ApplicationInstance.CompleteRequest();
 		}
 

@@ -1,4 +1,6 @@
-﻿namespace AuthBridge.Configuration
+﻿using Microsoft.Practices.Unity;
+
+namespace AuthBridge.Configuration
 {
 	using System.Linq;
     using System;
@@ -8,16 +10,16 @@
     using System.Security.Cryptography.X509Certificates;
     using System.IO;
 
-    public class DefaultConfigurationRepository : IConfigurationRepository
+	public class DefaultConfigurationRepository : IConfigurationRepository
     {
-		public static readonly DefaultConfigurationRepository Instance = new DefaultConfigurationRepository();
+		public static readonly IConfigurationRepository Instance = ServiceLocator.Container.Value.Resolve<IConfigurationRepository>();
 
 	    private DefaultConfigurationRepository()
 	    {
 			MultiProtocolIssuer = RetrieveMultiProtocolIssuer();
 	    }
 
-	    public ClaimProvider RetrieveIssuer(Uri identifier)
+	    public ClaimProvider RetrieveIssuer(Uri host, Uri identifier)
         {
             var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
             var claimProvider = configuration.ClaimProviders[identifier.ToString()];
@@ -26,7 +28,7 @@
             return issuer;
         }
 
-	    public ClaimProvider[] RetrieveIssuers()
+	    public ClaimProvider[] RetrieveIssuers(Uri host)
 	    {
 			var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
 			var claimProviders = configuration.ClaimProviders.OfType<ClaimProviderElement>().Select(x=>x.ToModel());
@@ -62,7 +64,7 @@
             };
         }
 
-        public Scope RetrieveScope(Uri identifier)
+        public Scope RetrieveScope(Uri host, Uri identifier)
         {
             var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
 
@@ -72,7 +74,7 @@
             return model;
         }
 
-		public ScopeElement RetrieveDefaultScope()
+		public ScopeElement RetrieveDefaultScope(Uri host)
 		{
 			var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
 

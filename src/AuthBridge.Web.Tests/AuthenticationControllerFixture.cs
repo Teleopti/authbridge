@@ -53,12 +53,12 @@ namespace AuthBridge.Web.Tests
             defaultProtocolDiscovery.Setup(s => s.RetrieveProtocolHandler(It.IsAny<ClaimProvider>()))
                 .Returns(() => protocolHandler.Object);
 
-            configuration.Setup(c => c.RetrieveIssuer(It.IsAny<Uri>()))
+            configuration.Setup(c => c.RetrieveIssuer(It.IsAny<Uri>(), It.IsAny<Uri>()))
                 .Returns(() => new ClaimProvider { 
                                     Identifier = new Uri("https://identifier"), 
                                     Url = new Uri("https://url")
                 });
-            configuration.Setup(c => c.RetrieveScope(It.IsAny<Uri>()))
+            configuration.Setup(c => c.RetrieveScope(It.IsAny<Uri>(), It.IsAny<Uri>()))
                 .Returns(() => new Scope
                 {
                     Identifier = new Uri("https://relyingPartyIdentifier"),
