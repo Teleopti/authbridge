@@ -1,6 +1,4 @@
-﻿using Microsoft.Practices.Unity;
-
-namespace AuthBridge.Configuration
+﻿namespace AuthBridge.Configuration
 {
 	using System.Linq;
     using System;
@@ -12,8 +10,6 @@ namespace AuthBridge.Configuration
 
 	public class DefaultConfigurationRepository : IConfigurationRepository
     {
-		public static readonly IConfigurationRepository Instance = ServiceLocator.Container.Value.Resolve<IConfigurationRepository>();
-
 	    private DefaultConfigurationRepository()
 	    {
 			MultiProtocolIssuer = RetrieveMultiProtocolIssuer();

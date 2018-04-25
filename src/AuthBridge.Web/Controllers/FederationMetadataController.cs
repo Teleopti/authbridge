@@ -3,6 +3,7 @@ using System.IdentityModel.Protocols.WSTrust;
 using System.IdentityModel.Tokens;
 using System.Security.Claims;
 using AuthBridge.Protocols.Saml;
+using Microsoft.Practices.Unity;
 
 namespace AuthBridge.Web.Controllers
 {
@@ -19,7 +20,7 @@ namespace AuthBridge.Web.Controllers
         private readonly IConfigurationRepository _configuration;
 
         public FederationMetadataController()
-            : this(DefaultConfigurationRepository.Instance)
+            : this(ServiceLocator.Container.Value.Resolve<IConfigurationRepository>())
         {
         }
 

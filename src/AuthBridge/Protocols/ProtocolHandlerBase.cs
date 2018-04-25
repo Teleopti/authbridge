@@ -3,12 +3,13 @@ using System.Security.Claims;
 using System.Web;
 using AuthBridge.Configuration;
 using AuthBridge.Model;
+using Microsoft.Practices.Unity;
 
 namespace AuthBridge.Protocols
 {
 	public abstract class ProtocolHandlerBase : IProtocolHandler
 	{
-		protected ProtocolHandlerBase(ClaimProvider issuer) : this(issuer, DefaultConfigurationRepository.Instance)
+		protected ProtocolHandlerBase(ClaimProvider issuer) : this(issuer, ServiceLocator.Container.Value.Resolve<IConfigurationRepository>())
 		{
 		}
 

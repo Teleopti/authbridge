@@ -1,5 +1,6 @@
 ﻿using System.IdentityModel.Configuration;
 using System.IdentityModel.Tokens;
+using Microsoft.Practices.Unity;
 
 namespace AuthBridge.SecurityTokenService
 {
@@ -19,7 +20,7 @@ namespace AuthBridge.SecurityTokenService
         }                    
 
         public MultiProtocolSecurityTokenServiceConfiguration()
-            : this(DefaultConfigurationRepository.Instance)
+            : this(ServiceLocator.Container.Value.Resolve<IConfigurationRepository>())
         {
             this.SigningCredentials = new X509SigningCredentials(this.serviceProperties.SigningCertificate);
             this.TokenIssuerName = this.serviceProperties.Identifier.ToString();

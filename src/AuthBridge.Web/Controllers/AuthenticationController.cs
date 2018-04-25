@@ -7,6 +7,7 @@ using System.Web;
 using AuthBridge.Clients.Util;
 using AuthBridge.Utilities;
 using log4net;
+using Microsoft.Practices.Unity;
 
 namespace AuthBridge.Web.Controllers
 {
@@ -34,7 +35,7 @@ namespace AuthBridge.Web.Controllers
         private readonly MultiProtocolIssuer multiProtocolServiceProperties;
 
         public AuthenticationController()
-			: this(DefaultProtocolDiscovery.Instance, new FederationContext(), DefaultConfigurationRepository.Instance)
+			: this(DefaultProtocolDiscovery.Instance, new FederationContext(), ServiceLocator.Container.Value.Resolve<IConfigurationRepository>())
         {
         }
 

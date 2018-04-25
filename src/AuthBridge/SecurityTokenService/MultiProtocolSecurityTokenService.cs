@@ -7,6 +7,7 @@ using System.Web;
 using AuthBridge.Clients.Util;
 using AuthBridge.Utilities;
 using log4net;
+using Microsoft.Practices.Unity;
 
 namespace AuthBridge.SecurityTokenService
 {
@@ -26,7 +27,7 @@ namespace AuthBridge.SecurityTokenService
         private Model.Scope scopeModel;
 
         public MultiProtocolSecurityTokenService(SecurityTokenServiceConfiguration configuration)
-            : this(configuration, DefaultConfigurationRepository.Instance)
+            : this(configuration, ServiceLocator.Container.Value.Resolve<IConfigurationRepository>())
         {
         }
 
