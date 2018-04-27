@@ -178,7 +178,7 @@ namespace AuthBridge.Web.Controllers
 				HttpContext.Response.Cookies.Add(new HttpCookie("returnHash",relayHashState));
 			}
 
-			var originalUrl = $"?wa=wsignin1.0&wtrealm={Uri.EscapeDataString(scope.Identifier)}&wctx={"ru=" + returnUrl}&whr={Uri.EscapeDataString(protocolIdentifier)}";
+			var originalUrl = $"?wa=wsignin1.0&wtrealm={Uri.EscapeDataString(scope.Identifier.OriginalString)}&wctx={"ru=" + returnUrl}&whr={Uri.EscapeDataString(protocolIdentifier)}";
 			processResponse(requestUrl,protocolIdentifier, originalUrl);
 			HttpContext.ApplicationInstance.CompleteRequest();
 		}
@@ -195,7 +195,7 @@ namespace AuthBridge.Web.Controllers
                         var requestMessage = (SignInRequestMessage)WSFederationMessage.CreateFromUri(Request.UrlConsideringLoadBalancerHeaders());
                             
 							
-                        if (User != null && User.Identity != null && User.Identity.IsAuthenticated)
+                        if (User?.Identity != null && User.Identity.IsAuthenticated)
                         {
 	                        try
 	                        {
@@ -203,7 +203,7 @@ namespace AuthBridge.Web.Controllers
 								if (Logger.IsInfoEnabled)
 								{
 									var user = User.Identity as ClaimsIdentity;
-									if (user != null && user.Claims != null)
+									if (user?.Claims != null)
 									{
 										foreach (var claim in user.Claims)
 										{

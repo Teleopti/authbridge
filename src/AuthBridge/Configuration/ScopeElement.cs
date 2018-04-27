@@ -5,35 +5,23 @@
     public class ScopeElement : ConfigurationElement
     {
         [ConfigurationProperty("identifier", IsRequired = true)]
-        public string Identifier
-        {
-            get { return (string)this["identifier"]; }
-        }
+        public string Identifier => (string)this["identifier"];
 
-        [ConfigurationProperty("uri", IsRequired = true, IsKey = true)]
-        public string Uri
-        {
-            get { return (string)this["uri"]; }
-        }
+	    [ConfigurationProperty("uri", IsRequired = true, IsKey = true)]
+        public string Uri => (string)this["uri"];
 
-        [ConfigurationProperty("useClaimsPolicyEngine", IsRequired = false, DefaultValue = false)]
-        public bool UseClaimsPolicyEngine
-        {
-            get { return (bool)this["useClaimsPolicyEngine"]; }
-        }
+	    [ConfigurationProperty("useClaimsPolicyEngine", IsRequired = false, DefaultValue = false)]
+        public bool UseClaimsPolicyEngine => (bool)this["useClaimsPolicyEngine"];
 
-        [ConfigurationProperty("claimRequirements", IsDefaultCollection = false)]
+	    [ConfigurationProperty("useRelativeUri", IsRequired = false, DefaultValue = true)]
+	    public bool UseRelativeUri => (bool)this["useRelativeUri"];
+
+		[ConfigurationProperty("claimRequirements", IsDefaultCollection = false)]
         [ConfigurationCollection(typeof(ClaimRequirementCollection))]
-        public ClaimRequirementCollection ClaimRequirements
-        {
-            get { return (ClaimRequirementCollection)base["claimRequirements"]; }
-        }
+        public ClaimRequirementCollection ClaimRequirements => (ClaimRequirementCollection)base["claimRequirements"];
 
-        [ConfigurationProperty("allowedClaimProviders", IsDefaultCollection = false)]
+	    [ConfigurationProperty("allowedClaimProviders", IsDefaultCollection = false)]
         [ConfigurationCollection(typeof(AllowedClaimProviderCollection))]
-        public AllowedClaimProviderCollection Issuers
-        {
-            get { return (AllowedClaimProviderCollection)base["allowedClaimProviders"]; }
-        }
+        public AllowedClaimProviderCollection Issuers => (AllowedClaimProviderCollection)base["allowedClaimProviders"];
     }
 }

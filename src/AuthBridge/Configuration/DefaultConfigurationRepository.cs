@@ -70,11 +70,11 @@
             return model;
         }
 
-		public ScopeElement RetrieveDefaultScope(Uri host)
+		public Scope RetrieveDefaultScope(Uri host)
 		{
 			var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
 
-			return configuration.Scopes.OfType<ScopeElement>().FirstOrDefault();
+			return configuration.Scopes.OfType<ScopeElement>().FirstOrDefault().ToModel();
 		}
 
 	    public MultiProtocolIssuer MultiProtocolIssuer { get; }

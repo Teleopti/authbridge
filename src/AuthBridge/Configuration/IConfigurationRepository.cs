@@ -12,6 +12,6 @@
 
 	    MultiProtocolIssuer MultiProtocolIssuer { get; }
 
-	    ScopeElement RetrieveDefaultScope(Uri host);
+	    Scope RetrieveDefaultScope(Uri host);
     }
 }

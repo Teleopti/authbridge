@@ -66,7 +66,7 @@ namespace AuthBridge.Model
             var scope = new Scope
             {
                 Identifier = new Uri(scopeElement.Identifier),
-                Url = scopeElement.Uri.ReplaceWithLocalhostWhenRelative(),
+                Url = scopeElement.UseRelativeUri ? scopeElement.Uri.ReplaceWithLocalhostWhenRelative() : new Uri(scopeElement.Uri),
                 UseClaimsPolicyEngine = scopeElement.UseClaimsPolicyEngine
             };
 
