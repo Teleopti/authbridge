@@ -24,6 +24,7 @@ namespace AuthBridge.Web
 
         protected void Application_Start()
         {
+            MvcHandler.DisableMvcResponseHeader = true;
             RegisterRoutes(RouteTable.Routes);
 			
 			FederatedAuthentication.FederationConfigurationCreated += (sender, e) =>
