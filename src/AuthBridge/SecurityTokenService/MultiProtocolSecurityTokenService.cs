@@ -1,10 +1,8 @@
-﻿using System.Configuration;
-using System.IdentityModel;
+﻿using System.IdentityModel;
 using System.IdentityModel.Configuration;
 using System.IdentityModel.Protocols.WSTrust;
 using System.Security.Claims;
 using System.Web;
-using AuthBridge.Clients.Util;
 using AuthBridge.Utilities;
 using log4net;
 using Microsoft.Practices.Unity;
@@ -22,8 +20,9 @@ namespace AuthBridge.SecurityTokenService
     public class MultiProtocolSecurityTokenService : System.IdentityModel.SecurityTokenService
     {
 	    private static readonly ILog Logger = LogManager.GetLogger(typeof (MultiProtocolSecurityTokenService));
+
         private readonly IConfigurationRepository multiProtocolConfiguration;
-        
+
         private Model.Scope scopeModel;
 
         public MultiProtocolSecurityTokenService(SecurityTokenServiceConfiguration configuration)
@@ -39,12 +38,11 @@ namespace AuthBridge.SecurityTokenService
 
         protected override Scope GetScope(ClaimsPrincipal principal, RequestSecurityToken request)
         {
-			
-            this.scopeModel = this.ValidateAppliesTo(new EndpointAddress(request.AppliesTo.Uri));
+            scopeModel = ValidateAppliesTo(new EndpointAddress(request.AppliesTo.Uri));
 
-            var scope = new Scope(request.AppliesTo.Uri.OriginalString, SecurityTokenServiceConfiguration.SigningCredentials);
-            scope.TokenEncryptionRequired = false;
-			
+            var scope = new Scope(request.AppliesTo.Uri.OriginalString,
+                SecurityTokenServiceConfiguration.SigningCredentials) {TokenEncryptionRequired = false};
+
             string replyTo;
             if (!string.IsNullOrEmpty(request.ReplyTo))
 			{
@@ -53,7 +51,7 @@ namespace AuthBridge.SecurityTokenService
             else if (scopeModel.Url != null)
 			{
 				replyTo = scopeModel.Url.ToString();
-	            if (ConfigurationManager.AppSettings.GetBoolSetting("UseRelativeConfiguration"))
+	            if (scopeModel.UseRelativeUri)
 	            {
 		            replyTo =
 			            new Uri(
@@ -129,7 +127,7 @@ namespace AuthBridge.SecurityTokenService
                 throw new ArgumentNullException(nameof(appliesTo));
             }
 
-            var scope = this.multiProtocolConfiguration.RetrieveScope(HttpContext.Current.Request.UrlConsideringLoadBalancerHeaders() ,appliesTo.Uri);
+            var scope = multiProtocolConfiguration.RetrieveScope(HttpContext.Current.Request.UrlConsideringLoadBalancerHeaders() ,appliesTo.Uri);
             if (scope == null)
             {
                 throw new InvalidRequestException($"The relying party '{appliesTo.Uri.OriginalString}' was not found.");

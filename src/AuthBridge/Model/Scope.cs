@@ -9,6 +9,8 @@
         
         public Uri Url { get; set; }
 
+        public bool UseRelativeUri { get; set; }
+
         public IEnumerable<ClaimTypeRequirement> ClaimTypeRequirements { get; set; }
 
         public IEnumerable<ClaimProvider> AllowedIssuers { get; set; }
