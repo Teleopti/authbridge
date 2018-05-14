@@ -40,13 +40,13 @@ namespace AuthBridge.Protocols.Saml
 			{
 				_signingKeyThumbprint = issuer.Parameters["signingKeyThumbprint"];
 				_identityProviderSSOURL = issuer.Parameters["identityProviderSSOURL"];
-				_audienceRestriction = issuer.Parameters["audienceRestriction"];
-				_requestedAuthnContextComparisonMethod = issuer.Parameters["requestedAuthnContextComparisonMethod"];
-				var authnContextClassRefs = issuer.Parameters["authnContextClassRefs"];
-				_authnContextClassRefs = !string.IsNullOrWhiteSpace(authnContextClassRefs)
-					? authnContextClassRefs.Split(',').ToList()
-					: new List<string>();
 			}
+			_audienceRestriction = issuer.Parameters["audienceRestriction"];
+			_requestedAuthnContextComparisonMethod = issuer.Parameters["requestedAuthnContextComparisonMethod"];
+			var authnContextClassRefs = issuer.Parameters["authnContextClassRefs"];
+			_authnContextClassRefs = !string.IsNullOrWhiteSpace(authnContextClassRefs)
+				? authnContextClassRefs.Split(',').ToList()
+				: new List<string>();
 		}
 
 		private void ParseMetadata(ClaimProvider issuer)
