@@ -11,3 +11,5 @@ src/backup/**.*
 src/.vs/config/applicationhost.config
 *.user
 src/.vs/**.*
+src/.idea/
+src/.vs/
