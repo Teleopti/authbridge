@@ -20,7 +20,7 @@ namespace AuthBridge.Protocols.Saml
 {
 	public class SamlHandler : ProtocolHandlerBase
 	{
-		private string _signingKeyThumbprint;
+		private string[] _signingKeyThumbprint;
 		private readonly string _issuer;
 		private string _identityProviderSSOURL;
 		private readonly string _audienceRestriction;
@@ -38,7 +38,7 @@ namespace AuthBridge.Protocols.Saml
 			}
 			else
 			{
-				_signingKeyThumbprint = issuer.Parameters["signingKeyThumbprint"];
+				_signingKeyThumbprint = new[] {issuer.Parameters["signingKeyThumbprint"].ToLowerInvariant()};
 				_identityProviderSSOURL = issuer.Parameters["identityProviderSSOURL"];
 			}
 			_audienceRestriction = issuer.Parameters["audienceRestriction"];
@@ -70,18 +70,19 @@ namespace AuthBridge.Protocols.Saml
 				ssod.SingleSignOnServices.Single(
 					x => x.Binding.ToString() == "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect").Location.ToString();
 			Logger.Info($"_identityProviderSSOURL: {_identityProviderSSOURL}");
-			_signingKeyThumbprint = GetSigningKeyThumbprint(ssod);
-			Logger.Info($"first signing key thumbprint: {_signingKeyThumbprint}");
+			_signingKeyThumbprint = GetSigningKeyThumbprint(ssod).ToArray();
+			if(Logger.IsInfoEnabled)
+				Logger.Info($"signing key thumbprints: {string.Join(", ", _signingKeyThumbprint)}");
 		}
 
-		private static string GetSigningKeyThumbprint(RoleDescriptor ssod)
+		private static IEnumerable<string> GetSigningKeyThumbprint(RoleDescriptor ssod)
 		{
 			var x509DataClauses = ssod.Keys.Where(key => key.KeyInfo != null && key.Use == KeyType.Signing)
 				.Select(key => key.KeyInfo.OfType<X509RawDataKeyIdentifierClause>().First());
 			var tokens = new List<X509SecurityToken>();
 			tokens.AddRange(x509DataClauses.Select(token => new X509SecurityToken(new X509Certificate2(token.GetX509RawData()))));
 			Logger.Info($"Get signing keys: {tokens.Count}");
-			return tokens.First().Certificate.Thumbprint;
+			return tokens.Select(x => x.Certificate.Thumbprint.ToLowerInvariant());
 		}
 
 		public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
@@ -225,7 +226,7 @@ namespace AuthBridge.Protocols.Saml
 
 				var x509Data = signedXml.Signature.KeyInfo.OfType<KeyInfoX509Data>().First();
 				var cert = x509Data.Certificates.OfType<X509Certificate2>().First();
-				if (cert.Thumbprint != null && cert.Thumbprint.Equals(_signingKeyThumbprint, StringComparison.InvariantCultureIgnoreCase))
+				if (cert.Thumbprint != null && Array.IndexOf(_signingKeyThumbprint, cert.Thumbprint.ToLowerInvariant()) > -1)
 					return true;
 			}
 			return false;
