@@ -48,6 +48,11 @@ namespace AuthBridge.Web.Services
                     };
                     HttpContext.Current.Response.Cookies.Add(cookie);
                 }
+                else
+                {
+                    cookie.HttpOnly = true;
+                    cookie.Secure = HttpContext.Current.Request.UrlConsideringLoadBalancerHeaders().IsTransportSecure();
+                }
 
                 return cookie;
             }
