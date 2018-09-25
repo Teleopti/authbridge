@@ -1,5 +1,6 @@
 ﻿<%@ Page Language="C#" MasterPageFile="~/Views/Shared/Site.Master" Inherits="System.Web.Mvc.ViewPage<System.Web.Mvc.HandleErrorInfo>" %>
 <%@ Import Namespace="AuthBridge.Web.Controllers" %>
+<%@ Import Namespace="AuthBridge.Utilities" %>
 
 
 <script runat="server">
@@ -29,7 +30,7 @@
     {
         if (Request.Cookies["FederationContext"] != null)
         {
-            var myCookie = new HttpCookie("FederationContext") {Expires = DateTime.Now.AddDays(-1d)};
+            var myCookie = new HttpCookie("FederationContext") {Expires = DateTime.Now.AddDays(-1d), HttpOnly = true, Secure = Request.UrlConsideringLoadBalancerHeaders().IsTransportSecure()};
             Response.Cookies.Add(myCookie);
         }
     }

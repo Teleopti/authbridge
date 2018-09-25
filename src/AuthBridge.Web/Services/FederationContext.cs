@@ -11,27 +11,27 @@ namespace AuthBridge.Web.Services
 
         public string Realm
         {
-            get => HttpUtility.UrlDecode(GetValue("wtrealm"));
-            set => SetValue("wtrealm", HttpUtility.UrlEncode(value));
+            get { return HttpUtility.UrlDecode(GetValue("wtrealm")); }
+            set { SetValue("wtrealm", HttpUtility.UrlEncode(value)); }
         }
 
         public string OriginalUrl
         {
-            get => HttpUtility.UrlDecode(this.GetValue("originalUrl"));
-            set => SetValue("originalUrl", HttpUtility.UrlEncode(value));
+            get { return HttpUtility.UrlDecode(this.GetValue("originalUrl")); }
+            set { SetValue("originalUrl", HttpUtility.UrlEncode(value)); }
         }
 
         public string IssuerName
         {
-            get => GetValue("issuerName");
-            set => SetValue("issuerName", value);
+            get { return GetValue("issuerName"); }
+            set { SetValue("issuerName", value); }
         }
 
-	    public string Context
-	    {
-			get => GetValue("wctx");
-	        set => SetValue("wctx", value);
-	    }
+        public string Context
+        {
+            get { return GetValue("wctx"); }
+            set { SetValue("wctx", value); }
+        }
 
         private static HttpCookie FederationCookie
         {
