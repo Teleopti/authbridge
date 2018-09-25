@@ -1,4 +1,6 @@
-﻿namespace AuthBridge.Web.Services
+﻿using AuthBridge.Utilities;
+
+namespace AuthBridge.Web.Services
 {
     using System.Web;
     using System;
@@ -9,26 +11,26 @@
 
         public string Realm
         {
-            get { return HttpUtility.UrlDecode(this.GetValue("wtrealm")); }
-            set { this.SetValue("wtrealm", HttpUtility.UrlEncode(value)); }
+            get => HttpUtility.UrlDecode(GetValue("wtrealm"));
+            set => SetValue("wtrealm", HttpUtility.UrlEncode(value));
         }
 
         public string OriginalUrl
         {
-            get { return HttpUtility.UrlDecode(this.GetValue("originalUrl")); }
-            set { this.SetValue("originalUrl", HttpUtility.UrlEncode(value)); }
+            get => HttpUtility.UrlDecode(this.GetValue("originalUrl"));
+            set => SetValue("originalUrl", HttpUtility.UrlEncode(value));
         }
 
         public string IssuerName
         {
-            get { return this.GetValue("issuerName"); }
-            set { this.SetValue("issuerName", value); }
+            get => GetValue("issuerName");
+            set => SetValue("issuerName", value);
         }
 
 	    public string Context
 	    {
-			get { return this.GetValue("wctx"); }
-			set { this.SetValue("wctx", value); }
+			get => GetValue("wctx");
+	        set => SetValue("wctx", value);
 	    }
 
         private static HttpCookie FederationCookie
@@ -39,7 +41,11 @@
 
                 if (cookie == null)
                 {
-                    cookie = new HttpCookie("FederationContext") {HttpOnly = true};
+                    cookie = new HttpCookie("FederationContext")
+                    {
+                        HttpOnly = true,
+                        Secure = HttpContext.Current.Request.UrlConsideringLoadBalancerHeaders().IsTransportSecure()
+                    };
                     HttpContext.Current.Response.Cookies.Add(cookie);
                 }
 
