@@ -112,10 +112,7 @@ namespace AuthBridge.Protocols.Saml
 			Logger.InfoFormat("SAMLResponse: {0}", response);
 			var doc = new XmlDocument();
 			doc.LoadXml(response);
-			if (!VerifySignatures(doc))
-			{
-				ThrowAndLog("The thumbprint doesn't match the white list values.");
-			}
+			VerifySignatures(doc);
 			Logger.Info("Verified signature successfully");
 
 			if (!VerifyStatus(doc))
@@ -214,22 +211,39 @@ namespace AuthBridge.Protocols.Saml
 			return detail;
 		}
 
-		private bool VerifySignatures(XmlDocument xmlDoc)
+		private void VerifySignatures(XmlDocument xmlDoc)
 		{
-			foreach (XmlElement node in xmlDoc.SelectNodes("//*[local-name()='Signature']"))
+			var isThumbprintCorrect = false;
+			foreach (XmlElement item in xmlDoc.SelectNodes("//*[local-name()='Signature']"))
 			{
-				var doc = new XmlDocument();
-				doc.LoadXml(node.ParentNode.OuterXml);
-
-				var signedXml = new SignedXml(node.ParentNode as XmlElement);
+				var node = item;
+				if (node.ParentNode != xmlDoc.DocumentElement)
+				{
+					var doc = new XmlDocument();
+					var parentNode = doc.ImportNode(item.ParentNode, true);
+					doc.AppendChild(parentNode);
+					node = (XmlElement)parentNode.SelectSingleNode("*[local-name()='Signature']");
+				}
+				var signedXml = new SignedXml((XmlElement)node.ParentNode);
 				signedXml.LoadXml(node);
+				if (!signedXml.CheckSignature())
+				{
+					ThrowAndLogWarn($"Verify {node.ParentNode.Name} signature failed.");
+					return;
+				}
 
 				var x509Data = signedXml.Signature.KeyInfo.OfType<KeyInfoX509Data>().First();
 				var cert = x509Data.Certificates.OfType<X509Certificate2>().First();
 				if (cert.Thumbprint != null && Array.IndexOf(_signingKeyThumbprint, cert.Thumbprint.ToLowerInvariant()) > -1)
-					return true;
+				{
+					isThumbprintCorrect = true;
+				}
 			}
-			return false;
+
+			if (!isThumbprintCorrect)
+			{
+				ThrowAndLog("The thumbprint doesn't match the white list values.");
+			}
 		}
 
 		private static bool VerifyStatus(XmlDocument doc)
