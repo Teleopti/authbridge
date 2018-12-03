@@ -111,7 +111,7 @@ namespace AuthBridge.Protocols.Saml
 			Logger.Info("ProcessSignInResponse");
 			var response = Encoding.UTF8.GetString(Convert.FromBase64String(httpContext.Request.Form["SAMLResponse"]));
 			Logger.InfoFormat("SAMLResponse: {0}", response);
-			var doc = new XmlDocument();
+			var doc = new XmlDocument {PreserveWhitespace = true};
 			doc.LoadXml(response);
 			VerifySignatures(doc);
 			Logger.Info("Verified signature successfully");
@@ -212,7 +212,7 @@ namespace AuthBridge.Protocols.Saml
 			return detail;
 		}
 
-		public void VerifySignatures(XmlDocument xmlDoc)
+		private void VerifySignatures(XmlDocument xmlDoc)
 		{
 			var isThumbprintCorrect = false;
 			foreach (XmlElement item in xmlDoc.SelectNodes("//*[local-name()='Signature']"))
