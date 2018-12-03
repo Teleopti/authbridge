@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IdentityModel.Metadata;
 using System.IdentityModel.Tokens;
 using System.Linq;
@@ -211,7 +212,7 @@ namespace AuthBridge.Protocols.Saml
 			return detail;
 		}
 
-		private void VerifySignatures(XmlDocument xmlDoc)
+		public void VerifySignatures(XmlDocument xmlDoc)
 		{
 			var isThumbprintCorrect = false;
 			foreach (XmlElement item in xmlDoc.SelectNodes("//*[local-name()='Signature']"))
@@ -224,14 +225,10 @@ namespace AuthBridge.Protocols.Saml
 					doc.AppendChild(parentNode);
 					node = (XmlElement)parentNode.SelectSingleNode("*[local-name()='Signature']");
 				}
+
 				var signedXml = new SignedXml((XmlElement)node.ParentNode);
 				signedXml.LoadXml(node);
-				if (!signedXml.CheckSignature())
-				{
-					ThrowAndLogWarn($"Verify {node.ParentNode.Name} signature failed.");
-					return;
-				}
-
+				CheckSignature(signedXml, node);
 				var x509Data = signedXml.Signature.KeyInfo.OfType<KeyInfoX509Data>().First();
 				var cert = x509Data.Certificates.OfType<X509Certificate2>().First();
 				if (cert.Thumbprint != null && Array.IndexOf(_signingKeyThumbprint, cert.Thumbprint.ToLowerInvariant()) > -1)
@@ -243,6 +240,17 @@ namespace AuthBridge.Protocols.Saml
 			if (!isThumbprintCorrect)
 			{
 				ThrowAndLog("The thumbprint doesn't match the white list values.");
+			}
+		}
+
+		public static void CheckSignature(SignedXml signedXml, XmlElement node)
+		{
+			if ((ConfigurationManager.AppSettings["checkSignature"] ?? "false").Trim().ToLower() == "true")
+			{
+				if (!signedXml.CheckSignature())
+				{
+					ThrowAndLogWarn($"Verify {node.ParentNode.Name} signature failed.");
+				}
 			}
 		}
 
