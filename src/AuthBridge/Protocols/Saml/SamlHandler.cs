@@ -94,7 +94,6 @@ namespace AuthBridge.Protocols.Saml
 			var redirectUrl = _identityProviderSSOURL.Contains("?")
 				? $"{_identityProviderSSOURL}&SAMLRequest={preparedRequest}&RelayState={returnUrl}"
 				: $"{_identityProviderSSOURL}?SAMLRequest={preparedRequest}&RelayState={returnUrl}";
-
 			try
 			{
 				httpContext.Response.Redirect(redirectUrl);
