@@ -25,7 +25,7 @@ namespace AuthBridge.Protocols.Saml
 		private readonly string _issuer;
 		private string _identityProviderSSOURL;
 		private readonly string _audienceRestriction;
-		private bool _wantAuthnRequestsSigned;
+		public bool WantAuthnRequestsSigned { get; private set; }
 		private readonly string _requestedAuthnContextComparisonMethod;
 		private readonly List<string> _authnContextClassRefs;
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(SamlHandler));
@@ -42,7 +42,7 @@ namespace AuthBridge.Protocols.Saml
 			{
 				_signingKeyThumbprint = new[] {issuer.Parameters["signingKeyThumbprint"].ToLowerInvariant()};
 				_identityProviderSSOURL = issuer.Parameters["identityProviderSSOURL"];
-                _wantAuthnRequestsSigned = (issuer.Parameters["wantAuthnRequestsSigned"] == "true");
+                WantAuthnRequestsSigned = (issuer.Parameters["wantAuthnRequestsSigned"] == "true");
 			}
 			_audienceRestriction = issuer.Parameters["audienceRestriction"];
 			_requestedAuthnContextComparisonMethod = issuer.Parameters["requestedAuthnContextComparisonMethod"];
@@ -62,7 +62,7 @@ namespace AuthBridge.Protocols.Saml
 			var entityDescriptor = (EntityDescriptor) metadata;
 			
 			var idpsso = entityDescriptor.RoleDescriptors.OfType<IdentityProviderSingleSignOnDescriptor>().First();
-            _wantAuthnRequestsSigned = idpsso.WantAuthenticationRequestsSigned;
+            WantAuthnRequestsSigned = idpsso.WantAuthenticationRequestsSigned;
 
             if (idpsso == null)
 			{
@@ -91,7 +91,7 @@ namespace AuthBridge.Protocols.Saml
 		public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
 		{
 			var samlRequest = new AuthRequest(MultiProtocolIssuer.ReplyUrl.ToString(), _issuer, _audienceRestriction, _requestedAuthnContextComparisonMethod, _authnContextClassRefs, _identityProviderSSOURL);
-			var preparedRequest = samlRequest.GetRequest(AuthRequest.AuthRequestFormat.Base64 | AuthRequest.AuthRequestFormat.Compressed | AuthRequest.AuthRequestFormat.UrlEncode, _wantAuthnRequestsSigned? MultiProtocolIssuer.SigningCertificate : null);
+			var preparedRequest = samlRequest.GetRequest(AuthRequest.AuthRequestFormat.Base64 | AuthRequest.AuthRequestFormat.Compressed | AuthRequest.AuthRequestFormat.UrlEncode, WantAuthnRequestsSigned? MultiProtocolIssuer.SigningCertificate : null);
 			var returnUrl = GetReturnUrlQueryParameterFromUrl(httpContext.Request.UrlConsideringLoadBalancerHeaders().AbsoluteUri);
 			var redirectUrl = _identityProviderSSOURL.Contains("?")
 				? $"{_identityProviderSSOURL}&SAMLRequest={preparedRequest}&RelayState={returnUrl}"

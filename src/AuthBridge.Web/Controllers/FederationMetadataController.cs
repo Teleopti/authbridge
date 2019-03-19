@@ -3,6 +3,7 @@ using System.IdentityModel.Protocols.WSTrust;
 using System.IdentityModel.Tokens;
 using System.Security.Claims;
 using AuthBridge.Protocols.Saml;
+using AuthBridge.Web.Services;
 using Microsoft.Practices.Unity;
 
 namespace AuthBridge.Web.Controllers
@@ -52,7 +53,7 @@ namespace AuthBridge.Web.Controllers
             var entity = new EntityDescriptor(new EntityId(realm.Uri.AbsoluteUri));
             var securityTokenServiceDescriptor = CreateSecurityTokenServiceDescriptor(credentials, passiveEndpoint);
 	        var applicationServiceDescriptor = CreateApplicationServiceDescriptor();
-	        var serviceProviderSingleSignOnDescriptor = CreateServiceProviderSingleSignOnDescriptor();
+	        var serviceProviderSingleSignOnDescriptor = CreateServiceProviderSingleSignOnDescriptor(credentials);
 
 	        entity.RoleDescriptors.Add(securityTokenServiceDescriptor);
 	        entity.RoleDescriptors.Add(applicationServiceDescriptor);
@@ -69,7 +70,8 @@ namespace AuthBridge.Web.Controllers
             return stream.ToArray();
         }
 
-	    private ServiceProviderSingleSignOnDescriptor CreateServiceProviderSingleSignOnDescriptor()
+	    private ServiceProviderSingleSignOnDescriptor CreateServiceProviderSingleSignOnDescriptor(
+            X509SigningCredentials credentials)
 	    {
 		    var indexedProtocolEndpointDictionary = new IndexedProtocolEndpointDictionary();
 		    var indexedProtocolEndpoint = new IndexedProtocolEndpoint(0,
@@ -79,8 +81,19 @@ namespace AuthBridge.Web.Controllers
 		    var serviceProviderSingleSignOnDescriptor = new ServiceProviderSingleSignOnDescriptor(indexedProtocolEndpointDictionary);
 			serviceProviderSingleSignOnDescriptor.ProtocolsSupported.Add(new Uri(Saml2Constants.Protocol));
 		    serviceProviderSingleSignOnDescriptor.WantAssertionsSigned = true;
-		    serviceProviderSingleSignOnDescriptor.AuthenticationRequestsSigned = false;
-			return serviceProviderSingleSignOnDescriptor;
+		    var samlConfiguration = _configuration.RetrieveIssuer(new Uri("urn:Saml"));
+		    if (samlConfiguration != null && ((SamlHandler) DefaultProtocolDiscovery.Instance.RetrieveProtocolHandler(samlConfiguration)).WantAuthnRequestsSigned)
+		    {
+			    serviceProviderSingleSignOnDescriptor.AuthenticationRequestsSigned = true;
+			    var signingKey = new KeyDescriptor(credentials.SigningKeyIdentifier) { Use = KeyType.Signing };
+			    serviceProviderSingleSignOnDescriptor.Keys.Add(signingKey);
+		    }
+		    else
+		    {
+			    serviceProviderSingleSignOnDescriptor.AuthenticationRequestsSigned = false;
+		    }
+		    
+            return serviceProviderSingleSignOnDescriptor;
 	    }
 
 	    private ApplicationServiceDescriptor CreateApplicationServiceDescriptor()
