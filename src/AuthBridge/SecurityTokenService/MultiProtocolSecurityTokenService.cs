@@ -40,8 +40,7 @@ namespace AuthBridge.SecurityTokenService
         {
             scopeModel = ValidateAppliesTo(new EndpointAddress(request.AppliesTo.Uri));
 
-            var scope = new Scope(request.AppliesTo.Uri.OriginalString,
-                SecurityTokenServiceConfiguration.SigningCredentials) {TokenEncryptionRequired = false};
+            var scope = new Scope(request.AppliesTo.Uri.OriginalString, SecurityTokenServiceConfiguration.SigningCredentials) {TokenEncryptionRequired = false};
 
             string replyTo;
             if (!string.IsNullOrEmpty(request.ReplyTo))
@@ -127,7 +126,7 @@ namespace AuthBridge.SecurityTokenService
                 throw new ArgumentNullException(nameof(appliesTo));
             }
 
-            var scope = multiProtocolConfiguration.RetrieveScope(HttpContext.Current.Request.UrlConsideringLoadBalancerHeaders() ,appliesTo.Uri);
+            var scope = multiProtocolConfiguration.RetrieveScope(appliesTo.Uri);
             if (scope == null)
             {
                 throw new InvalidRequestException($"The relying party '{appliesTo.Uri.OriginalString}' was not found.");

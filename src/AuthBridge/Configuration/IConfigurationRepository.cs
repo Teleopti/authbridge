@@ -5,13 +5,13 @@
 
     public interface IConfigurationRepository
     {
-	    ClaimProvider RetrieveIssuer(Uri host, Uri identifier);
-        ClaimProvider[] RetrieveIssuers(Uri host);
+	    ClaimProvider RetrieveIssuer(Uri identifier);
+        ClaimProvider[] RetrieveIssuers();
 
-        Scope RetrieveScope(Uri host, Uri identifier);
+        Scope RetrieveScope(Uri identifier);
 
 	    MultiProtocolIssuer MultiProtocolIssuer { get; }
 
-	    Scope RetrieveDefaultScope(Uri host);
+	    Scope RetrieveDefaultScope();
     }
 }

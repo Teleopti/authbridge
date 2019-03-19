@@ -15,7 +15,7 @@
 			MultiProtocolIssuer = RetrieveMultiProtocolIssuer();
 	    }
 
-	    public ClaimProvider RetrieveIssuer(Uri host, Uri identifier)
+	    public ClaimProvider RetrieveIssuer(Uri identifier)
         {
             var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
             var claimProvider = configuration.ClaimProviders[identifier.ToString()];
@@ -24,7 +24,7 @@
             return issuer;
         }
 
-	    public ClaimProvider[] RetrieveIssuers(Uri host)
+	    public ClaimProvider[] RetrieveIssuers()
 	    {
 			var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
 			var claimProviders = configuration.ClaimProviders.OfType<ClaimProviderElement>().Select(x=>x.ToModel());
@@ -38,7 +38,7 @@
             if (string.IsNullOrEmpty(configuration.SigningCertificate.FindValue) && string.IsNullOrEmpty(configuration.SigningCertificateFile.PfxFilePath))
                 throw new ConfigurationErrorsException("Specify either a signing certificate in the machine store or point to a PFX in the file system");
 
-            X509Certificate2 cert = null;
+            X509Certificate2 cert;
             if (!string.IsNullOrEmpty(configuration.SigningCertificate.FindValue))
             {
                 cert = CertificateUtil.GetCertificate(
@@ -60,7 +60,7 @@
             };
         }
 
-        public Scope RetrieveScope(Uri host, Uri identifier)
+        public Scope RetrieveScope(Uri identifier)
         {
             var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
 
@@ -70,7 +70,7 @@
             return model;
         }
 
-		public Scope RetrieveDefaultScope(Uri host)
+		public Scope RetrieveDefaultScope()
 		{
 			var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
 

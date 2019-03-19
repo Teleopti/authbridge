@@ -1,39 +1,39 @@
 ﻿using System.IdentityModel.Configuration;
 using System.IdentityModel.Tokens;
 using Microsoft.Practices.Unity;
+using System.Web;
+using AuthBridge.Configuration;
 
 namespace AuthBridge.SecurityTokenService
 {
-    using System.Web;
-
-    using AuthBridge.Configuration;
+    
 
     public class MultiProtocolSecurityTokenServiceConfiguration : SecurityTokenServiceConfiguration
     {
         private const string MultiProtocolSecurityTokenServiceConfigurationKey = "MultiProtocolSecurityTokenServiceConfigurationKey";
         private static readonly object syncRoot = new object();
-        private readonly AuthBridge.Model.MultiProtocolIssuer serviceProperties;
+        private readonly Model.MultiProtocolIssuer serviceProperties;
 
         public MultiProtocolSecurityTokenServiceConfiguration(IConfigurationRepository configurationRepository) : base()
         {
-            this.serviceProperties = configurationRepository.MultiProtocolIssuer;
-        }                    
+            serviceProperties = configurationRepository.MultiProtocolIssuer;
+        }
 
         public MultiProtocolSecurityTokenServiceConfiguration()
             : this(ServiceLocator.Container.Value.Resolve<IConfigurationRepository>())
         {
-            this.SigningCredentials = new X509SigningCredentials(this.serviceProperties.SigningCertificate);
-            this.TokenIssuerName = this.serviceProperties.Identifier.ToString();
-            this.SecurityTokenService = typeof(MultiProtocolSecurityTokenService);
+            SigningCredentials = new X509SigningCredentials(serviceProperties.SigningCertificate);
+            TokenIssuerName = serviceProperties.Identifier.ToString();
+            SecurityTokenService = typeof(MultiProtocolSecurityTokenService);
         }
 
         public static MultiProtocolSecurityTokenServiceConfiguration Current
         {
             get
             {
-                HttpApplicationState httpAppState = HttpContext.Current.Application;
+                var httpAppState = HttpContext.Current.Application;
 
-                MultiProtocolSecurityTokenServiceConfiguration customConfiguration = httpAppState.Get(MultiProtocolSecurityTokenServiceConfigurationKey) as MultiProtocolSecurityTokenServiceConfiguration;
+                var customConfiguration = httpAppState.Get(MultiProtocolSecurityTokenServiceConfigurationKey) as MultiProtocolSecurityTokenServiceConfiguration;
 
                 if (customConfiguration == null)
                 {

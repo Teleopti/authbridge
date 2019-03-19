@@ -50,7 +50,7 @@ namespace AuthBridge.Web.Controllers
 		public ActionResult HomeRealmDiscovery(string errorMessage = "")
 		{
 			Logger.Info("HomeRealmDiscovery!");
-			var vms = configuration.RetrieveIssuers(Request.UrlConsideringLoadBalancerHeaders()).Where(x => !x.IdpInitiatedOnly).Select(x => new ProviderViewModel
+			var vms = configuration.RetrieveIssuers().Where(x => !x.IdpInitiatedOnly).Select(x => new ProviderViewModel
 			{
 				Identifier = x.Identifier.ToString(),
 				DisplayName = x.DisplayName
@@ -64,7 +64,7 @@ namespace AuthBridge.Web.Controllers
             var identifier = new Uri(Request.QueryString[WSFederationConstants.Parameters.HomeRealm]);
 
 	        var requestUrl = Request.UrlConsideringLoadBalancerHeaders();
-	        ClaimProvider issuer = configuration.RetrieveIssuer(requestUrl, identifier);
+	        ClaimProvider issuer = configuration.RetrieveIssuer(identifier);
             if (issuer == null)
             {
                 return HomeRealmDiscovery();
@@ -82,7 +82,7 @@ namespace AuthBridge.Web.Controllers
 	        {
                 realm = CreateFederationContextFromConfiguration();
             }
-            var scope = configuration.RetrieveScope(requestUrl, new Uri(realm));
+            var scope = configuration.RetrieveScope(new Uri(realm));
             if (scope == null)
             {
                 throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "The scope '{0}' was not found in the configuration", realm));
@@ -95,7 +95,7 @@ namespace AuthBridge.Web.Controllers
 
 	    private void processResponse(Uri host, string issuerName, string originalUrl)
 		{
-			var issuer = configuration.RetrieveIssuer(host, new Uri(issuerName));
+			var issuer = configuration.RetrieveIssuer(new Uri(issuerName));
 		    if (issuer == null)
 				throw new InvalidOperationException("Error: no claim provider configured for " + issuerName);
 			Logger.InfoFormat("ProcessResponse! issuer: {0}", issuer.DisplayName);
@@ -162,7 +162,7 @@ namespace AuthBridge.Web.Controllers
 			var protocolIdentifier = "urn:" + protocol;
 
 			var requestUrl = Request.UrlConsideringLoadBalancerHeaders();
-			var scope = configuration.RetrieveDefaultScope(requestUrl);
+			var scope = configuration.RetrieveDefaultScope();
 			if (scope == null)
 			{
 				Response.Write(protocol + " IdP initiated failed.");
