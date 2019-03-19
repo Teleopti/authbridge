@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Web;
 using System.Xml;
@@ -41,8 +43,9 @@ namespace AuthBridge.Protocols.Saml
 		private readonly string _audienceRestriction;
 		private readonly string _requestedAuthnContextComparisonMethod;
 		private readonly List<string> _authnContextClassRefs;
+        private readonly string _destinationUri;
 
-		[Flags]
+        [Flags]
 		public enum AuthRequestFormat
 		{
 			Base64 = 1,
@@ -50,7 +53,9 @@ namespace AuthBridge.Protocols.Saml
 			UrlEncode = 4
 		}
 
-		public AuthRequest(string assertionConsumerServiceUrl, string issuer, string audienceRestriction, string requestedAuthnContextComparisonMethod, List<string> authnContextClassRefs)
+		public AuthRequest(string assertionConsumerServiceUrl, string issuer, string audienceRestriction,
+            string requestedAuthnContextComparisonMethod, List<string> authnContextClassRefs,
+            string destinationUri)
 		{
 			_assertionConsumerServiceUrl = assertionConsumerServiceUrl;
 			_issuer = issuer;
@@ -65,12 +70,11 @@ namespace AuthBridge.Protocols.Saml
 			if (authnContextClassRefs == null || !authnContextClassRefs.Any())
 				authnContextClassRefs = DefaultAuthnContextClassRefs();
 			_authnContextClassRefs = authnContextClassRefs;
-		}
+            _destinationUri = destinationUri;
+        }
 
-		public string GetRequest(AuthRequestFormat format)
+		public string GetRequest(AuthRequestFormat format, X509Certificate2 signingCertificate)
 		{
-			
-
 			using (var sw = new StringWriter())
 			{
 				var xws = new XmlWriterSettings {OmitXmlDeclaration = true};
@@ -82,6 +86,7 @@ namespace AuthBridge.Protocols.Saml
 					xw.WriteAttributeString("IssueInstant", _issueInstant);
 					xw.WriteAttributeString("ProtocolBinding", Saml2Constants.PostBinding);
 					xw.WriteAttributeString("AssertionConsumerServiceURL", _assertionConsumerServiceUrl);
+					xw.WriteAttributeString("Destination", _destinationUri);
 
 					xw.WriteStartElement("saml", "Issuer", Saml2Constants.Assertion);
 					xw.WriteString(_issuer);
@@ -114,11 +119,14 @@ namespace AuthBridge.Protocols.Saml
 					}
 
 					xw.WriteEndElement();
-
 					xw.WriteEndElement();
 				}
 				var result = sw.ToString();
-				byte[] compressedBytes = null;
+                if (signingCertificate!=null)
+                {
+                    result = SignAuthnRequest(signingCertificate, result, Id);
+                }
+                byte[] compressedBytes = null;
 				if (format.HasFlag(AuthRequestFormat.Compressed))
 				{
 					compressedBytes = Compress(result);
@@ -160,5 +168,33 @@ namespace AuthBridge.Protocols.Saml
 					"urn:federation:authentication:windows"
 				}.ToList();
 		}
-	}
+
+        private static string SignAuthnRequest(X509Certificate2 certificate, string result, string id)
+        {
+            var document = new XmlDocument();
+            document.LoadXml(result);
+            var keyInfo = new KeyInfo();
+            keyInfo.AddClause(new KeyInfoX509Data(certificate));
+
+            var signedXml = new SignedXml(document)
+            {
+                SigningKey = certificate.PrivateKey,
+                KeyInfo = keyInfo
+            };
+            signedXml.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigExcC14NTransformUrl;
+            signedXml.SignedInfo.SignatureMethod = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256";
+
+            var reference = new Reference("#" + id);
+            reference.AddTransform(new XmlDsigEnvelopedSignatureTransform());
+            reference.AddTransform(new XmlDsigExcC14NTransform());
+            reference.DigestMethod = "http://www.w3.org/2001/04/xmlenc#sha256";
+            signedXml.AddReference(reference);
+            signedXml.ComputeSignature();
+
+            var xml = signedXml.GetXml();
+            var documentElement = document.DocumentElement;
+            documentElement.InsertAfter(document.ImportNode(xml, true), documentElement.FirstChild);
+            return document.OuterXml;
+        }
+    }
 }

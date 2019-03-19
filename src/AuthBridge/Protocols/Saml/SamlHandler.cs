@@ -25,6 +25,7 @@ namespace AuthBridge.Protocols.Saml
 		private readonly string _issuer;
 		private string _identityProviderSSOURL;
 		private readonly string _audienceRestriction;
+		private bool _wantAuthnRequestsSigned;
 		private readonly string _requestedAuthnContextComparisonMethod;
 		private readonly List<string> _authnContextClassRefs;
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(SamlHandler));
@@ -41,13 +42,12 @@ namespace AuthBridge.Protocols.Saml
 			{
 				_signingKeyThumbprint = new[] {issuer.Parameters["signingKeyThumbprint"].ToLowerInvariant()};
 				_identityProviderSSOURL = issuer.Parameters["identityProviderSSOURL"];
+                _wantAuthnRequestsSigned = (issuer.Parameters["wantAuthnRequestsSigned"] == "true");
 			}
 			_audienceRestriction = issuer.Parameters["audienceRestriction"];
 			_requestedAuthnContextComparisonMethod = issuer.Parameters["requestedAuthnContextComparisonMethod"];
 			var authnContextClassRefs = issuer.Parameters["authnContextClassRefs"];
-			_authnContextClassRefs = !string.IsNullOrWhiteSpace(authnContextClassRefs)
-				? authnContextClassRefs.Split(',').ToList()
-				: new List<string>();
+			_authnContextClassRefs = !string.IsNullOrWhiteSpace(authnContextClassRefs) ? authnContextClassRefs.Split(',').ToList() : new List<string>();
 		}
 
 		private void ParseMetadata(ClaimProvider issuer)
@@ -61,17 +61,19 @@ namespace AuthBridge.Protocols.Saml
 			var metadata = serializer.ReadMetadata(XmlReader.Create(issuer.Parameters["metadataUrl"]));
 			var entityDescriptor = (EntityDescriptor) metadata;
 			
-			var ssod = entityDescriptor.RoleDescriptors.OfType<IdentityProviderSingleSignOnDescriptor>().First();
-			if (ssod == null)
+			var idpsso = entityDescriptor.RoleDescriptors.OfType<IdentityProviderSingleSignOnDescriptor>().First();
+            _wantAuthnRequestsSigned = idpsso.WantAuthenticationRequestsSigned;
+
+            if (idpsso == null)
 			{
 				throw new InvalidOperationException("Missing IdentityProviderSingleSignOnDescriptor!");
 			}
 			Logger.Info("Got IdentityProviderSingleSignOnDescriptor from metadata.");
 			_identityProviderSSOURL =
-				ssod.SingleSignOnServices.Single(
+				idpsso.SingleSignOnServices.Single(
 					x => x.Binding.ToString() == "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect").Location.ToString();
 			Logger.Info($"_identityProviderSSOURL: {_identityProviderSSOURL}");
-			_signingKeyThumbprint = GetSigningKeyThumbprint(ssod).ToArray();
+			_signingKeyThumbprint = GetSigningKeyThumbprint(idpsso).ToArray();
 			if(Logger.IsInfoEnabled)
 				Logger.Info($"signing key thumbprints: {string.Join(", ", _signingKeyThumbprint)}");
 		}
@@ -88,8 +90,8 @@ namespace AuthBridge.Protocols.Saml
 
 		public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
 		{
-			var samlRequest = new AuthRequest(MultiProtocolIssuer.ReplyUrl.ToString(), _issuer, _audienceRestriction, _requestedAuthnContextComparisonMethod, _authnContextClassRefs);
-			var preparedRequest = samlRequest.GetRequest(AuthRequest.AuthRequestFormat.Base64 | AuthRequest.AuthRequestFormat.Compressed | AuthRequest.AuthRequestFormat.UrlEncode);
+			var samlRequest = new AuthRequest(MultiProtocolIssuer.ReplyUrl.ToString(), _issuer, _audienceRestriction, _requestedAuthnContextComparisonMethod, _authnContextClassRefs, _identityProviderSSOURL);
+			var preparedRequest = samlRequest.GetRequest(AuthRequest.AuthRequestFormat.Base64 | AuthRequest.AuthRequestFormat.Compressed | AuthRequest.AuthRequestFormat.UrlEncode, _wantAuthnRequestsSigned? MultiProtocolIssuer.SigningCertificate : null);
 			var returnUrl = GetReturnUrlQueryParameterFromUrl(httpContext.Request.UrlConsideringLoadBalancerHeaders().AbsoluteUri);
 			var redirectUrl = _identityProviderSSOURL.Contains("?")
 				? $"{_identityProviderSSOURL}&SAMLRequest={preparedRequest}&RelayState={returnUrl}"
