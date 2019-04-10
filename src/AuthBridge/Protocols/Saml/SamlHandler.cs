@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Configuration;
 using System.IdentityModel.Metadata;
 using System.IdentityModel.Tokens;
@@ -26,12 +27,12 @@ namespace AuthBridge.Protocols.Saml
 		private string _identityProviderSSOURL;
 		private readonly string _audienceRestriction;
 		public bool WantAuthnRequestsSigned { get; private set; }
+		private bool _usePost;
 		private readonly string _requestedAuthnContextComparisonMethod;
 		private readonly List<string> _authnContextClassRefs;
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(SamlHandler));
 		
-		public SamlHandler(ClaimProvider issuer)
-			: base(issuer)
+		public SamlHandler(ClaimProvider issuer) : base(issuer)
 		{
 			_issuer = string.IsNullOrEmpty(issuer.Parameters["issuer"]) ? MultiProtocolIssuer.Identifier.ToString() : issuer.Parameters["issuer"];
 			if (!string.IsNullOrEmpty(issuer.Parameters["metadataUrl"]))
@@ -43,12 +44,14 @@ namespace AuthBridge.Protocols.Saml
 				_signingKeyThumbprint = new[] {issuer.Parameters["signingKeyThumbprint"].ToLowerInvariant()};
 				_identityProviderSSOURL = issuer.Parameters["identityProviderSSOURL"];
                 WantAuthnRequestsSigned = (issuer.Parameters["wantAuthnRequestsSigned"] == "true");
+                _usePost = (issuer.Parameters["usePost"] == "true");
 			}
 			_audienceRestriction = issuer.Parameters["audienceRestriction"];
 			_requestedAuthnContextComparisonMethod = issuer.Parameters["requestedAuthnContextComparisonMethod"];
 			var authnContextClassRefs = issuer.Parameters["authnContextClassRefs"];
 			_authnContextClassRefs = !string.IsNullOrWhiteSpace(authnContextClassRefs) ? authnContextClassRefs.Split(',').ToList() : new List<string>();
 		}
+
 
 		private void ParseMetadata(ClaimProvider issuer)
 		{
@@ -69,10 +72,18 @@ namespace AuthBridge.Protocols.Saml
 				throw new InvalidOperationException("Missing IdentityProviderSingleSignOnDescriptor!");
 			}
 			Logger.Info("Got IdentityProviderSingleSignOnDescriptor from metadata.");
-			_identityProviderSSOURL =
-				idpsso.SingleSignOnServices.Single(
-					x => x.Binding.ToString() == "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect").Location.ToString();
-			Logger.Info($"_identityProviderSSOURL: {_identityProviderSSOURL}");
+			var postEndpoint = idpsso.SingleSignOnServices.SingleOrDefault(x => x.Binding.ToString() == Saml2Constants.PostBinding);
+			if (postEndpoint != null)
+			{
+				_usePost = true;
+				_identityProviderSSOURL = postEndpoint.Location.ToString();
+			}
+			else
+			{
+				_usePost = false;
+				_identityProviderSSOURL = idpsso.SingleSignOnServices.Single(x => x.Binding.ToString() == Saml2Constants.RedirectBinding).Location.ToString();
+			}
+			Logger.Info($"usePost: {_usePost}, identityProviderSSOURL: {_identityProviderSSOURL}");
 			_signingKeyThumbprint = GetSigningKeyThumbprint(idpsso).ToArray();
 			if(Logger.IsInfoEnabled)
 				Logger.Info($"signing key thumbprints: {string.Join(", ", _signingKeyThumbprint)}");
@@ -87,23 +98,54 @@ namespace AuthBridge.Protocols.Saml
 			Logger.Info($"Get signing keys: {tokens.Count}");
 			return tokens.Select(x => x.Certificate.Thumbprint.ToLowerInvariant());
 		}
+		
+		private static void RedirectWithData(NameValueCollection data, string url)
+		{
+			var response = HttpContext.Current.Response;
+			response.Clear();
+
+			var s = new StringBuilder();
+			s.Append("<html>");
+			s.AppendFormat("<body onload='document.forms[\"form\"].submit()'>");
+			s.AppendFormat("<form name='form' action='{0}' method='post'>", url);
+			foreach (string key in data)
+			{
+				s.AppendFormat("<input type='hidden' name='{0}' value='{1}' />", key, data[key]);
+			}
+			s.Append("</form></body></html>");
+			response.Write(s.ToString());
+			response.End();
+		}
 
 		public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
 		{
 			var samlRequest = new AuthRequest(MultiProtocolIssuer.ReplyUrl.ToString(), _issuer, _audienceRestriction, _requestedAuthnContextComparisonMethod, _authnContextClassRefs, _identityProviderSSOURL);
-			var preparedRequest = samlRequest.GetRequest(AuthRequest.AuthRequestFormat.Base64 | AuthRequest.AuthRequestFormat.Compressed | AuthRequest.AuthRequestFormat.UrlEncode, WantAuthnRequestsSigned? MultiProtocolIssuer.SigningCertificate : null);
 			var returnUrl = GetReturnUrlQueryParameterFromUrl(httpContext.Request.UrlConsideringLoadBalancerHeaders().AbsoluteUri);
-			var redirectUrl = _identityProviderSSOURL.Contains("?")
-				? $"{_identityProviderSSOURL}&SAMLRequest={preparedRequest}&RelayState={returnUrl}"
-				: $"{_identityProviderSSOURL}?SAMLRequest={preparedRequest}&RelayState={returnUrl}";
-			try
+
+			if (_usePost)
 			{
-				httpContext.Response.Redirect(redirectUrl);
-				httpContext.Response.End();
+				var preparedRequest = samlRequest.GetRequest(AuthRequest.AuthRequestFormat.Base64, WantAuthnRequestsSigned? MultiProtocolIssuer.SigningCertificate : null);
+				var nameValueCollection = new NameValueCollection
+				{
+					{"SAMLRequest", preparedRequest}, {"RelayState", returnUrl}
+				};
+				RedirectWithData(nameValueCollection, _identityProviderSSOURL);
 			}
-			catch (Exception ex) when (HttpContext.Current.Response.HeadersWritten)
+			else
 			{
-				Logger.Error("exception while redirect to provider", ex);
+				var preparedRequest = samlRequest.GetRequest(AuthRequest.AuthRequestFormat.Base64 | AuthRequest.AuthRequestFormat.Compressed | AuthRequest.AuthRequestFormat.UrlEncode, WantAuthnRequestsSigned? MultiProtocolIssuer.SigningCertificate : null);
+				var redirectUrl = _identityProviderSSOURL.Contains("?")
+					? $"{_identityProviderSSOURL}&SAMLRequest={preparedRequest}&RelayState={returnUrl}"
+					: $"{_identityProviderSSOURL}?SAMLRequest={preparedRequest}&RelayState={returnUrl}";
+				try
+				{
+					httpContext.Response.Redirect(redirectUrl);
+					httpContext.Response.End();
+				}
+				catch (Exception ex) when (HttpContext.Current.Response.HeadersWritten)
+				{
+					Logger.Error("exception while redirect to provider", ex);
+				}
 			}
 		}
 		
