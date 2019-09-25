@@ -1,4 +1,5 @@
-﻿using System.Configuration;
+﻿using System.Collections;
+using System.Configuration;
 using System.IdentityModel.Services;
 using System.IdentityModel.Tokens;
 using System.Linq;
@@ -169,16 +170,20 @@ namespace AuthBridge.Web.Controllers
 				Response.End();
 				return;
 			}
-			var relayState = Request["RelayState"];
+			var relayState = Request["RelayState"] ?? "";
 			var relayHashState = Request["RelayHashState"];
 			var returnUrl = string.IsNullOrWhiteSpace(relayState) ? "" : relayState;
+            if (!returnUrl.Contains("WsFedOwinState"))
+            {
+                returnUrl = "ru=" + returnUrl;
+            }
 
 			if (!string.IsNullOrEmpty(relayHashState))
 			{
 				HttpContext.Response.Cookies.Add(new HttpCookie("returnHash",relayHashState));
 			}
 
-			var originalUrl = $"?wa=wsignin1.0&wtrealm={Uri.EscapeDataString(scope.Identifier.OriginalString)}&wctx={"ru=" + returnUrl}&whr={Uri.EscapeDataString(protocolIdentifier)}";
+			var originalUrl = $"?wa=wsignin1.0&wtrealm={Uri.EscapeDataString(scope.Identifier.OriginalString)}&wctx={returnUrl}&whr={Uri.EscapeDataString(protocolIdentifier)}";
 			processResponse(requestUrl,protocolIdentifier, originalUrl);
 			HttpContext.ApplicationInstance.CompleteRequest();
 		}
