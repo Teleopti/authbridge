@@ -210,7 +210,7 @@ namespace AuthBridge.Protocols.Saml
 			if (!string.IsNullOrEmpty(returnUrl))
 			{
 				returnUrl = returnUrl.Replace("ru=", "");
-				if (!returnUrl.EndsWith("/"))
+				if (!returnUrl.Contains("WsFedOwinState") && !returnUrl.EndsWith("/"))
 					returnUrl += "/";
 			}
 			return returnUrl;
