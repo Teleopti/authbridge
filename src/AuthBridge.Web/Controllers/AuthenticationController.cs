@@ -179,9 +179,14 @@ namespace AuthBridge.Web.Controllers
             }
 
 			if (!string.IsNullOrEmpty(relayHashState))
-			{
-				HttpContext.Response.Cookies.Add(new HttpCookie("returnHash",relayHashState));
-			}
+            {
+                var httpCookie = new HttpCookie("returnHash",relayHashState){ Secure = Request.UrlConsideringLoadBalancerHeaders().IsTransportSecure()};
+                if (!httpCookie.Secure)
+                {
+                    httpCookie.SameSite = SameSiteMode.Lax;
+                }
+                HttpContext.Response.Cookies.Add(httpCookie);
+            }
 
 			var originalUrl = $"?wa=wsignin1.0&wtrealm={Uri.EscapeDataString(scope.Identifier.OriginalString)}&wctx={returnUrl}&whr={Uri.EscapeDataString(protocolIdentifier)}";
 			processResponse(requestUrl,protocolIdentifier, originalUrl);

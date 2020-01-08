@@ -46,12 +46,20 @@ namespace AuthBridge.Web.Services
                         HttpOnly = true,
                         Secure = HttpContext.Current.Request.UrlConsideringLoadBalancerHeaders().IsTransportSecure()
                     };
+                    if (!cookie.Secure)
+                    {
+                        cookie.SameSite = SameSiteMode.Lax;
+                    }
                     HttpContext.Current.Response.Cookies.Add(cookie);
                 }
                 else
                 {
                     cookie.HttpOnly = true;
                     cookie.Secure = HttpContext.Current.Request.UrlConsideringLoadBalancerHeaders().IsTransportSecure();
+                    if (!cookie.Secure)
+                    {
+                        cookie.SameSite = SameSiteMode.Lax;
+                    }
                 }
 
                 return cookie;

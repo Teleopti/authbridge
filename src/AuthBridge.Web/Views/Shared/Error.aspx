@@ -31,6 +31,10 @@
         if (Request.Cookies["FederationContext"] != null)
         {
             var myCookie = new HttpCookie("FederationContext") {Expires = DateTime.Now.AddDays(-1d), HttpOnly = true, Secure = Request.UrlConsideringLoadBalancerHeaders().IsTransportSecure()};
+            if (!myCookie.Secure)
+            {
+                myCookie.SameSite = SameSiteMode.Lax;
+            }
             Response.Cookies.Add(myCookie);
         }
     }
