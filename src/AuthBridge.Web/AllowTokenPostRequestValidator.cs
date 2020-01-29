@@ -15,8 +15,9 @@ namespace AuthBridge.Web
             if (requestValidationSource == RequestValidationSource.Form &&
                 collectionKey.Equals(WSFederationConstants.Parameters.Result, StringComparison.Ordinal))
             {
-                if (WSFederationMessage.CreateFromFormPost(new HttpRequestWrapper(context.Request)) is SignInResponseMessage message)
-                {
+                var message = WSFederationMessage.CreateFromFormPost(new HttpRequestWrapper(context.Request)) as SignInResponseMessage
+                if (message != null)
+                { 
                     return true;
                 }
             }
