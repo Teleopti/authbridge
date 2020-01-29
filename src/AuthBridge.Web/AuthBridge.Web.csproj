@@ -124,10 +124,6 @@
     <Compile Include="Controllers\FederationMetadataController.cs" />
     <Compile Include="Controllers\ProviderViewModel.cs" />
     <Compile Include="Controllers\RequestUtilities.cs" />
-    <Compile Include="Default.aspx.cs">
-      <DependentUpon>Default.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -154,7 +150,6 @@
     <Content Include="Content\images\liveid.png" />
     <Content Include="Content\images\twitter.png" />
     <Content Include="Content\images\yahoo.gif" />
-    <Content Include="Default.aspx" />
     <Content Include="Global.asax" />
     <Content Include="Views\Authentication\Authenticate.aspx" />
     <Content Include="Web.config">
