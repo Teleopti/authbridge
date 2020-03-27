@@ -64,7 +64,6 @@ namespace AuthBridge.Web.Controllers
 			Logger.Info("Authenticate!");
             var identifier = new Uri(Request.QueryString[WSFederationConstants.Parameters.HomeRealm]);
 
-	        var requestUrl = Request.UrlConsideringLoadBalancerHeaders();
 	        ClaimProvider issuer = configuration.RetrieveIssuer(identifier);
             if (issuer == null)
             {
@@ -90,9 +89,9 @@ namespace AuthBridge.Web.Controllers
             }
 
             handler.ProcessSignInRequest(scope, HttpContext);
-            
+
             return new EmptyResult();
-        }
+		}
 
 	    private void processResponse(Uri host, string issuerName, string originalUrl)
 		{
@@ -234,7 +233,6 @@ namespace AuthBridge.Web.Controllers
 								FederatedAuthentication.SessionAuthenticationModule.DeleteSessionTokenCookie();
 							}
                             Response.Flush();
-                            Response.End();
                             HttpContext.ApplicationInstance.CompleteRequest();
                         }
                         else
@@ -265,7 +263,8 @@ namespace AuthBridge.Web.Controllers
 							}
 						}
                         FederatedPassiveSecurityTokenServiceOperations.ProcessSignOutRequest(requestMessage, new ClaimsPrincipal(User), replyTo, HttpContext.ApplicationInstance.Response);
-                    }
+                        HttpContext.ApplicationInstance.CompleteRequest();
+					}
 
                     break;
                 default:
