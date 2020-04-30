@@ -60,6 +60,15 @@ namespace AuthBridge.Protocols.OpenID
 			AuthenticationResult result;
 			try
 			{
+                var op_endpoint = httpContext.Request["openid.op_endpoint"];
+                if (!string.IsNullOrEmpty(op_endpoint))
+                {
+                    if (!op_endpoint.StartsWith(Issuer.Url.AbsoluteUri))
+					{
+						Logger.ErrorFormat("Issuer.Url {0}, openid.op_endpoint {1}", issuerUrl, op_endpoint);
+						throw new InvalidOperationException("openid.op_endpoint needs to match the issuer url");
+                    }
+                }
 				result = client.VerifyAuthentication(httpContext);
 				Logger.Debug($"ProviderUserId {result.ProviderUserId}");
 			}

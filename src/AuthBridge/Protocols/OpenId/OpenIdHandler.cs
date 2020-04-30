@@ -22,7 +22,7 @@ namespace AuthBridge.Protocols.OpenID
 
 		public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
 		{
-			Logger.Debug(string.Format("ProcessSignInRequest, Issuer.Url {0}, ReplyUrl {1}", Issuer.Url, MultiProtocolIssuer.ReplyUrl));
+			Logger.Debug($"ProcessSignInRequest, Issuer.Url {Issuer.Url}, ReplyUrl {MultiProtocolIssuer.ReplyUrl}");
 			var client = new OpenIdClient(Issuer.Url,MultiProtocolIssuer.Identifier);
 			client.RequestAuthentication(httpContext, MultiProtocolIssuer.ReplyUrl);
 		}
@@ -30,14 +30,24 @@ namespace AuthBridge.Protocols.OpenID
 		public override ClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
 		{
             var client = new OpenIdClient(Issuer.Url, MultiProtocolIssuer.Identifier);
-			Logger.Debug(string.Format("ProcessSignInResponse"));
-			Logger.Debug(string.Format("Issuer.Url {0}, originalUrl {1}", Issuer.Url, originalUrl));
+			Logger.Debug("ProcessSignInResponse");
+			Logger.Debug($"Issuer.Url {Issuer.Url}, originalUrl {originalUrl}");
 
 			AuthenticationResult result;
 			try
 			{
+                var op_endpoint = httpContext.Request["openid.op_endpoint"];
+                if (!string.IsNullOrEmpty(op_endpoint))
+                {
+                    if (!op_endpoint.StartsWith(Issuer.Url.AbsoluteUri))
+                    {
+                        Logger.ErrorFormat("Issuer.Url {0}, openid.op_endpoint {1}", Issuer.Url, op_endpoint);
+						throw new InvalidOperationException("openid.op_endpoint needs to match the issuer url");
+                    }
+                }
+
 				result = client.VerifyAuthentication(httpContext);
-				Logger.Debug(string.Format("ProviderUserId {0}", result.ProviderUserId));
+				Logger.Debug($"ProviderUserId {result.ProviderUserId}");
 			}
 			catch (WebException wex)
 			{
