@@ -197,13 +197,22 @@ namespace AuthBridge.Web.Controllers
 			Logger.Info("ProcessFederationRequest");
 			var action = Request.QueryString[WSFederationConstants.Parameters.Action];
 
+            var requestUri = Request.UrlConsideringLoadBalancerHeaders();
             switch (action)
             {
                 case WSFederationConstants.Actions.SignIn:
                     {
-                        var requestMessage = (SignInRequestMessage)WSFederationMessage.CreateFromUri(Request.UrlConsideringLoadBalancerHeaders());
-                            
-							
+                        var requestMessage = (SignInRequestMessage)WSFederationMessage.CreateFromUri(requestUri);
+                        if (!string.IsNullOrEmpty(requestMessage.Reply))
+                        {
+                            var wreply = requestMessage.Reply.Trim();
+                            if (!wreply.StartsWith(requestUri.GetLeftPart(UriPartial.Authority)))
+                            {
+								Logger.ErrorFormat("Got unsupported wreply {0}", wreply);
+								throw new NotSupportedException("Invalid wreply");
+                            }
+                        }
+
                         if (User?.Identity != null && User.Identity.IsAuthenticated)
                         {
 	                        try
@@ -252,7 +261,7 @@ namespace AuthBridge.Web.Controllers
                     break;
                 case WSFederationConstants.Actions.SignOut:
                     {
-                        var requestMessage = (SignOutRequestMessage)WSFederationMessage.CreateFromUri(Request.UrlConsideringLoadBalancerHeaders());
+                        var requestMessage = (SignOutRequestMessage)WSFederationMessage.CreateFromUri(requestUri);
 						var replyTo = requestMessage.Reply;
 						if (!string.IsNullOrEmpty(replyTo) && ConfigurationManager.AppSettings.GetBoolSetting("UseRelativeConfiguration"))
 						{
@@ -268,7 +277,7 @@ namespace AuthBridge.Web.Controllers
 
                     break;
                 default:
-                    Response.AddHeader("X-XRDS-Location",new Uri(Request.UrlConsideringLoadBalancerHeaders(),Response.ApplyAppPathModifier("~/xrds.aspx")).AbsoluteUri);
+                    Response.AddHeader("X-XRDS-Location",new Uri(requestUri,Response.ApplyAppPathModifier("~/xrds.aspx")).AbsoluteUri);
                     return new EmptyResult();
             }
 

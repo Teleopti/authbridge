@@ -1,1 +1,1 @@
-..\.nuget\nuget pack AuthBridge.Web.csproj -IncludeReferencedProjects -Prop Configuration=Release -Prop VSToolsPath="C:\Program Files (x86)\MSBuild\Microsoft\VisualStudio\v12.0" -Build
+..\.nuget\nuget pack AuthBridge.Web.csproj -IncludeReferencedProjects -Prop Configuration=Release -Prop VSToolsPath="C:\Program Files (x86)\MSBuild\Microsoft\VisualStudio\v16.0" -Build
