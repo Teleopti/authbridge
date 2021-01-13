@@ -208,8 +208,12 @@ namespace AuthBridge.Web.Controllers
                             var wreply = requestMessage.Reply.Trim();
                             if (!wreply.StartsWith(requestUri.GetLeftPart(UriPartial.Authority)))
                             {
-								Logger.ErrorFormat("Got unsupported wreply {0}", wreply);
-								throw new NotSupportedException("Invalid wreply");
+                                var allowedWreply = ConfigurationManager.AppSettings["AllowWreply"];
+                                if (string.IsNullOrEmpty(allowedWreply) || !wreply.StartsWith(allowedWreply))
+                                {
+                                    Logger.ErrorFormat("Got unsupported wreply {0}", wreply);
+                                    throw new NotSupportedException("Invalid wreply");
+                                }
                             }
                         }
 
