@@ -24,6 +24,7 @@ namespace AuthBridge.Protocols.Saml
 	{
 		private string[] _signingKeyThumbprint;
 		private readonly string _issuer;
+        private readonly string _replyUrl;
 		private string _identityProviderSSOURL;
 		private readonly string _audienceRestriction;
 		public bool WantAuthnRequestsSigned { get; private set; }
@@ -31,10 +32,11 @@ namespace AuthBridge.Protocols.Saml
 		private readonly string _requestedAuthnContextComparisonMethod;
 		private readonly List<string> _authnContextClassRefs;
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(SamlHandler));
-		
-		public SamlHandler(ClaimProvider issuer) : base(issuer)
+        
+        public SamlHandler(ClaimProvider issuer) : base(issuer)
 		{
 			_issuer = string.IsNullOrEmpty(issuer.Parameters["issuer"]) ? MultiProtocolIssuer.Identifier.ToString() : issuer.Parameters["issuer"];
+			_replyUrl = string.IsNullOrEmpty(issuer.Parameters["replyUrl"]) ? MultiProtocolIssuer.ReplyUrl.ToString() : issuer.Parameters["replyUrl"];
 			if (!string.IsNullOrEmpty(issuer.Parameters["metadataUrl"]))
 			{
 				ParseMetadata(issuer);
@@ -119,7 +121,7 @@ namespace AuthBridge.Protocols.Saml
 
 		public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
 		{
-			var samlRequest = new AuthRequest(MultiProtocolIssuer.ReplyUrl.ToString(), _issuer, _audienceRestriction, _requestedAuthnContextComparisonMethod, _authnContextClassRefs, _identityProviderSSOURL);
+			var samlRequest = new AuthRequest(_replyUrl, _issuer, _audienceRestriction, _requestedAuthnContextComparisonMethod, _authnContextClassRefs, _identityProviderSSOURL);
 			var returnUrl = GetReturnUrlQueryParameterFromUrl(httpContext.Request.UrlConsideringLoadBalancerHeaders().AbsoluteUri);
 
 			if (_usePost)

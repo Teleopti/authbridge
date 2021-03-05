@@ -22,10 +22,12 @@ namespace AuthBridge.Protocols.WSFed
 		private string _wsfedEndpoint;
 		
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(WSFedHandler));
+        private readonly string _replyUrl;
 
-	    public WSFedHandler(ClaimProvider issuer)
+        public WSFedHandler(ClaimProvider issuer)
             : base(issuer)
 		{
+            _replyUrl = string.IsNullOrEmpty(issuer.Parameters["replyUrl"]) ? MultiProtocolIssuer.ReplyUrl.ToString() : issuer.Parameters["replyUrl"];
 			if (!string.IsNullOrEmpty(issuer.Parameters["metadataUrl"]))
 			{
 				ParseMetadata(issuer);
@@ -68,9 +70,9 @@ namespace AuthBridge.Protocols.WSFed
 
 	    public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
         {
-			Logger.Info($"process signin request! Identifier: {MultiProtocolIssuer.Identifier}, ReplyUrl: {MultiProtocolIssuer.ReplyUrl}");
+			Logger.Info($"process signin request! Identifier: {MultiProtocolIssuer.Identifier}, ReplyUrl: {_replyUrl}");
 	        var identityProviderUrl = string.IsNullOrEmpty(_wsfedEndpoint) ? Issuer.Url.ToString() : _wsfedEndpoint;
-	        RequestAuthentication(httpContext, identityProviderUrl, MultiProtocolIssuer.Identifier.ToString(), MultiProtocolIssuer.ReplyUrl.ToString());
+	        RequestAuthentication(httpContext, identityProviderUrl, MultiProtocolIssuer.Identifier.ToString(), _replyUrl);
 		}
 
         public override ClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
@@ -121,8 +123,7 @@ namespace AuthBridge.Protocols.WSFed
             public override string GetIssuerName(SecurityToken securityToken)
             {
 				Logger.Info("GetIssuerName!");
-                var x509 = securityToken as X509SecurityToken;
-                if (x509 != null)
+                if (securityToken is X509SecurityToken x509)
                 {
 	                Logger.Info($"Thumbprint! {x509.Certificate.Thumbprint}");
                     if (x509.Certificate.Thumbprint != null && Array.IndexOf(_trustedThumbprints, x509.Certificate.Thumbprint.ToLowerInvariant()) > -1)
