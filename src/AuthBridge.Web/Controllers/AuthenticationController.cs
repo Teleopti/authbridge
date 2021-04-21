@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Configuration;
 using System.IdentityModel.Services;
 using System.IdentityModel.Tokens;
@@ -34,6 +34,8 @@ namespace AuthBridge.Web.Controllers
         private readonly IConfigurationRepository configuration;
 
         private readonly MultiProtocolIssuer multiProtocolServiceProperties;
+
+        private const string AuthBridgeRedirect = "AuthBridgeRedirect";
 
         public AuthenticationController()
 			: this(DefaultProtocolDiscovery.Instance, new FederationContext(), ServiceLocator.Container.Value.Resolve<IConfigurationRepository>())
@@ -215,6 +217,15 @@ namespace AuthBridge.Web.Controllers
                                     throw new NotSupportedException("Invalid wreply");
                                 }
                             }
+
+                            var cookie = new HttpCookie(AuthBridgeRedirect, wreply);
+                            if (Request.UrlConsideringLoadBalancerHeaders().IsTransportSecure())
+                            {
+                                cookie.SameSite = SameSiteMode.None;
+                                cookie.Secure = true;
+                            }
+
+                            Response.AppendCookie(cookie);
                         }
 
                         if (User?.Identity != null && User.Identity.IsAuthenticated)
@@ -238,6 +249,14 @@ namespace AuthBridge.Web.Controllers
 									Logger.InfoFormat("Reply: {0}", requestMessage.Reply);
 									Logger.InfoFormat("Before ProcessSignInRequest");
 								}
+
+                                if (!string.IsNullOrEmpty(Request.Cookies.Get(AuthBridgeRedirect)?.Value))
+                                {
+                                    var cookie = Request.Cookies.Get(AuthBridgeRedirect);
+                                    requestMessage.Reply = cookie?.Value;
+                                    cookie.Expires = DateTime.Now - TimeSpan.FromDays(1);
+                                    Response.Cookies.Add(cookie);
+                                }
 								var responseMessage = FederatedPassiveSecurityTokenServiceOperations.ProcessSignInRequest(requestMessage, new ClaimsPrincipal(User), sts);
 								responseMessage.Write(Response.Output);
 							}
