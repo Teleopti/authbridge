@@ -1,4 +1,6 @@
-﻿using System.IdentityModel.Services;
+﻿using System;
+using System.IdentityModel.Services;
+using System.Web;
 
 namespace AuthBridge.Web
 {
@@ -31,10 +33,25 @@ namespace AuthBridge.Web
             {
                 FederatedAuthentication.WSFederationAuthenticationModule.SecurityTokenReceived += WSFederationAuthenticationModule_SecurityTokenReceived;
 				FederatedAuthentication.WSFederationAuthenticationModule.SignInError += WSFederationAuthenticationModule_SignInError;
-			};
+                FederatedAuthentication.WSFederationAuthenticationModule.SignedIn += WSFederationAuthenticationModule_SignedIn;
+            };
         }
 
-		private void WSFederationAuthenticationModule_SignInError(object sender, ErrorEventArgs e)
+        private void WSFederationAuthenticationModule_SignedIn(object sender, EventArgs e)
+        {
+            var cookies = HttpContext.Current?.Response.Cookies;
+            if (cookies == null) return;
+
+            foreach (HttpCookie cookie in cookies)
+            {
+                if (cookie != null && cookie.Secure)
+                {
+                    cookie.SameSite = SameSiteMode.None;
+                }
+            }
+        }
+
+        private void WSFederationAuthenticationModule_SignInError(object sender, ErrorEventArgs e)
 		{
 			// http://stackoverflow.com/questions/15904480/how-to-avoid-samlassertion-notonorafter-condition-is-not-satisfied-errors
 			if (e.Exception.Message.StartsWith("ID4148") ||
