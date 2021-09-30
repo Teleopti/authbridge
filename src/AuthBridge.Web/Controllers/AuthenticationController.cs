@@ -141,8 +141,9 @@ namespace AuthBridge.Web.Controllers
             var cookies = Response.Cookies;
             if (cookies == null) return;
 
-            foreach (HttpCookie cookie in cookies)
+            foreach (var cookieName in cookies.AllKeys)
             {
+                var cookie = cookies[cookieName];
                 if (cookie != null && cookie.Secure)
                 {
                     cookie.SameSite = SameSiteMode.None;
