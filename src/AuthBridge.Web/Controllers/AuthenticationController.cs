@@ -130,11 +130,27 @@ namespace AuthBridge.Web.Controllers
 			var sessionToken = new SessionSecurityToken(new ClaimsPrincipal(new[] { outputIdentity }), new TimeSpan(0, 30, 0));
 			FederatedAuthentication.WSFederationAuthenticationModule.SetPrincipalAndWriteSessionToken(sessionToken, true);
 
-			Logger.InfoFormat("Original url: {0}", originalUrl);
+            forceSameSiteNoneForSecureCookies();
+
+            Logger.InfoFormat("Original url: {0}", originalUrl);
 			Response.Redirect(originalUrl, false);
 		}
 
-		[ValidateInput(false)]
+        private void forceSameSiteNoneForSecureCookies()
+        {
+            var cookies = Response.Cookies;
+            if (cookies == null) return;
+
+            foreach (HttpCookie cookie in cookies)
+            {
+                if (cookie != null && cookie.Secure)
+                {
+                    cookie.SameSite = SameSiteMode.None;
+                }
+            }
+        }
+
+        [ValidateInput(false)]
 		public void ProcessResponse()
 		{
 			Logger.Info("ProcessResponse!");
