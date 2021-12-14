@@ -15,6 +15,7 @@ namespace AuthBridge.Protocols.OAuth
 		private readonly ClaimProvider _issuer;
 		private readonly string _clientSecret;
 		private readonly string _clientId;
+		private readonly string _prompt;
 
 		public GoogleHandler(ClaimProvider issuer) : base(issuer)
 		{
@@ -23,17 +24,18 @@ namespace AuthBridge.Protocols.OAuth
 			_issuer = issuer;
 			_clientId = _issuer.Parameters["clientId"];
 			_clientSecret = _issuer.Parameters["clientSecret"];
+			_prompt = _issuer.Parameters["prompt"];
 		}
 
 		public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
 		{
-			var client = new GoogleOAuthClient(_clientId, _clientSecret);
+			var client = new GoogleOAuthClient(_clientId, _clientSecret, _prompt);
 			client.RequestAuthentication(httpContext, MultiProtocolIssuer.ReplyUrl);
 		}
 
 		public override ClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
 		{
-			var client = new GoogleOAuthClient(_clientId, _clientSecret);
+			var client = new GoogleOAuthClient(_clientId, _clientSecret, _prompt);
 			AuthenticationResult result;
 			try
 			{

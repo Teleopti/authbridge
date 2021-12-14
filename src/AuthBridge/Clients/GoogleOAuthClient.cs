@@ -11,31 +11,35 @@ namespace AuthBridge.Clients
 	{
 		private readonly string _clientId;
 		private readonly string _clientSecret;
-		private string _authorizationEndpoint= "https://accounts.google.com/o/oauth2/auth";
+        private readonly string _prompt;
+
+        private string _authorizationEndpoint= "https://accounts.google.com/o/oauth2/auth";
 		private string _tokenEndpoint = "https://accounts.google.com/o/oauth2/token";
 		private string _userInfoEndpoint = "https://www.googleapis.com/oauth2/v1/userinfo";
 
-		public GoogleOAuthClient(string clientId, string clientSecret):this("GoogleOAuthClient", clientId, clientSecret)
+		public GoogleOAuthClient(string clientId, string clientSecret, string prompt): base(nameof(GoogleOAuthClient))
 		{
-		}
-
-		public GoogleOAuthClient(string providerName, string clientId, string clientSecret) : base(providerName)
-		{
-			this._clientId = clientId;
-			this._clientSecret = clientSecret;
-		}
+			_clientId = clientId;
+			_clientSecret = clientSecret;
+            _prompt = prompt;
+        }
 
 		protected override Uri GetServiceLoginUrl(Uri returnUrl)
 		{
 			var builder = new UriBuilder(_authorizationEndpoint);
-			builder.AppendQueryArgs(
-				new Dictionary<string, string>
-				{
-					{"response_type", "code"},
-					{"redirect_uri", returnUrl.AbsoluteUri},
-					{"scope", "https://www.googleapis.com/auth/userinfo.email"},
-					{"client_id", _clientId}
-				});
+            var args = new Dictionary<string, string>
+                {
+                    {"response_type", "code"},
+                    {"redirect_uri", returnUrl.AbsoluteUri},
+                    {"scope", "https://www.googleapis.com/auth/userinfo.email"},
+                    {"client_id", _clientId}
+                };
+			if (!string.IsNullOrEmpty(_prompt))
+            {
+				args.Add("prompt", _prompt);
+            }
+            builder.AppendQueryArgs(
+                args);
 
 			return builder.Uri;
 		}
