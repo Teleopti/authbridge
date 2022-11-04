@@ -31,6 +31,7 @@ namespace AuthBridge.Protocols.Saml
 		private bool _usePost;
 		private readonly string _requestedAuthnContextComparisonMethod;
 		private readonly List<string> _authnContextClassRefs;
+		private readonly bool _noRequestedAuthnContext;
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(SamlHandler));
         
         public SamlHandler(ClaimProvider issuer) : base(issuer)
@@ -52,6 +53,7 @@ namespace AuthBridge.Protocols.Saml
 			_requestedAuthnContextComparisonMethod = issuer.Parameters["requestedAuthnContextComparisonMethod"];
 			var authnContextClassRefs = issuer.Parameters["authnContextClassRefs"];
 			_authnContextClassRefs = !string.IsNullOrWhiteSpace(authnContextClassRefs) ? authnContextClassRefs.Split(',').ToList() : new List<string>();
+			_noRequestedAuthnContext = issuer.Parameters["noRequestedAuthnContext"] == "true";
 		}
 
 
@@ -126,7 +128,7 @@ namespace AuthBridge.Protocols.Saml
 
 			if (_usePost)
 			{
-				var preparedRequest = samlRequest.GetRequest(AuthRequest.AuthRequestFormat.Base64, WantAuthnRequestsSigned? MultiProtocolIssuer.SigningCertificate : null);
+				var preparedRequest = samlRequest.GetRequest(AuthRequest.AuthRequestFormat.Base64, WantAuthnRequestsSigned? MultiProtocolIssuer.SigningCertificate : null, _noRequestedAuthnContext);
 				var nameValueCollection = new NameValueCollection
 				{
 					{"SAMLRequest", preparedRequest}, {"RelayState", returnUrl}
@@ -135,7 +137,7 @@ namespace AuthBridge.Protocols.Saml
 			}
 			else
 			{
-				var preparedRequest = samlRequest.GetRequest(AuthRequest.AuthRequestFormat.Base64 | AuthRequest.AuthRequestFormat.Compressed | AuthRequest.AuthRequestFormat.UrlEncode, WantAuthnRequestsSigned? MultiProtocolIssuer.SigningCertificate : null);
+				var preparedRequest = samlRequest.GetRequest(AuthRequest.AuthRequestFormat.Base64 | AuthRequest.AuthRequestFormat.Compressed | AuthRequest.AuthRequestFormat.UrlEncode, WantAuthnRequestsSigned? MultiProtocolIssuer.SigningCertificate : null, _noRequestedAuthnContext);
 				var redirectUrl = _identityProviderSSOURL.Contains("?")
 					? $"{_identityProviderSSOURL}&SAMLRequest={preparedRequest}&RelayState={returnUrl}"
 					: $"{_identityProviderSSOURL}?SAMLRequest={preparedRequest}&RelayState={returnUrl}";

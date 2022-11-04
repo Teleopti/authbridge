@@ -73,7 +73,8 @@ namespace AuthBridge.Protocols.Saml
             _destinationUri = destinationUri;
         }
 
-		public string GetRequest(AuthRequestFormat format, X509Certificate2 signingCertificate)
+		public string GetRequest(AuthRequestFormat format, X509Certificate2 signingCertificate,
+			bool noRequestedAuthnContext)
 		{
 			using (var sw = new StringWriter())
 			{
@@ -108,17 +109,18 @@ namespace AuthBridge.Protocols.Saml
 						xw.WriteEndElement();
 					}
 
-					xw.WriteStartElement("samlp", "RequestedAuthnContext", Saml2Constants.Protocol);
-					xw.WriteAttributeString("Comparison", _requestedAuthnContextComparisonMethod);
-
-					foreach (var authnContextClassRef in _authnContextClassRefs)
+					if (!noRequestedAuthnContext)
 					{
-						xw.WriteStartElement("saml", "AuthnContextClassRef", Saml2Constants.Assertion);
-						xw.WriteString(authnContextClassRef);
+						xw.WriteStartElement("samlp", "RequestedAuthnContext", Saml2Constants.Protocol);
+						xw.WriteAttributeString("Comparison", _requestedAuthnContextComparisonMethod);
+						foreach (var authnContextClassRef in _authnContextClassRefs)
+						{
+							xw.WriteStartElement("saml", "AuthnContextClassRef", Saml2Constants.Assertion);
+							xw.WriteString(authnContextClassRef);
+							xw.WriteEndElement();
+						}
 						xw.WriteEndElement();
 					}
-
-					xw.WriteEndElement();
 					xw.WriteEndElement();
 				}
 				var result = sw.ToString();
