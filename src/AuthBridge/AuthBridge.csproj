@@ -224,6 +224,7 @@
     <Compile Include="Configuration\ServiceLocator.cs" />
     <Compile Include="Protocols\AWFOS\AWFOSHandler.cs" />
     <Compile Include="Protocols\OAuth\GoogleHandler.cs" />
+    <Compile Include="Protocols\Saml\Saml20EncryptedAssertion.cs" />
     <Compile Include="Utilities\UriExtension.cs" />
     <Compile Include="WSFederationConstants.cs" />
     <Compile Include="Clients\AzureAdOAuthClient.cs" />
