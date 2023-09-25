@@ -7,6 +7,7 @@ using System.IdentityModel.Tokens;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.ServiceModel.Security;
@@ -156,33 +157,8 @@ namespace AuthBridge.Protocols.Saml
 		public override ClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
 		{
 			Logger.Info("ProcessSignInResponse");
-			var response = Encoding.UTF8.GetString(Convert.FromBase64String(httpContext.Request.Form["SAMLResponse"]));
-			Logger.InfoFormat("SAMLResponse: {0}", response);
-			var doc = new XmlDocument {PreserveWhitespace = true};
-			doc.LoadXml(response);
-			VerifySignatures(doc);
-			Logger.Info("Verified signature successfully");
-
-			if (!VerifyStatus(doc))
-			{
-				ThrowAndLogWarn("The SAML response status was not 'status:Success'");
-			}
-			Logger.Info("Verified status successfully");
-
-			var information = ExtractInformation(doc);
-			Logger.InfoFormat("Extracted information: SubjectNameId: {0}, Issuer: {1}, NotBefore: {2}, NotOnOrAfter: {3}", information.SubjectNameId, information.Issuer, information.NotBefore, information.NotOnOrAfter);
-			
-			if (!VerifyAudience(information))
-			{
-				ThrowAndLog("Audience does not match the white list values.");
-			}
-			Logger.Info("Verified audience successfully");
-
-			if (!VerifyAllowedDateTimeRange(information))
-			{
-				ThrowAndLogWarn("This SAML response is not valid any longer.");
-			}
-			Logger.Info("Verified allowed date time range successfully");
+			var s = httpContext.Request.Form["SAMLResponse"];
+			var information = GetSamlDetail(s);
 
 			Logger.InfoFormat("information.Issuer: {0}, information.SubjectNameId: {1}", information.Issuer, information.SubjectNameId);
 			//You must add a claims policy for the protocol identifier!
@@ -192,6 +168,61 @@ namespace AuthBridge.Protocols.Saml
 				new Claim(ClaimTypes.NameIdentifier, information.SubjectNameId)
 			};
 			return new ClaimsIdentity(claims, issuerIdentifier);
+		}
+
+		public SamlDetail GetSamlDetail(string s)
+		{
+			var response = Encoding.UTF8.GetString(Convert.FromBase64String(s));
+			Logger.InfoFormat("SAMLResponse: {0}", response);
+			var doc = new XmlDocument { PreserveWhitespace = true };
+			doc.LoadXml(response);
+			VerifySignatures(doc);
+			Logger.Info("Verified signature successfully");
+
+			if (!VerifyStatus(doc))
+			{
+				ThrowAndLogWarn("The SAML response status was not 'status:Success'");
+			}
+
+			Logger.Info("Verified status successfully");
+
+			SamlDetail information;
+			var elementsByTagName1 = doc.GetElementsByTagName("EncryptedAssertion", "urn:oasis:names:tc:SAML:2.0:assertion");
+			if (elementsByTagName1.Count == 1)
+			{
+				var encryptedAssertionXml = new XmlDocument { PreserveWhitespace = true };
+				var copiedNode =
+					encryptedAssertionXml.ImportNode(doc.SelectSingleNode("//*[local-name() = 'EncryptedAssertion']"), true);
+				encryptedAssertionXml.AppendChild(copiedNode);
+				var encryptedAssertion =
+					new Saml20EncryptedAssertion((RSA)MultiProtocolIssuer.SigningCertificate.PrivateKey,
+						encryptedAssertionXml);
+				encryptedAssertion.Decrypt();
+				var decryptedDocument = encryptedAssertion.Assertion;
+				information = ExtractInformation(decryptedDocument);
+			}
+			else
+			{
+				information = ExtractInformation(doc);
+			}
+
+			Logger.InfoFormat("Extracted information: SubjectNameId: {0}, Issuer: {1}, NotBefore: {2}, NotOnOrAfter: {3}",
+				information.SubjectNameId, information.Issuer, information.NotBefore, information.NotOnOrAfter);
+
+			if (!VerifyAudience(information))
+			{
+				ThrowAndLog("Audience does not match the white list values.");
+			}
+
+			Logger.Info("Verified audience successfully");
+
+			if (!VerifyAllowedDateTimeRange(information))
+			{
+				ThrowAndLogWarn("This SAML response is not valid any longer.");
+			}
+
+			Logger.Info("Verified allowed date time range successfully");
+			return information;
 		}
 
 		private static void ThrowAndLogWarn(string message)
