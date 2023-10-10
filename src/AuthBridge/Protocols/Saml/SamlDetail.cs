@@ -180,7 +180,7 @@ namespace AuthBridge.Protocols.Saml
 
             var signedXml = new SignedXml(document)
             {
-                SigningKey = certificate.PrivateKey,
+                SigningKey = certificate.GetRSAPrivateKey(),
                 KeyInfo = keyInfo
             };
             signedXml.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigExcC14NTransformUrl;
