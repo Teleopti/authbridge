@@ -176,7 +176,6 @@ namespace AuthBridge.Protocols.Saml
 			Logger.InfoFormat("SAMLResponse: {0}", response);
 			var doc = new XmlDocument { PreserveWhitespace = true };
 			doc.LoadXml(response);
-			VerifySignatures(doc);
 			Logger.Info("Verified signature successfully");
 
 			if (!VerifyStatus(doc))
@@ -199,10 +198,12 @@ namespace AuthBridge.Protocols.Saml
 						encryptedAssertionXml);
 				encryptedAssertion.Decrypt();
 				var decryptedDocument = encryptedAssertion.Assertion;
+				VerifySignatures(decryptedDocument);
 				information = ExtractInformation(decryptedDocument);
 			}
 			else
 			{
+				VerifySignatures(doc);
 				information = ExtractInformation(doc);
 			}
 
