@@ -176,13 +176,11 @@ namespace AuthBridge.Protocols.Saml
 			Logger.InfoFormat("SAMLResponse: {0}", response);
 			var doc = new XmlDocument { PreserveWhitespace = true };
 			doc.LoadXml(response);
-			Logger.Info("Verified signature successfully");
 
 			if (!VerifyStatus(doc))
 			{
 				ThrowAndLogWarn("The SAML response status was not 'status:Success'");
 			}
-
 			Logger.Info("Verified status successfully");
 
 			SamlDetail information;
@@ -314,6 +312,7 @@ namespace AuthBridge.Protocols.Saml
 				{
 					isThumbprintCorrect = true;
 				}
+				Logger.Info("Verified signature successfully");
 			}
 
 			if (!isThumbprintCorrect)
