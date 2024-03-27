@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Configuration;
 using System.IdentityModel.Services;
 using System.IdentityModel.Tokens;
@@ -50,26 +51,39 @@ namespace AuthBridge.Web.Controllers
             multiProtocolServiceProperties = this.configuration.MultiProtocolIssuer;
         }
 
-		public ActionResult HomeRealmDiscovery(string errorMessage = "")
+		public ActionResult HomeRealmDiscovery(string errorMessage = "", string errorCode = "")
 		{
 			Logger.Info("HomeRealmDiscovery!");
-			var vms = configuration.RetrieveIssuers().Where(x => !x.IdpInitiatedOnly).Select(x => new ProviderViewModel
+			IEnumerable<ProviderViewModel> vms = new ProviderViewModel[]{};
+			var showIdpOptions = (ConfigurationManager.AppSettings["ShowIdpOptions"] ?? "false").Trim().ToLower() == "true";
+			if (showIdpOptions)
 			{
-				Identifier = x.Identifier.ToString(),
-				DisplayName = x.DisplayName
-			});
-			return View("Authenticate", new HrdViewModel {Providers = vms.ToArray(), ErrorMessage = errorMessage });
+				vms = configuration.RetrieveIssuers().Where(x => !x.IdpInitiatedOnly).Select(x => new ProviderViewModel
+				{
+					Identifier = x.Identifier.ToString(),
+					DisplayName = x.DisplayName
+				});
+			}
+			return View("Authenticate", new HrdViewModel {Providers = vms.ToArray(), ErrorCode = errorCode, ErrorMessage = errorMessage, ShowIdpOptions = showIdpOptions });
 		}
 
 		public ActionResult Authenticate()
         {
 			Logger.Info("Authenticate!");
-            var identifier = new Uri(Request.QueryString[WSFederationConstants.Parameters.HomeRealm]);
-
+			var homeRealm = Request.QueryString[WSFederationConstants.Parameters.HomeRealm];
+			if (string.IsNullOrEmpty(homeRealm) || string.IsNullOrEmpty(homeRealm.Replace("urn:", "")))
+			{
+				return HomeRealmDiscovery();
+			}
+			if (!homeRealm.StartsWith("urn:"))
+			{
+				homeRealm = "urn:" + homeRealm;
+			}
+			var identifier = new Uri(homeRealm);
 	        ClaimProvider issuer = configuration.RetrieveIssuer(identifier);
             if (issuer == null)
             {
-                return HomeRealmDiscovery();
+                return HomeRealmDiscovery("", "TenantNotFound");
             }
 
             var handler = protocolDiscovery.RetrieveProtocolHandler(issuer);
@@ -365,5 +379,7 @@ namespace AuthBridge.Web.Controllers
 	{
 		public ProviderViewModel[] Providers { get; set; }
 		public string ErrorMessage { get; set; }
+		public string ErrorCode { get; set; }
+		public bool ShowIdpOptions { get; set; }
 	}
 }

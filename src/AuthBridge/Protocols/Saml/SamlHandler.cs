@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Configuration;
@@ -21,44 +22,56 @@ using ClaimTypes = System.IdentityModel.Claims.ClaimTypes;
 
 namespace AuthBridge.Protocols.Saml
 {
+	public class SamlSetting
+	{
+		public string[] SigningKeyThumbprints { get; set; }
+		public string Issuer { get; set; }
+		public string ReplyUrl { get; set; }
+		public string IdentityProviderSsoUrl { get; set; }
+		public string AudienceRestriction { get; set; }
+		public bool WantAuthnRequestsSigned { get; set; }
+		public bool UsePost { get; set; }
+		public string RequestedAuthnContextComparisonMethod { get; set; }
+		public List<string> AuthnContextClassRefs { get; set; }
+		public bool NoRequestedAuthnContext { get; set; }
+	}
 	public class SamlHandler : ProtocolHandlerBase
 	{
-		private string[] _signingKeyThumbprint;
-		private readonly string _issuer;
-        private readonly string _replyUrl;
-		private string _identityProviderSSOURL;
-		private readonly string _audienceRestriction;
-		public bool WantAuthnRequestsSigned { get; private set; }
-		private bool _usePost;
-		private readonly string _requestedAuthnContextComparisonMethod;
-		private readonly List<string> _authnContextClassRefs;
-		private readonly bool _noRequestedAuthnContext;
+		public static readonly ConcurrentDictionary<Uri, SamlSetting> Settings = new ConcurrentDictionary<Uri, SamlSetting>(); 
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(SamlHandler));
-        
-        public SamlHandler(ClaimProvider issuer) : base(issuer)
-		{
-			_issuer = string.IsNullOrEmpty(issuer.Parameters["issuer"]) ? MultiProtocolIssuer.Identifier.ToString() : issuer.Parameters["issuer"];
-			_replyUrl = string.IsNullOrEmpty(issuer.Parameters["replyUrl"]) ? MultiProtocolIssuer.ReplyUrl.ToString() : issuer.Parameters["replyUrl"];
-			if (!string.IsNullOrEmpty(issuer.Parameters["metadataUrl"]))
+		private readonly Uri urn;
+
+		public SamlHandler(ClaimProvider issuer) : base(issuer)
+        {
+	        urn = issuer.Identifier;
+	        if (Settings.ContainsKey(urn))
+		        return;
+	        var setting = new SamlSetting
+	        {
+		        Issuer = string.IsNullOrEmpty(issuer.Parameters["issuer"]) ? MultiProtocolIssuer.Identifier.ToString() : issuer.Parameters["issuer"],
+		        ReplyUrl = string.IsNullOrEmpty(issuer.Parameters["replyUrl"]) ? MultiProtocolIssuer.ReplyUrl.ToString() : issuer.Parameters["replyUrl"]
+	        };
+	        if (!string.IsNullOrEmpty(issuer.Parameters["metadataUrl"]))
 			{
-				ParseMetadata(issuer);
+				ParseMetadata(issuer, setting);
 			}
 			else
 			{
-				_signingKeyThumbprint = new[] {issuer.Parameters["signingKeyThumbprint"].ToLowerInvariant()};
-				_identityProviderSSOURL = issuer.Parameters["identityProviderSSOURL"];
-                WantAuthnRequestsSigned = (issuer.Parameters["wantAuthnRequestsSigned"] == "true");
-                _usePost = (issuer.Parameters["usePost"] == "true");
+				setting.SigningKeyThumbprints = new[] {issuer.Parameters["signingKeyThumbprint"].ToLowerInvariant()};
+				setting.IdentityProviderSsoUrl = issuer.Parameters["identityProviderSSOURL"];
+				setting.WantAuthnRequestsSigned = (issuer.Parameters["wantAuthnRequestsSigned"] == "true");
+				setting.UsePost = (issuer.Parameters["usePost"] == "true");
 			}
-			_audienceRestriction = issuer.Parameters["audienceRestriction"];
-			_requestedAuthnContextComparisonMethod = issuer.Parameters["requestedAuthnContextComparisonMethod"];
+	        setting.AudienceRestriction = issuer.Parameters["audienceRestriction"];
+	        setting.RequestedAuthnContextComparisonMethod = issuer.Parameters["requestedAuthnContextComparisonMethod"];
 			var authnContextClassRefs = issuer.Parameters["authnContextClassRefs"];
-			_authnContextClassRefs = !string.IsNullOrWhiteSpace(authnContextClassRefs) ? authnContextClassRefs.Split(',').ToList() : new List<string>();
-			_noRequestedAuthnContext = issuer.Parameters["noRequestedAuthnContext"] == "true";
-		}
+			setting.AuthnContextClassRefs = !string.IsNullOrWhiteSpace(authnContextClassRefs) ? authnContextClassRefs.Split(',').ToList() : new List<string>();
+			setting.NoRequestedAuthnContext = issuer.Parameters["noRequestedAuthnContext"] == "true";
+			Settings.TryAdd(urn, setting);
+        }
 
 
-		private void ParseMetadata(ClaimProvider issuer)
+		private void ParseMetadata(ClaimProvider issuer, SamlSetting setting)
 		{
 			ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
 			var serializer = new MetadataSerializer {CertificateValidationMode = X509CertificateValidationMode.None};
@@ -70,7 +83,7 @@ namespace AuthBridge.Protocols.Saml
 			var entityDescriptor = (EntityDescriptor) metadata;
 			
 			var idpsso = entityDescriptor.RoleDescriptors.OfType<IdentityProviderSingleSignOnDescriptor>().First();
-            WantAuthnRequestsSigned = idpsso.WantAuthenticationRequestsSigned;
+			setting.WantAuthnRequestsSigned = idpsso.WantAuthenticationRequestsSigned;
 
             if (idpsso == null)
 			{
@@ -80,18 +93,18 @@ namespace AuthBridge.Protocols.Saml
 			var postEndpoint = idpsso.SingleSignOnServices.SingleOrDefault(x => x.Binding.ToString() == Saml2Constants.PostBinding);
 			if (postEndpoint != null)
 			{
-				_usePost = true;
-				_identityProviderSSOURL = postEndpoint.Location.ToString();
+				setting.UsePost = true;
+				setting.IdentityProviderSsoUrl = postEndpoint.Location.ToString();
 			}
 			else
 			{
-				_usePost = false;
-				_identityProviderSSOURL = idpsso.SingleSignOnServices.Single(x => x.Binding.ToString() == Saml2Constants.RedirectBinding).Location.ToString();
+				setting.UsePost = false;
+				setting.IdentityProviderSsoUrl = idpsso.SingleSignOnServices.Single(x => x.Binding.ToString() == Saml2Constants.RedirectBinding).Location.ToString();
 			}
-			Logger.Info($"usePost: {_usePost}, identityProviderSSOURL: {_identityProviderSSOURL}");
-			_signingKeyThumbprint = GetSigningKeyThumbprint(idpsso).ToArray();
+			Logger.Info($"usePost: {setting.UsePost}, identityProviderSSOURL: {setting.IdentityProviderSsoUrl}");
+			setting.SigningKeyThumbprints = GetSigningKeyThumbprint(idpsso).ToArray();
 			if(Logger.IsInfoEnabled)
-				Logger.Info($"signing key thumbprints: {string.Join(", ", _signingKeyThumbprint)}");
+				Logger.Info($"signing key thumbprints: {string.Join(", ", setting.SigningKeyThumbprints)}");
 		}
 
 		private static IEnumerable<string> GetSigningKeyThumbprint(RoleDescriptor ssod)
@@ -124,24 +137,29 @@ namespace AuthBridge.Protocols.Saml
 
 		public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
 		{
-			var samlRequest = new AuthRequest(_replyUrl, _issuer, _audienceRestriction, _requestedAuthnContextComparisonMethod, _authnContextClassRefs, _identityProviderSSOURL);
+			var result = Settings.TryGetValue(urn, out var setting);
+			if (!result)
+			{
+				throw new ArgumentException("No settings found for " + urn);
+			}
+			var samlRequest = new AuthRequest(setting.ReplyUrl, setting.Issuer, setting.AudienceRestriction, setting.RequestedAuthnContextComparisonMethod, setting.AuthnContextClassRefs, setting.IdentityProviderSsoUrl);
 			var returnUrl = GetReturnUrlQueryParameterFromUrl(httpContext.Request.UrlConsideringLoadBalancerHeaders().AbsoluteUri);
 
-			if (_usePost)
+			if (setting.UsePost)
 			{
-				var preparedRequest = samlRequest.GetRequest(AuthRequest.AuthRequestFormat.Base64, WantAuthnRequestsSigned? MultiProtocolIssuer.SigningCertificate : null, _noRequestedAuthnContext);
+				var preparedRequest = samlRequest.GetRequest(AuthRequest.AuthRequestFormat.Base64, setting.WantAuthnRequestsSigned? MultiProtocolIssuer.SigningCertificate : null, setting.NoRequestedAuthnContext);
 				var nameValueCollection = new NameValueCollection
 				{
 					{"SAMLRequest", preparedRequest}, {"RelayState", returnUrl}
 				};
-				RedirectWithData(nameValueCollection, _identityProviderSSOURL);
+				RedirectWithData(nameValueCollection, setting.IdentityProviderSsoUrl);
 			}
 			else
 			{
-				var preparedRequest = samlRequest.GetRequest(AuthRequest.AuthRequestFormat.Base64 | AuthRequest.AuthRequestFormat.Compressed | AuthRequest.AuthRequestFormat.UrlEncode, WantAuthnRequestsSigned? MultiProtocolIssuer.SigningCertificate : null, _noRequestedAuthnContext);
-				var redirectUrl = _identityProviderSSOURL.Contains("?")
-					? $"{_identityProviderSSOURL}&SAMLRequest={preparedRequest}&RelayState={returnUrl}"
-					: $"{_identityProviderSSOURL}?SAMLRequest={preparedRequest}&RelayState={returnUrl}";
+				var preparedRequest = samlRequest.GetRequest(AuthRequest.AuthRequestFormat.Base64 | AuthRequest.AuthRequestFormat.Compressed | AuthRequest.AuthRequestFormat.UrlEncode, setting.WantAuthnRequestsSigned? MultiProtocolIssuer.SigningCertificate : null, setting.NoRequestedAuthnContext);
+				var redirectUrl = setting.IdentityProviderSsoUrl.Contains("?")
+					? $"{setting.IdentityProviderSsoUrl}&SAMLRequest={preparedRequest}&RelayState={returnUrl}"
+					: $"{setting.IdentityProviderSsoUrl}?SAMLRequest={preparedRequest}&RelayState={returnUrl}";
 				try
 				{
 					httpContext.Response.Redirect(redirectUrl);
@@ -292,6 +310,7 @@ namespace AuthBridge.Protocols.Saml
 		private void VerifySignatures(XmlDocument xmlDoc)
 		{
 			var isThumbprintCorrect = false;
+			var thumbprint = Settings[urn].SigningKeyThumbprints;
 			foreach (XmlElement item in xmlDoc.SelectNodes("//*[local-name()='Signature']"))
 			{
 				var node = item;
@@ -308,7 +327,7 @@ namespace AuthBridge.Protocols.Saml
 				CheckSignature(signedXml, node);
 				var x509Data = signedXml.Signature.KeyInfo.OfType<KeyInfoX509Data>().First();
 				var cert = x509Data.Certificates.OfType<X509Certificate2>().First();
-				if (cert.Thumbprint != null && Array.IndexOf(_signingKeyThumbprint, cert.Thumbprint.ToLowerInvariant()) > -1)
+				if (cert.Thumbprint != null && Array.IndexOf(thumbprint, cert.Thumbprint.ToLowerInvariant()) > -1)
 				{
 					isThumbprintCorrect = true;
 				}
@@ -340,10 +359,11 @@ namespace AuthBridge.Protocols.Saml
 
 		private bool VerifyAudience(SamlDetail information)
 		{
-			if (string.IsNullOrEmpty(_audienceRestriction))
+			var audienceRestriction = Settings[urn].AudienceRestriction;
+			if (string.IsNullOrEmpty(audienceRestriction))
 				return true;
 
-			return information.AudienceRestrictions.Contains(_audienceRestriction);
+			return information.AudienceRestrictions.Contains(audienceRestriction);
 		}
 	}
 }

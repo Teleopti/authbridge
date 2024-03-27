@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IdentityModel.Metadata;
 using System.Web;
@@ -16,30 +17,42 @@ using System.Xml;
 
 namespace AuthBridge.Protocols.WSFed
 {
+	public class WsFedSetting
+	{
+		public string ReplyUrl { get; set; }
+		public string[] SigningKeyThumbprints { get; set; }
+		public string WsfedEndpoint { get; set; }
+	}
     public class WSFedHandler : ProtocolHandlerBase
     {
-        private string[] _signingKeyThumbprints;
-		private string _wsfedEndpoint;
-		
+	    private static readonly ConcurrentDictionary<Uri, WsFedSetting> Settings = new ConcurrentDictionary<Uri, WsFedSetting>(); 
 		private static readonly ILog Logger = LogManager.GetLogger(typeof(WSFedHandler));
-        private readonly string _replyUrl;
+        
+        private readonly Uri urn;
 
         public WSFedHandler(ClaimProvider issuer)
             : base(issuer)
 		{
-            _replyUrl = string.IsNullOrEmpty(issuer.Parameters["replyUrl"]) ? MultiProtocolIssuer.ReplyUrl.ToString() : issuer.Parameters["replyUrl"];
+			urn = issuer.Identifier;
+			if (Settings.ContainsKey(urn))
+				return;
+			var setting = new WsFedSetting
+			{
+				ReplyUrl = string.IsNullOrEmpty(issuer.Parameters["replyUrl"]) ? MultiProtocolIssuer.ReplyUrl.ToString() : issuer.Parameters["replyUrl"]
+			};
 			if (!string.IsNullOrEmpty(issuer.Parameters["metadataUrl"]))
 			{
-				ParseMetadata(issuer);
+				ParseMetadata(issuer, setting);
 			}
 			else
 			{
-				_signingKeyThumbprints = new [] { issuer.Parameters["signingKeyThumbprint"].ToLowerInvariant() };
-				_wsfedEndpoint = issuer.Parameters["wsfedEndpoint"];
+				setting.SigningKeyThumbprints = new [] { issuer.Parameters["signingKeyThumbprint"].ToLowerInvariant() };
+				setting.WsfedEndpoint = issuer.Parameters["wsfedEndpoint"];
 			}
+			Settings.TryAdd(urn, setting);
         }
 
-	    private void ParseMetadata(ClaimProvider issuer)
+	    private void ParseMetadata(ClaimProvider issuer, WsFedSetting settings)
 	    {
 			ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
 		    var serializer = new MetadataSerializer {CertificateValidationMode = X509CertificateValidationMode.None};
@@ -55,24 +68,29 @@ namespace AuthBridge.Protocols.WSFed
 			    throw new InvalidOperationException("Missing SecurityTokenServiceDescriptor!");
 		    }
 		    Logger.Info($"Got SecurityTokenServiceDescriptor from metadata.");
-		    _wsfedEndpoint = stsd.PassiveRequestorEndpoints.First().Uri.ToString();
-		    Logger.Info($"First PassiveRequestorEndpoint in SecurityTokenServiceDescriptor from metadata: {_wsfedEndpoint}");
+		    settings.WsfedEndpoint = stsd.PassiveRequestorEndpoints.First().Uri.ToString();
+		    Logger.Info($"First PassiveRequestorEndpoint in SecurityTokenServiceDescriptor from metadata: {settings.WsfedEndpoint}");
 		    var x509DataClauses = stsd.Keys.Where(key => key.KeyInfo != null && key.Use == KeyType.Signing)
 			    .Select(key => key.KeyInfo.OfType<X509RawDataKeyIdentifierClause>().First());
 		    var tokens = new List<X509SecurityToken>();
 		    tokens.AddRange(x509DataClauses.Select(token => new X509SecurityToken(new X509Certificate2(token.GetX509RawData()))));
 		    Logger.Info($"Get signing keys: {tokens.Count}");
-		    _signingKeyThumbprints = tokens.Select(t => t.Certificate.Thumbprint.ToLowerInvariant()).ToArray();
+		    settings.SigningKeyThumbprints = tokens.Select(t => t.Certificate.Thumbprint.ToLowerInvariant()).ToArray();
 			if (Logger.IsInfoEnabled)
-				Logger.Info($"signing key thumbprints: {string.Join(", ",_signingKeyThumbprints)}");
+				Logger.Info($"signing key thumbprints: {string.Join(", ",settings.SigningKeyThumbprints)}");
 	    }
 
 
 	    public override void ProcessSignInRequest(Scope scope, HttpContextBase httpContext)
         {
-			Logger.Info($"process signin request! Identifier: {MultiProtocolIssuer.Identifier}, ReplyUrl: {_replyUrl}");
-	        var identityProviderUrl = string.IsNullOrEmpty(_wsfedEndpoint) ? Issuer.Url.ToString() : _wsfedEndpoint;
-	        RequestAuthentication(httpContext, identityProviderUrl, MultiProtocolIssuer.Identifier.ToString(), _replyUrl);
+	        var result = Settings.TryGetValue(urn, out var setting);
+	        if (!result)
+	        {
+		        throw new ArgumentException("No settings found for " + urn);
+	        }
+			Logger.Info($"process signin request! Identifier: {MultiProtocolIssuer.Identifier}, ReplyUrl: {setting.ReplyUrl}");
+	        var identityProviderUrl = string.IsNullOrEmpty(setting.WsfedEndpoint) ? Issuer.Url.ToString() : setting.WsfedEndpoint;
+	        RequestAuthentication(httpContext, identityProviderUrl, MultiProtocolIssuer.Identifier.ToString(), setting.ReplyUrl);
 		}
 
         public override ClaimsIdentity ProcessSignInResponse(string realm, string originalUrl, HttpContextBase httpContext)
@@ -83,7 +101,7 @@ namespace AuthBridge.Protocols.WSFed
 
 			FederatedAuthentication.FederationConfiguration.IdentityConfiguration.AudienceRestriction.AllowedAudienceUris.Add(MultiProtocolIssuer.Identifier);
 			FederatedAuthentication.FederationConfiguration.IdentityConfiguration.SecurityTokenHandlers.Configuration.CertificateValidator = X509CertificateValidator.None;
-			FederatedAuthentication.FederationConfiguration.IdentityConfiguration.SecurityTokenHandlers.Configuration.IssuerNameRegistry = new SimpleIssuerNameRegistry(_signingKeyThumbprints);
+			FederatedAuthentication.FederationConfiguration.IdentityConfiguration.SecurityTokenHandlers.Configuration.IssuerNameRegistry = new SimpleIssuerNameRegistry(Settings[urn].SigningKeyThumbprints);
             var identities = FederatedAuthentication.FederationConfiguration.IdentityConfiguration.SecurityTokenHandlers.ValidateToken(token);
 
             return identities[0];            

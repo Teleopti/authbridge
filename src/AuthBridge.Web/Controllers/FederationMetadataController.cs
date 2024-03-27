@@ -81,8 +81,9 @@ namespace AuthBridge.Web.Controllers
 		    var serviceProviderSingleSignOnDescriptor = new ServiceProviderSingleSignOnDescriptor(indexedProtocolEndpointDictionary);
 			serviceProviderSingleSignOnDescriptor.ProtocolsSupported.Add(new Uri(Saml2Constants.Protocol));
 		    serviceProviderSingleSignOnDescriptor.WantAssertionsSigned = true;
-		    var samlConfiguration = _configuration.RetrieveIssuer(new Uri("urn:Saml"));
-		    if (samlConfiguration != null && ((SamlHandler) DefaultProtocolDiscovery.Instance.RetrieveProtocolHandler(samlConfiguration)).WantAuthnRequestsSigned)
+		    var identifier = new Uri("urn:Saml");
+		    SamlHandler.Settings.TryGetValue(identifier, out var setting);
+		    if (setting != null && setting.WantAuthnRequestsSigned)
 		    {
 			    serviceProviderSingleSignOnDescriptor.AuthenticationRequestsSigned = true;
 			    var signingKey = new KeyDescriptor(credentials.SigningKeyIdentifier) { Use = KeyType.Signing };

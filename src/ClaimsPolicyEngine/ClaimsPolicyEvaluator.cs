@@ -107,6 +107,19 @@ namespace ClaimsPolicyEngine
                 }
             }
 
+            if (!mappedClaims.Any())
+            {
+                var claim = inputClaims.SingleOrDefault(x => x.Type == System.IdentityModel.Claims.ClaimTypes.NameIdentifier);
+                if (claim != null)
+                {
+                    mappedClaims.Add(new Claim(
+                        ClaimTypes.NameIdentifier,
+                        claim.Value,
+                        claim.ValueType,
+                        claim.Issuer,
+                        claim.Issuer));
+                }
+            }
             return mappedClaims;
         }
 
