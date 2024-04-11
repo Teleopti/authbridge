@@ -16,11 +16,9 @@
 	    }
 
 	    public ClaimProvider RetrieveIssuer(Uri identifier)
-        {
-            var configuration = ConfigurationManager.GetSection("authBridge/multiProtocolIssuer") as MultiProtocolIssuerSection;
-            var claimProvider = configuration.ClaimProviders[identifier.ToString()];
-
-            var issuer = claimProvider.ToModel();
+	    {
+		    var issuer = RetrieveIssuers().SingleOrDefault(x => string.Equals(x.Identifier.ToString(),
+			    identifier.ToString(), StringComparison.InvariantCultureIgnoreCase));
             return issuer;
         }
 
