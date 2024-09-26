@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.IO;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Xml;
@@ -105,9 +106,17 @@ namespace AuthBridge.Protocols.Saml
                     keyInstance = rijndaelManaged2;
                     break;
                 default:
-                    var rijndaelManaged3 = new RijndaelManaged();
-                    rijndaelManaged3.KeySize = 256;
-                    keyInstance = rijndaelManaged3;
+                    var algorithmName = ConfigurationManager.AppSettings["SymmetricAlgorithm"];
+                    if (!string.IsNullOrWhiteSpace(algorithmName))
+                    {
+                        keyInstance = SymmetricAlgorithm.Create(algorithmName);
+                    }
+                    else
+                    {
+                        var rijndaelManaged3 = new RijndaelManaged();
+                        rijndaelManaged3.KeySize = 256;
+                        keyInstance = rijndaelManaged3;
+                    }
                     break;
             }
             return keyInstance;
