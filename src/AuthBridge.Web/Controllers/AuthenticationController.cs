@@ -71,6 +71,8 @@ namespace AuthBridge.Web.Controllers
         {
 			Logger.Info("Authenticate!");
 			var homeRealm = Request.QueryString[WSFederationConstants.Parameters.HomeRealm];
+			// validation for Parameters.Context
+			var context = Request.QueryString[WSFederationConstants.Parameters.Context];
 			if (string.IsNullOrEmpty(homeRealm) || string.IsNullOrEmpty(homeRealm.Replace("urn:", "")))
 			{
 				return HomeRealmDiscovery();
