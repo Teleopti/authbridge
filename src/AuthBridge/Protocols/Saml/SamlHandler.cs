@@ -322,7 +322,7 @@ namespace AuthBridge.Protocols.Saml
 					node = (XmlElement)parentNode.SelectSingleNode("*[local-name()='Signature']");
 				}
 
-				var signedXml = new SignedXml((XmlElement)node.ParentNode);
+				var signedXml = new SignedXml(xmlDoc);
 				signedXml.LoadXml(node);
 				CheckSignature(signedXml, node);
 				var x509Data = signedXml.Signature.KeyInfo.OfType<KeyInfoX509Data>().First();
